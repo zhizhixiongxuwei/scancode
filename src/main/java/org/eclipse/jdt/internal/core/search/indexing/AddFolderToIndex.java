@@ -32,13 +32,13 @@ import org.eclipse.jdt.internal.core.util.Util;
 
 public class AddFolderToIndex extends IndexRequest {
 
-    IPath folderPath;
+    public IPath folderPath;
 
-    IProject project;
+    public IProject project;
 
-    char[][] inclusionPatterns;
+    public char[][] inclusionPatterns;
 
-    char[][] exclusionPatterns;
+    public char[][] exclusionPatterns;
 
     public AddFolderToIndex(IPath folderPath, IProject project, char[][] inclusionPatterns, char[][] exclusionPatterns, IndexManager manager) {
         super(project.getFullPath(), manager);

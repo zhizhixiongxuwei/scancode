@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2002, 2016 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2002, 2016 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- * Rational Software - Initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *  Rational Software - Initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.model;
 
 import org.eclipse.cdt.core.model.CModelException;
@@ -19,57 +21,61 @@ import org.eclipse.cdt.core.model.ITemplate;
 
 public class VariableTemplate extends Variable implements ITemplate {
 
-	protected static final String[] fgEmptyList = new String[] {};
-	protected String[] templateParameterTypes;
+    static final public String[] fgEmptyList = new String[] {};
 
-	public VariableTemplate(ICElement parent, String name) {
-		this(parent, name, ICElement.C_TEMPLATE_VARIABLE);
-	}
+    public String[] templateParameterTypes;
 
-	public VariableTemplate(ICElement parent, String name, int kind) {
-		super(parent, name, kind);
-		templateParameterTypes = fgEmptyList;
-	}
+    public VariableTemplate(ICElement parent, String name) {
+        this(parent, name, ICElement.C_TEMPLATE_VARIABLE);
+    }
 
-	@Override
-	public int getNumberOfTemplateParameters() {
-		return templateParameterTypes == null ? 0 : templateParameterTypes.length;
-	}
+    public VariableTemplate(ICElement parent, String name, int kind) {
+        super(parent, name, kind);
+        templateParameterTypes = fgEmptyList;
+    }
 
-	@Override
-	public String[] getTemplateParameterTypes() {
-		return templateParameterTypes;
-	}
+    @Override
+    public int getNumberOfTemplateParameters() {
+        return templateParameterTypes == null ? 0 : templateParameterTypes.length;
+    }
 
-	@Override
-	public String[] getTemplateArguments() {
-		return fgEmptyList;
-	}
+    @Override
+    public String[] getTemplateParameterTypes() {
+        return templateParameterTypes;
+    }
 
-	public void setTemplateParameterTypes(String[] templateParameterTypes) {
-		this.templateParameterTypes = templateParameterTypes;
-	}
+    @Override
+    public String[] getTemplateArguments() {
+        return fgEmptyList;
+    }
 
-	@Override
-	public String getTemplateSignature() throws CModelException {
-		StringBuilder sig = new StringBuilder(getElementName());
-		if (getNumberOfTemplateParameters() > 0) {
-			sig.append("<"); //$NON-NLS-1$
-			String[] paramTypes = getTemplateParameterTypes();
-			int i = 0;
-			sig.append(paramTypes[i++]);
-			while (i < paramTypes.length) {
-				sig.append(", "); //$NON-NLS-1$
-				sig.append(paramTypes[i++]);
-			}
-			sig.append(">"); //$NON-NLS-1$
-		} else {
-			sig.append("<>"); //$NON-NLS-1$
-		}
+    public void setTemplateParameterTypes(String[] templateParameterTypes) {
+        this.templateParameterTypes = templateParameterTypes;
+    }
 
-		sig.append(" : "); //$NON-NLS-1$
-		sig.append(this.getTypeName());
-
-		return sig.toString();
-	}
+    @Override
+    public String getTemplateSignature() throws CModelException {
+        StringBuilder sig = new StringBuilder(getElementName());
+        if (getNumberOfTemplateParameters() > 0) {
+            //$NON-NLS-1$
+            sig.append("<");
+            String[] paramTypes = getTemplateParameterTypes();
+            int i = 0;
+            sig.append(paramTypes[i++]);
+            while (i < paramTypes.length) {
+                //$NON-NLS-1$
+                sig.append(", ");
+                sig.append(paramTypes[i++]);
+            }
+            //$NON-NLS-1$
+            sig.append(">");
+        } else {
+            //$NON-NLS-1$
+            sig.append("<>");
+        }
+        //$NON-NLS-1$
+        sig.append(" : ");
+        sig.append(this.getTypeName());
+        return sig.toString();
+    }
 }

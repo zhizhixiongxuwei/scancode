@@ -22,9 +22,9 @@ import org.eclipse.jdt.core.IJavaElement;
  */
 public class RecoveredVariableBinding implements IVariableBinding {
 
-    private final VariableDeclaration variableDeclaration;
+    final public VariableDeclaration variableDeclaration;
 
-    private final BindingResolver resolver;
+    final public BindingResolver resolver;
 
     RecoveredVariableBinding(BindingResolver resolver, VariableDeclaration variableDeclaration) {
         this.resolver = resolver;
@@ -111,8 +111,9 @@ public class RecoveredVariableBinding implements IVariableBinding {
         //$NON-NLS-1$
         buffer.append("Recovered#");
         if (this.variableDeclaration != null) {
-            buffer.append(//$NON-NLS-1$
-            "variableDeclaration").append(this.variableDeclaration.getClass()).append(this.variableDeclaration.getName().getIdentifier()).append(this.variableDeclaration.getExtraDimensions());
+            //$NON-NLS-1$
+            buffer.//$NON-NLS-1$
+            append("variableDeclaration").append(this.variableDeclaration.getClass()).append(this.variableDeclaration.getName().getIdentifier()).append(this.variableDeclaration.getExtraDimensions());
         }
         return String.valueOf(buffer);
     }

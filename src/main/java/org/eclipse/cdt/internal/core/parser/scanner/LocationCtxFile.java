@@ -27,15 +27,15 @@ import org.eclipse.cdt.core.dom.ast.IASTPreprocessorMacroExpansion;
  */
 public class LocationCtxFile extends LocationCtxContainer {
 
-    private final String fFilename;
+    final public String fFilename;
 
-    private final ASTInclusionStatement fASTInclude;
+    final public ASTInclusionStatement fASTInclude;
 
-    private final boolean fIsSource;
+    final public boolean fIsSource;
 
-    private boolean fInsideIncludeExportBlock;
+    public boolean fInsideIncludeExportBlock;
 
-    private int fOffsetOfIncludeExport = -1;
+    public int fOffsetOfIncludeExport = -1;
 
     public LocationCtxFile(LocationCtxContainer parent, String filename, AbstractCharArray source, int parentOffset, int parentEndOffset, int sequenceNumber, ASTInclusionStatement inclusionStatement, boolean isSource) {
         super(parent, source, parentOffset, parentEndOffset, sequenceNumber);

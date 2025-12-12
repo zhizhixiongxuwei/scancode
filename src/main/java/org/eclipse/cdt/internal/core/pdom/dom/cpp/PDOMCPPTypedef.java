@@ -38,10 +38,10 @@ import org.eclipse.core.runtime.CoreException;
  */
 public class PDOMCPPTypedef extends PDOMCPPBinding implements ITypedef, ITypeContainer, IIndexType {
 
-    private static final int TYPE_OFFSET = PDOMBinding.RECORD_SIZE;
+    static final public int TYPE_OFFSET = PDOMBinding.RECORD_SIZE;
 
     @SuppressWarnings("hiding")
-    protected static final int RECORD_SIZE = TYPE_OFFSET + Database.TYPE_SIZE;
+    static final public int RECORD_SIZE = TYPE_OFFSET + Database.TYPE_SIZE;
 
     public PDOMCPPTypedef(PDOMLinkage linkage, PDOMNode parent, ITypedef typedef) throws CoreException {
         super(linkage, parent, typedef.getNameCharArray());

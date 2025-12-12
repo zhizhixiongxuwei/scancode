@@ -1,23 +1,24 @@
-/*******************************************************************************
- * Copyright (c) 2008, 2013 Institute for Software, HSR Hochschule fuer Technik
- * Rapperswil, University of applied sciences and others
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2008, 2013 Institute for Software, HSR Hochschule fuer Technik
+ *  Rapperswil, University of applied sciences and others
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Institute for Software - initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *      Institute for Software - initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.rewrite.astwriter;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import org.eclipse.cdt.core.dom.ast.ASTVisitor;
 import org.eclipse.cdt.core.dom.ast.IASTNode;
 import org.eclipse.cdt.core.dom.ast.IASTTranslationUnit;
@@ -31,44 +32,45 @@ import org.eclipse.cdt.internal.core.dom.parser.ASTNode;
  * @author Emanuel Graf IFS
  */
 public class ContainerNode extends ASTNode {
-	private final ArrayList<IASTNode> nodes = new ArrayList<>();
 
-	public ContainerNode(IASTNode... nodes) {
-		Collections.addAll(this.nodes, nodes);
-	}
+    final public ArrayList<IASTNode> nodes = new ArrayList<>();
 
-	@Override
-	public ContainerNode copy() {
-		return copy(CopyStyle.withoutLocations);
-	}
+    public ContainerNode(IASTNode... nodes) {
+        Collections.addAll(this.nodes, nodes);
+    }
 
-	@Override
-	public ContainerNode copy(CopyStyle style) {
-		ContainerNode copy = new ContainerNode();
-		for (IASTNode node : getNodes()) {
-			copy.addNode(node == null ? null : node.copy(style));
-		}
-		return copy(copy, style);
-	}
+    @Override
+    public ContainerNode copy() {
+        return copy(CopyStyle.withoutLocations);
+    }
 
-	public void addNode(IASTNode node) {
-		nodes.add(node);
-	}
+    @Override
+    public ContainerNode copy(CopyStyle style) {
+        ContainerNode copy = new ContainerNode();
+        for (IASTNode node : getNodes()) {
+            copy.addNode(node == null ? null : node.copy(style));
+        }
+        return copy(copy, style);
+    }
 
-	@Override
-	public boolean accept(ASTVisitor visitor) {
-		boolean ret = true;
-		for (IASTNode node : nodes) {
-			ret = node.accept(visitor);
-		}
-		return ret;
-	}
+    public void addNode(IASTNode node) {
+        nodes.add(node);
+    }
 
-	public IASTTranslationUnit getTu() {
-		return null;
-	}
+    @Override
+    public boolean accept(ASTVisitor visitor) {
+        boolean ret = true;
+        for (IASTNode node : nodes) {
+            ret = node.accept(visitor);
+        }
+        return ret;
+    }
 
-	public List<IASTNode> getNodes() {
-		return Collections.unmodifiableList(nodes);
-	}
+    public IASTTranslationUnit getTu() {
+        return null;
+    }
+
+    public List<IASTNode> getNodes() {
+        return Collections.unmodifiableList(nodes);
+    }
 }

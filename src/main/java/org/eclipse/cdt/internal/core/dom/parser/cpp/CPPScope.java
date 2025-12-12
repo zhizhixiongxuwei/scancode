@@ -1,21 +1,23 @@
-/*******************************************************************************
- * Copyright (c) 2004, 2015 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2004, 2015 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Andrew Niefer (IBM Corporation) - initial API and implementation
- *     Markus Schorn (Wind River Systems)
- *     Bryan Wilkinson (QNX)
- *     Andrew Ferguson (Symbian)
- *     Jens Elmenthaler - http://bugs.eclipse.org/173458 (camel case completion)
- *     Sergey Prigogin (Google)
- *******************************************************************************/
+ *  Contributors:
+ *      Andrew Niefer (IBM Corporation) - initial API and implementation
+ *      Markus Schorn (Wind River Systems)
+ *      Bryan Wilkinson (QNX)
+ *      Andrew Ferguson (Symbian)
+ *      Jens Elmenthaler - http://bugs.eclipse.org/173458 (camel case completion)
+ *      Sergey Prigogin (Google)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.parser.cpp;
 
 import org.eclipse.cdt.core.CCorePlugin;
@@ -59,376 +61,369 @@ import org.eclipse.core.runtime.NullProgressMonitor;
  * Base class for c++-scopes of the AST.
  */
 abstract public class CPPScope implements ICPPASTInternalScope {
-	protected static final char[] CONSTRUCTOR_KEY = "!!!CTOR!!!".toCharArray(); //$NON-NLS-1$
-	private static final IProgressMonitor NPM = new NullProgressMonitor();
-	private static final ICPPNamespace UNINITIALIZED = new CPPNamespace.CPPNamespaceProblem(null, 0, null);
 
-	private final IASTNode physicalNode;
-	private boolean isCached = false;
-	protected CharArrayObjectMap<Object> bindings;
-	private ICPPNamespace fIndexNamespace = UNINITIALIZED;
+    //$NON-NLS-1$
+    static final public char[] CONSTRUCTOR_KEY = "!!!CTOR!!!".toCharArray();
 
-	public static class CPPScopeProblem extends ProblemBinding implements ICPPScope {
-		public CPPScopeProblem(IASTNode node, int id, char[] arg) {
-			super(node, id, arg);
-		}
+    static final public IProgressMonitor NPM = new NullProgressMonitor();
 
-		public CPPScopeProblem(IASTName name, int id) {
-			super(name, id);
-		}
-	}
+    static final public ICPPNamespace UNINITIALIZED = new CPPNamespace.CPPNamespaceProblem(null, 0, null);
 
-	public CPPScope(IASTNode physicalNode) {
-		this.physicalNode = physicalNode;
-	}
+    final public IASTNode physicalNode;
 
-	@Override
-	public IScope getParent() {
-		return CPPVisitor.getContainingNonTemplateScope(physicalNode);
-	}
+    public boolean isCached = false;
 
-	@Override
-	public IASTNode getPhysicalNode() {
-		return physicalNode;
-	}
+    protected CharArrayObjectMap<Object> bindings;
 
-	@Override
-	@SuppressWarnings({ "unchecked" })
-	public void addName(IASTName name, boolean adlOnly) {
-		// Don't add inactive names to the scope.
-		if (!name.isActive())
-			return;
+    private ICPPNamespace fIndexNamespace = UNINITIALIZED;
 
-		if (name instanceof ICPPASTQualifiedName && !(physicalNode instanceof ICPPASTCompositeTypeSpecifier)
-				&& !(physicalNode instanceof ICPPASTNamespaceDefinition)) {
-			return;
-		}
+    public static class CPPScopeProblem extends ProblemBinding implements ICPPScope {
 
-		if (bindings == null)
-			bindings = new CharArrayObjectMap<>(1);
+        public CPPScopeProblem(IASTNode node, int id, char[] arg) {
+            super(node, id, arg);
+        }
 
-		final char[] c = name.getLookupKey();
-		if (c.length == 0)
-			return;
-		Object o = bindings.get(c);
-		if (o != null) {
-			if (o instanceof ObjectSet) {
-				((ObjectSet<Object>) o).put(name);
-			} else {
-				ObjectSet<Object> temp = new ObjectSet<>(2);
-				temp.put(o);
-				temp.put(name);
-				bindings.put(c, temp);
-			}
-		} else {
-			bindings.put(c, name);
-		}
-	}
+        public CPPScopeProblem(IASTName name, int id) {
+            super(name, id);
+        }
+    }
 
-	@Override
-	public IBinding getBinding(IASTName name, boolean forceResolve, IIndexFileSet fileSet) {
-		final ScopeLookupData lookup = new ScopeLookupData(name, forceResolve, false);
-		lookup.setIgnorePointOfDeclaration(true);
-		IBinding[] bs = getBindingsInAST(lookup);
-		IBinding binding = CPPSemantics.resolveAmbiguities(name, bs);
-		if (binding == null && forceResolve) {
-			final IASTTranslationUnit tu = name.getTranslationUnit();
-			IIndex index = tu == null ? null : tu.getIndex();
-			if (index != null) {
-				final char[] nchars = name.getLookupKey();
-				// Try looking this up in the index.
-				if (physicalNode instanceof IASTTranslationUnit) {
-					try {
-						IBinding[] bindings = index.findBindings(nchars,
-								IndexFilter.CPP_DECLARED_OR_IMPLICIT_NO_INSTANCE, NPM);
-						if (fileSet != null) {
-							bindings = fileSet.filterFileLocalBindings(bindings);
-						}
-						binding = CPPSemantics.resolveAmbiguities(name, bindings);
-						if (binding instanceof ICPPUsingDeclaration) {
-							binding = CPPSemantics.resolveAmbiguities(name,
-									((ICPPUsingDeclaration) binding).getDelegates());
-						}
-					} catch (CoreException e) {
-						CCorePlugin.log(e);
-					}
-				} else {
-					ICPPNamespace nsbinding = getNamespaceIndexBinding(index);
-					if (nsbinding != null) {
-						return nsbinding.getNamespaceScope().getBinding(name, forceResolve, fileSet);
-					}
-				}
-			}
-		}
-		return binding;
-	}
+    public CPPScope(IASTNode physicalNode) {
+        this.physicalNode = physicalNode;
+    }
 
-	protected ICPPNamespace getNamespaceIndexBinding(IIndex index) {
-		if (fIndexNamespace == UNINITIALIZED) {
-			fIndexNamespace = null;
-			IASTNode node = getPhysicalNode();
-			if (node instanceof ICPPASTNamespaceDefinition) {
-				IASTName nsname = ((ICPPASTNamespaceDefinition) node).getName();
-				IBinding nsbinding = nsname.resolveBinding();
-				if (nsbinding != null) {
-					fIndexNamespace = (ICPPNamespace) index.adaptBinding(nsbinding);
-				}
-			}
-		}
-		return fIndexNamespace;
-	}
+    @Override
+    public IScope getParent() {
+        return CPPVisitor.getContainingNonTemplateScope(physicalNode);
+    }
 
-	/**
-	 * @deprecated Use {@link #getBindings(ScopeLookupData)} instead
-	 */
-	@Deprecated
-	@Override
-	public final IBinding[] getBindings(IASTName name, boolean resolve, boolean prefixLookup, IIndexFileSet fileSet) {
-		return getBindings(new ScopeLookupData(name, resolve, prefixLookup));
-	}
+    @Override
+    public IASTNode getPhysicalNode() {
+        return physicalNode;
+    }
 
-	@Override
-	public IBinding[] getBindings(ScopeLookupData lookup) {
-		IBinding[] result = getBindingsInAST(lookup);
-		final IASTTranslationUnit tu = lookup.getTranslationUnit();
-		if (tu != null) {
-			IIndex index = tu.getIndex();
-			if (index != null) {
-				IIndexFileSet fileSet = lookup.getIncludedFiles();
-				if (physicalNode instanceof IASTTranslationUnit) {
-					try {
-						IndexFilter filter = IndexFilter.CPP_DECLARED_OR_IMPLICIT_NO_INSTANCE;
-						final char[] nchars = lookup.getLookupKey();
-						IBinding[] bindings = lookup.isPrefixLookup()
-								? index.findBindingsForContentAssist(nchars, true, filter, null)
-								: index.findBindings(nchars, filter, null);
-						// if using promiscuous binding resolution, allow finding local bindings in index
-						// to help refactoring with typedefs and using declarations which are now local bindings
-						if (fileSet != null && !CPPSemantics.isUsingPromiscuousBindingResolution()) {
-							bindings = fileSet.filterFileLocalBindings(bindings);
-						}
-						result = ArrayUtil.addAll(IBinding.class, result, bindings);
-					} catch (CoreException e) {
-						CCorePlugin.log(e);
-					}
-				} else if (physicalNode instanceof ICPPASTNamespaceDefinition) {
-					ICPPASTNamespaceDefinition ns = (ICPPASTNamespaceDefinition) physicalNode;
-					try {
-						IIndexBinding binding = index.findBinding(ns.getName());
-						if (binding instanceof ICPPNamespace) {
-							ICPPNamespaceScope indexNs = ((ICPPNamespace) binding).getNamespaceScope();
-							IBinding[] bindings = indexNs.getBindings(lookup);
-							for (IBinding candidate : bindings) {
-								if (lookup.isPrefixLookup()
-										|| CPPSemantics.declaredBefore(candidate, lookup.getLookupPoint(), true)) {
-									result = ArrayUtil.append(result, candidate);
-								}
-							}
-						}
-					} catch (CoreException e) {
-						CCorePlugin.log(e);
-					}
-				}
+    @Override
+    @SuppressWarnings({ "unchecked" })
+    public void addName(IASTName name, boolean adlOnly) {
+        // Don't add inactive names to the scope.
+        if (!name.isActive())
+            return;
+        if (name instanceof ICPPASTQualifiedName && !(physicalNode instanceof ICPPASTCompositeTypeSpecifier) && !(physicalNode instanceof ICPPASTNamespaceDefinition)) {
+            return;
+        }
+        if (bindings == null)
+            bindings = new CharArrayObjectMap<>(1);
+        final char[] c = name.getLookupKey();
+        if (c.length == 0)
+            return;
+        Object o = bindings.get(c);
+        if (o != null) {
+            if (o instanceof ObjectSet) {
+                ((ObjectSet<Object>) o).put(name);
+            } else {
+                ObjectSet<Object> temp = new ObjectSet<>(2);
+                temp.put(o);
+                temp.put(name);
+                bindings.put(c, temp);
+            }
+        } else {
+            bindings.put(c, name);
+        }
+    }
 
-				// Deduction guides are not visible to ordinary name lookup
-				if (result.length > 0) {
-					result = ArrayUtil.filter(result, lookup.isDeductionGuidesOnly() ? CPPSemantics.opIsDeductionGuide
-							: CPPSemantics.opIsNotDeductionGuide);
-				}
-			}
-		}
+    @Override
+    public IBinding getBinding(IASTName name, boolean forceResolve, IIndexFileSet fileSet) {
+        final ScopeLookupData lookup = new ScopeLookupData(name, forceResolve, false);
+        lookup.setIgnorePointOfDeclaration(true);
+        IBinding[] bs = getBindingsInAST(lookup);
+        IBinding binding = CPPSemantics.resolveAmbiguities(name, bs);
+        if (binding == null && forceResolve) {
+            final IASTTranslationUnit tu = name.getTranslationUnit();
+            IIndex index = tu == null ? null : tu.getIndex();
+            if (index != null) {
+                final char[] nchars = name.getLookupKey();
+                // Try looking this up in the index.
+                if (physicalNode instanceof IASTTranslationUnit) {
+                    try {
+                        IBinding[] bindings = index.findBindings(nchars, IndexFilter.CPP_DECLARED_OR_IMPLICIT_NO_INSTANCE, NPM);
+                        if (fileSet != null) {
+                            bindings = fileSet.filterFileLocalBindings(bindings);
+                        }
+                        binding = CPPSemantics.resolveAmbiguities(name, bindings);
+                        if (binding instanceof ICPPUsingDeclaration) {
+                            binding = CPPSemantics.resolveAmbiguities(name, ((ICPPUsingDeclaration) binding).getDelegates());
+                        }
+                    } catch (CoreException e) {
+                        CCorePlugin.log(e);
+                    }
+                } else {
+                    ICPPNamespace nsbinding = getNamespaceIndexBinding(index);
+                    if (nsbinding != null) {
+                        return nsbinding.getNamespaceScope().getBinding(name, forceResolve, fileSet);
+                    }
+                }
+            }
+        }
+        return binding;
+    }
 
-		return ArrayUtil.trim(IBinding.class, result);
-	}
+    protected ICPPNamespace getNamespaceIndexBinding(IIndex index) {
+        if (fIndexNamespace == UNINITIALIZED) {
+            fIndexNamespace = null;
+            IASTNode node = getPhysicalNode();
+            if (node instanceof ICPPASTNamespaceDefinition) {
+                IASTName nsname = ((ICPPASTNamespaceDefinition) node).getName();
+                IBinding nsbinding = nsname.resolveBinding();
+                if (nsbinding != null) {
+                    fIndexNamespace = (ICPPNamespace) index.adaptBinding(nsbinding);
+                }
+            }
+        }
+        return fIndexNamespace;
+    }
 
-	protected boolean nameIsVisibleToLookup(ScopeLookupData lookup) {
-		return true;
-	}
+    /**
+     * @deprecated Use {@link #getBindings(ScopeLookupData)} instead
+     */
+    @Deprecated
+    @Override
+    public final IBinding[] getBindings(IASTName name, boolean resolve, boolean prefixLookup, IIndexFileSet fileSet) {
+        return getBindings(new ScopeLookupData(name, resolve, prefixLookup));
+    }
 
-	public IBinding[] getBindingsInAST(ScopeLookupData lookup) {
-		populateCache();
-		final char[] c = lookup.getLookupKey();
-		IBinding[] result = IBinding.EMPTY_BINDING_ARRAY;
-		if (!nameIsVisibleToLookup(lookup)) {
-			return result;
-		}
+    @Override
+    public IBinding[] getBindings(ScopeLookupData lookup) {
+        IBinding[] result = getBindingsInAST(lookup);
+        final IASTTranslationUnit tu = lookup.getTranslationUnit();
+        if (tu != null) {
+            IIndex index = tu.getIndex();
+            if (index != null) {
+                IIndexFileSet fileSet = lookup.getIncludedFiles();
+                if (physicalNode instanceof IASTTranslationUnit) {
+                    try {
+                        IndexFilter filter = IndexFilter.CPP_DECLARED_OR_IMPLICIT_NO_INSTANCE;
+                        final char[] nchars = lookup.getLookupKey();
+                        IBinding[] bindings = lookup.isPrefixLookup() ? index.findBindingsForContentAssist(nchars, true, filter, null) : index.findBindings(nchars, filter, null);
+                        // if using promiscuous binding resolution, allow finding local bindings in index
+                        // to help refactoring with typedefs and using declarations which are now local bindings
+                        if (fileSet != null && !CPPSemantics.isUsingPromiscuousBindingResolution()) {
+                            bindings = fileSet.filterFileLocalBindings(bindings);
+                        }
+                        result = ArrayUtil.addAll(IBinding.class, result, bindings);
+                    } catch (CoreException e) {
+                        CCorePlugin.log(e);
+                    }
+                } else if (physicalNode instanceof ICPPASTNamespaceDefinition) {
+                    ICPPASTNamespaceDefinition ns = (ICPPASTNamespaceDefinition) physicalNode;
+                    try {
+                        IIndexBinding binding = index.findBinding(ns.getName());
+                        if (binding instanceof ICPPNamespace) {
+                            ICPPNamespaceScope indexNs = ((ICPPNamespace) binding).getNamespaceScope();
+                            IBinding[] bindings = indexNs.getBindings(lookup);
+                            for (IBinding candidate : bindings) {
+                                if (lookup.isPrefixLookup() || CPPSemantics.declaredBefore(candidate, lookup.getLookupPoint(), true)) {
+                                    result = ArrayUtil.append(result, candidate);
+                                }
+                            }
+                        }
+                    } catch (CoreException e) {
+                        CCorePlugin.log(e);
+                    }
+                }
+                // Deduction guides are not visible to ordinary name lookup
+                if (result.length > 0) {
+                    result = ArrayUtil.filter(result, lookup.isDeductionGuidesOnly() ? CPPSemantics.opIsDeductionGuide : CPPSemantics.opIsNotDeductionGuide);
+                }
+            }
+        }
+        return ArrayUtil.trim(IBinding.class, result);
+    }
 
-		Object obj = null;
-		if (lookup.isPrefixLookup()) {
-			char[][] keys = bindings != null ? bindings.keys() : CharArrayUtils.EMPTY_ARRAY_OF_CHAR_ARRAYS;
-			ObjectSet<Object> all = new ObjectSet<>(16);
-			IContentAssistMatcher matcher = ContentAssistMatcherFactory.getInstance().createMatcher(c);
-			for (char[] key : keys) {
-				if (key != CONSTRUCTOR_KEY && matcher.match(key)) {
-					obj = bindings.get(key);
-					if (obj instanceof ObjectSet<?>) {
-						all.addAll((ObjectSet<?>) obj);
-					} else if (obj != null) {
-						all.put(obj);
-					}
-				}
-			}
-			obj = all;
-		} else {
-			obj = bindings != null ? bindings.get(c) : null;
-		}
+    protected boolean nameIsVisibleToLookup(ScopeLookupData lookup) {
+        return true;
+    }
 
-		if (obj != null) {
-			if (obj instanceof ObjectSet<?>) {
-				ObjectSet<?> os = (ObjectSet<?>) obj;
-				for (int j = 0; j < os.size(); j++) {
-					result = addCandidate(os.keyAt(j), lookup, result);
-				}
-			} else {
-				result = addCandidate(obj, lookup, result);
-			}
-		}
-		return ArrayUtil.trim(result);
-	}
+    public IBinding[] getBindingsInAST(ScopeLookupData lookup) {
+        populateCache();
+        final char[] c = lookup.getLookupKey();
+        IBinding[] result = IBinding.EMPTY_BINDING_ARRAY;
+        if (!nameIsVisibleToLookup(lookup)) {
+            return result;
+        }
+        Object obj = null;
+        if (lookup.isPrefixLookup()) {
+            char[][] keys = bindings != null ? bindings.keys() : CharArrayUtils.EMPTY_ARRAY_OF_CHAR_ARRAYS;
+            ObjectSet<Object> all = new ObjectSet<>(16);
+            IContentAssistMatcher matcher = ContentAssistMatcherFactory.getInstance().createMatcher(c);
+            for (char[] key : keys) {
+                if (key != CONSTRUCTOR_KEY && matcher.match(key)) {
+                    obj = bindings.get(key);
+                    if (obj instanceof ObjectSet<?>) {
+                        all.addAll((ObjectSet<?>) obj);
+                    } else if (obj != null) {
+                        all.put(obj);
+                    }
+                }
+            }
+            obj = all;
+        } else {
+            obj = bindings != null ? bindings.get(c) : null;
+        }
+        if (obj != null) {
+            if (obj instanceof ObjectSet<?>) {
+                ObjectSet<?> os = (ObjectSet<?>) obj;
+                for (int j = 0; j < os.size(); j++) {
+                    result = addCandidate(os.keyAt(j), lookup, result);
+                }
+            } else {
+                result = addCandidate(obj, lookup, result);
+            }
+        }
+        return ArrayUtil.trim(result);
+    }
 
-	private boolean isInsideClassScope(IScope scope) {
-		try {
-			return scope instanceof ICPPClassScope
-					|| (scope instanceof ICPPEnumScope && scope.getParent() instanceof ICPPClassScope);
-		} catch (DOMException e) {
-			return false;
-		}
-	}
+    private boolean isInsideClassScope(IScope scope) {
+        try {
+            return scope instanceof ICPPClassScope || (scope instanceof ICPPEnumScope && scope.getParent() instanceof ICPPClassScope);
+        } catch (DOMException e) {
+            return false;
+        }
+    }
 
-	private IBinding[] addCandidate(Object candidate, ScopeLookupData lookup, IBinding[] result) {
-		final IASTNode point = lookup.getLookupPoint();
-		if (!lookup.isIgnorePointOfDeclaration()) {
-			IASTTranslationUnit tu = point.getTranslationUnit();
-			if (!CPPSemantics.declaredBefore(candidate, point, tu != null && tu.getIndex() != null)) {
-				if (!isInsideClassScope(this) || !LookupData.checkWholeClassScope(lookup.getLookupName()))
-					return result;
-			}
-		}
+    private IBinding[] addCandidate(Object candidate, ScopeLookupData lookup, IBinding[] result) {
+        final IASTNode point = lookup.getLookupPoint();
+        if (!lookup.isIgnorePointOfDeclaration()) {
+            IASTTranslationUnit tu = point.getTranslationUnit();
+            if (!CPPSemantics.declaredBefore(candidate, point, tu != null && tu.getIndex() != null)) {
+                if (!isInsideClassScope(this) || !LookupData.checkWholeClassScope(lookup.getLookupName()))
+                    return result;
+            }
+        }
+        IBinding binding;
+        if (candidate instanceof IASTName) {
+            final IASTName candName = (IASTName) candidate;
+            IASTName simpleName = candName.getLastName();
+            if (simpleName instanceof ICPPASTTemplateId) {
+                simpleName = ((ICPPASTTemplateId) simpleName).getTemplateName();
+            }
+            if (lookup.isResolve() && candName != point && simpleName != point) {
+                // Make sure to resolve the template-id
+                candName.resolvePreBinding();
+                binding = simpleName.resolvePreBinding();
+            } else {
+                binding = simpleName.getPreBinding();
+            }
+        } else {
+            binding = (IBinding) candidate;
+        }
+        // Deduction guides are not visible to ordinary name lookup
+        if (lookup.isDeductionGuidesOnly() ^ binding instanceof ICPPDeductionGuide) {
+            return result;
+        }
+        if (binding != null)
+            result = ArrayUtil.append(result, binding);
+        return result;
+    }
 
-		IBinding binding;
-		if (candidate instanceof IASTName) {
-			final IASTName candName = (IASTName) candidate;
-			IASTName simpleName = candName.getLastName();
-			if (simpleName instanceof ICPPASTTemplateId) {
-				simpleName = ((ICPPASTTemplateId) simpleName).getTemplateName();
-			}
-			if (lookup.isResolve() && candName != point && simpleName != point) {
-				candName.resolvePreBinding(); // Make sure to resolve the template-id
-				binding = simpleName.resolvePreBinding();
-			} else {
-				binding = simpleName.getPreBinding();
-			}
-		} else {
-			binding = (IBinding) candidate;
-		}
+    @Override
+    public final void populateCache() {
+        if (!isCached) {
+            // set to true before doing the work, to avoid recursion
+            isCached = true;
+            CPPSemantics.populateCache(this);
+        }
+    }
 
-		// Deduction guides are not visible to ordinary name lookup
-		if (lookup.isDeductionGuidesOnly() ^ binding instanceof ICPPDeductionGuide) {
-			return result;
-		}
+    @Override
+    public void removeNestedFromCache(IASTNode container) {
+        if (bindings != null) {
+            removeFromMap(bindings, container);
+        }
+    }
 
-		if (binding != null)
-			result = ArrayUtil.append(result, binding);
-		return result;
-	}
+    private void removeFromMap(CharArrayObjectMap<Object> map, IASTNode container) {
+        for (int i = 0; i < map.size(); i++) {
+            Object o = map.getAt(i);
+            if (o instanceof IASTName) {
+                if (container.contains((IASTNode) o)) {
+                    final char[] key = map.keyAt(i);
+                    map.remove(key, 0, key.length);
+                    i--;
+                }
+            } else if (o instanceof ObjectSet) {
+                @SuppressWarnings("unchecked")
+                final ObjectSet<Object> set = (ObjectSet<Object>) o;
+                removeFromSet(set, container);
+            }
+        }
+    }
 
-	@Override
-	public final void populateCache() {
-		if (!isCached) {
-			isCached = true; // set to true before doing the work, to avoid recursion
-			CPPSemantics.populateCache(this);
-		}
-	}
+    private void removeFromSet(ObjectSet<Object> set, IASTNode container) {
+        for (int i = 0; i < set.size(); i++) {
+            Object o = set.keyAt(i);
+            if (o instanceof IASTName) {
+                if (container.contains((IASTNode) o)) {
+                    set.remove(o);
+                    i--;
+                }
+            }
+        }
+    }
 
-	@Override
-	public void removeNestedFromCache(IASTNode container) {
-		if (bindings != null) {
-			removeFromMap(bindings, container);
-		}
-	}
+    @Override
+    public IBinding[] find(String name, IASTTranslationUnit tu) {
+        return find(name);
+    }
 
-	private void removeFromMap(CharArrayObjectMap<Object> map, IASTNode container) {
-		for (int i = 0; i < map.size(); i++) {
-			Object o = map.getAt(i);
-			if (o instanceof IASTName) {
-				if (container.contains((IASTNode) o)) {
-					final char[] key = map.keyAt(i);
-					map.remove(key, 0, key.length);
-					i--;
-				}
-			} else if (o instanceof ObjectSet) {
-				@SuppressWarnings("unchecked")
-				final ObjectSet<Object> set = (ObjectSet<Object>) o;
-				removeFromSet(set, container);
-			}
-		}
-	}
+    @Override
+    public IBinding[] find(String name) {
+        return CPPSemantics.findBindings(this, name, false);
+    }
 
-	private void removeFromSet(ObjectSet<Object> set, IASTNode container) {
-		for (int i = 0; i < set.size(); i++) {
-			Object o = set.keyAt(i);
-			if (o instanceof IASTName) {
-				if (container.contains((IASTNode) o)) {
-					set.remove(o);
-					i--;
-				}
-			}
-		}
-	}
+    @Override
+    @SuppressWarnings({ "unchecked" })
+    public void addBinding(IBinding binding) {
+        if (bindings == null)
+            bindings = new CharArrayObjectMap<>(1);
+        char[] c = binding.getNameCharArray();
+        if (c.length == 0) {
+            return;
+        }
+        Object o = bindings.get(c);
+        if (o != null) {
+            if (o instanceof ObjectSet) {
+                ((ObjectSet<Object>) o).put(binding);
+            } else {
+                ObjectSet<Object> set = new ObjectSet<>(2);
+                set.put(o);
+                set.put(binding);
+                bindings.put(c, set);
+            }
+        } else {
+            bindings.put(c, binding);
+        }
+    }
 
-	@Override
-	public IBinding[] find(String name, IASTTranslationUnit tu) {
-		return find(name);
-	}
+    @Override
+    public final IBinding getBinding(IASTName name, boolean resolve) {
+        return getBinding(name, resolve, IIndexFileSet.EMPTY);
+    }
 
-	@Override
-	public IBinding[] find(String name) {
-		return CPPSemantics.findBindings(this, name, false);
-	}
+    @Override
+    public final IBinding[] getBindings(IASTName name, boolean resolve, boolean prefix) {
+        return getBindings(new ScopeLookupData(name, resolve, prefix));
+    }
 
-	@Override
-	@SuppressWarnings({ "unchecked" })
-	public void addBinding(IBinding binding) {
-		if (bindings == null)
-			bindings = new CharArrayObjectMap<>(1);
-		char[] c = binding.getNameCharArray();
-		if (c.length == 0) {
-			return;
-		}
-		Object o = bindings.get(c);
-		if (o != null) {
-			if (o instanceof ObjectSet) {
-				((ObjectSet<Object>) o).put(binding);
-			} else {
-				ObjectSet<Object> set = new ObjectSet<>(2);
-				set.put(o);
-				set.put(binding);
-				bindings.put(c, set);
-			}
-		} else {
-			bindings.put(c, binding);
-		}
-	}
+    @Override
+    public IName getScopeName() {
+        return null;
+    }
 
-	@Override
-	public final IBinding getBinding(IASTName name, boolean resolve) {
-		return getBinding(name, resolve, IIndexFileSet.EMPTY);
-	}
-
-	@Override
-	public final IBinding[] getBindings(IASTName name, boolean resolve, boolean prefix) {
-		return getBindings(new ScopeLookupData(name, resolve, prefix));
-	}
-
-	@Override
-	public IName getScopeName() {
-		return null;
-	}
-
-	@Override
-	public String toString() {
-		IName name = getScopeName();
-		final String n = name != null ? name.toString() : "<unnamed scope>"; //$NON-NLS-1$
-		return getKind().toString() + ' ' + n + ' ' + '(' + super.toString() + ')';
-	}
+    @Override
+    public String toString() {
+        IName name = getScopeName();
+        //$NON-NLS-1$
+        final String n = name != null ? name.toString() : "<unnamed scope>";
+        return getKind().toString() + ' ' + n + ' ' + '(' + super.toString() + ')';
+    }
 }

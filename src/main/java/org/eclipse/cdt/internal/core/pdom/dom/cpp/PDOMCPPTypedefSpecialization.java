@@ -32,10 +32,10 @@ import org.eclipse.core.runtime.CoreException;
 
 public class PDOMCPPTypedefSpecialization extends PDOMCPPSpecialization implements ITypedef, ITypeContainer, IIndexType {
 
-    private static final int TYPE_OFFSET = PDOMCPPSpecialization.RECORD_SIZE + 0;
+    static final public int TYPE_OFFSET = PDOMCPPSpecialization.RECORD_SIZE + 0;
 
     @SuppressWarnings("hiding")
-    protected static final int RECORD_SIZE = TYPE_OFFSET + Database.TYPE_SIZE;
+    static final public int RECORD_SIZE = TYPE_OFFSET + Database.TYPE_SIZE;
 
     public PDOMCPPTypedefSpecialization(PDOMCPPLinkage linkage, PDOMNode parent, ITypedef typedef, PDOMBinding specialized) throws CoreException {
         super(linkage, parent, (ICPPSpecialization) typedef, specialized);

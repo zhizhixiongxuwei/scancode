@@ -1,22 +1,22 @@
-/*******************************************************************************
- * Copyright (c) 2009, 2011 Andrew Gvozdev (Quoin Inc.) and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2009, 2011 Andrew Gvozdev (Quoin Inc.) and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Andrew Gvozdev (Quoin Inc.) - initial API and implementation
- *******************************************************************************/
-
+ *  Contributors:
+ *      Andrew Gvozdev (Quoin Inc.) - initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.core.errorparsers;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.eclipse.cdt.core.CCorePlugin;
 import org.eclipse.cdt.core.ErrorParserManager;
 import org.eclipse.cdt.core.IErrorParser;
@@ -35,144 +35,146 @@ import org.eclipse.cdt.core.IErrorParserNamed;
  * @since 5.2
  */
 public class RegexErrorParser implements IErrorParserNamed {
-	private String fId;
-	private String fName;
-	private final List<RegexErrorPattern> fPatterns = new ArrayList<>();
 
-	/**
-	 * Default constructor will initialize the error parser with the name of the class
-	 * using reflection mechanism.
-	 */
-	public RegexErrorParser() {
-		fName = this.getClass().getSimpleName();
-		fId = this.getClass().getCanonicalName();
-	}
+    public String fId;
 
-	/**
-	 * Constructor to initialize ID and name of the error parser.
-	 *
-	 * @param id - ID of the error parser.
-	 * @param name - name of the error parser.
-	 */
-	public RegexErrorParser(String id, String name) {
-		fName = name;
-		fId = id;
-	}
+    public String fName;
 
-	/**
-	 * Set error parser ID.
-	 *
-	 * @param id of error parser
-	 */
-	@Override
-	public void setId(String id) {
-		fId = id;
-	}
+    final public List<RegexErrorPattern> fPatterns = new ArrayList<>();
 
-	/**
-	 * Set error parser name.
-	 *
-	 * @param name of error parser
-	 */
-	@Override
-	public void setName(String name) {
-		fName = name;
-	}
+    /**
+     * Default constructor will initialize the error parser with the name of the class
+     * using reflection mechanism.
+     */
+    public RegexErrorParser() {
+        fName = this.getClass().getSimpleName();
+        fId = this.getClass().getCanonicalName();
+    }
 
-	/**
-	 * Add new {@link RegexErrorPattern}.
-	 *
-	 * @param pattern - new pattern
-	 */
-	public void addPattern(RegexErrorPattern pattern) {
-		fPatterns.add(pattern);
-	}
+    /**
+     * Constructor to initialize ID and name of the error parser.
+     *
+     * @param id - ID of the error parser.
+     * @param name - name of the error parser.
+     */
+    public RegexErrorParser(String id, String name) {
+        fName = name;
+        fId = id;
+    }
 
-	/**
-	 * Remove error pattern from processing.
-	 *
-	 * @param pattern - error pattern to remove
-	 */
-	public void removePattern(RegexErrorPattern pattern) {
-		fPatterns.remove(pattern);
-	}
+    /**
+     * Set error parser ID.
+     *
+     * @param id of error parser
+     */
+    @Override
+    public void setId(String id) {
+        fId = id;
+    }
 
-	/**
-	 * Remove all error patterns.
-	 */
-	public void clearPatterns() {
-		fPatterns.clear();
-	}
+    /**
+     * Set error parser name.
+     *
+     * @param name of error parser
+     */
+    @Override
+    public void setName(String name) {
+        fName = name;
+    }
 
-	/**
-	 * Method toString() for debugging purposes.
-	 */
-	@Override
-	public String toString() {
-		return "id=" + fId + ", name=" + fName; //$NON-NLS-1$//$NON-NLS-2$
-	}
+    /**
+     * Add new {@link RegexErrorPattern}.
+     *
+     * @param pattern - new pattern
+     */
+    public void addPattern(RegexErrorPattern pattern) {
+        fPatterns.add(pattern);
+    }
 
-	/**
-	 * @return id of error parser
-	 */
-	@Override
-	public String getId() {
-		return fId;
-	}
+    /**
+     * Remove error pattern from processing.
+     *
+     * @param pattern - error pattern to remove
+     */
+    public void removePattern(RegexErrorPattern pattern) {
+        fPatterns.remove(pattern);
+    }
 
-	/**
-	 * @return name of error parser
-	 */
-	@Override
-	public String getName() {
-		return fName;
-	}
+    /**
+     * Remove all error patterns.
+     */
+    public void clearPatterns() {
+        fPatterns.clear();
+    }
 
-	/**
-	 * @return array of error patterns of this error parser.
-	 */
-	public RegexErrorPattern[] getPatterns() {
-		return fPatterns.toArray(new RegexErrorPattern[0]);
-	}
+    /**
+     * Method toString() for debugging purposes.
+     */
+    @Override
+    public String toString() {
+        //$NON-NLS-1$//$NON-NLS-2$
+        return "id=" + fId + ", name=" + fName;
+    }
 
-	/**
-	 * Parse a line of build output and register errors/warnings/infos for
-	 * Problems view in internal list of {@link ErrorParserManager}.
-	 *
-	 * @param line - line of the input
-	 * @param epManager - error parsers manager
-	 * @return true if error parser recognized and accepted line, false otherwise
-	 */
-	@Override
-	public boolean processLine(String line, ErrorParserManager epManager) {
-		for (RegexErrorPattern pattern : fPatterns)
-			try {
-				if (pattern.processLine(line, epManager))
-					return true;
-			} catch (Exception e) {
-				String message = "Error parsing line [" + line + "]"; //$NON-NLS-1$//$NON-NLS-2$
-				CCorePlugin.log(message, e);
-			}
+    /**
+     * @return id of error parser
+     */
+    @Override
+    public String getId() {
+        return fId;
+    }
 
-		return false;
-	}
+    /**
+     * @return name of error parser
+     */
+    @Override
+    public String getName() {
+        return fName;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (o instanceof RegexErrorParser) {
-			RegexErrorParser that = (RegexErrorParser) o;
-			return this.fId.equals(that.fId) && this.fName.equals(that.fName) && this.fPatterns.equals(that.fPatterns);
-		}
-		return false;
+    /**
+     * @return array of error patterns of this error parser.
+     */
+    public RegexErrorPattern[] getPatterns() {
+        return fPatterns.toArray(new RegexErrorPattern[0]);
+    }
 
-	}
+    /**
+     * Parse a line of build output and register errors/warnings/infos for
+     * Problems view in internal list of {@link ErrorParserManager}.
+     *
+     * @param line - line of the input
+     * @param epManager - error parsers manager
+     * @return true if error parser recognized and accepted line, false otherwise
+     */
+    @Override
+    public boolean processLine(String line, ErrorParserManager epManager) {
+        for (RegexErrorPattern pattern : fPatterns) try {
+            if (pattern.processLine(line, epManager))
+                return true;
+        } catch (Exception e) {
+            //$NON-NLS-1$//$NON-NLS-2$
+            String message = "Error parsing line [" + line + "]";
+            CCorePlugin.log(message, e);
+        }
+        return false;
+    }
 
-	@Override
-	public Object clone() throws CloneNotSupportedException {
-		RegexErrorParser that = new RegexErrorParser(fId, fName);
-		for (RegexErrorPattern pattern : fPatterns) {
-			that.addPattern((RegexErrorPattern) pattern.clone());
-		}
-		return that;
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof RegexErrorParser) {
+            RegexErrorParser that = (RegexErrorParser) o;
+            return this.fId.equals(that.fId) && this.fName.equals(that.fName) && this.fPatterns.equals(that.fPatterns);
+        }
+        return false;
+    }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        RegexErrorParser that = new RegexErrorParser(fId, fName);
+        for (RegexErrorPattern pattern : fPatterns) {
+            that.addPattern((RegexErrorPattern) pattern.clone());
+        }
+        return that;
+    }
 }

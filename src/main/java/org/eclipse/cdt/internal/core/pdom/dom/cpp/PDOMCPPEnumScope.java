@@ -47,7 +47,7 @@ import org.eclipse.core.runtime.CoreException;
  */
 public class PDOMCPPEnumScope implements ICPPEnumScope, IIndexScope {
 
-    private final IPDOMCPPEnumType fBinding;
+    final public IPDOMCPPEnumType fBinding;
 
     public PDOMCPPEnumScope(IPDOMCPPEnumType binding) {
         fBinding = binding;

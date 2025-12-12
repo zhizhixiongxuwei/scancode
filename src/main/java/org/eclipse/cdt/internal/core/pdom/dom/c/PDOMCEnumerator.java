@@ -34,10 +34,10 @@ import org.eclipse.core.runtime.CoreException;
  */
 public class PDOMCEnumerator extends PDOMBinding implements IEnumerator {
 
-    private static final int VALUE = PDOMBinding.RECORD_SIZE + 0;
+    static final public int VALUE = PDOMBinding.RECORD_SIZE + 0;
 
     @SuppressWarnings("hiding")
-    protected static final int RECORD_SIZE = VALUE + 4;
+    static final public int RECORD_SIZE = VALUE + 4;
 
     public PDOMCEnumerator(PDOMLinkage linkage, PDOMNode parent, IEnumerator enumerator) throws CoreException {
         super(linkage, parent, enumerator.getNameCharArray());

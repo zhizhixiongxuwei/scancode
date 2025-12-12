@@ -1,22 +1,23 @@
-/*******************************************************************************
- * Copyright (c) 2006, 2012 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2006, 2012 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *      IBM Corporation - initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.core.dom.parser;
 
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
-
 import org.eclipse.cdt.core.model.ICLanguageKeywords;
 import org.eclipse.cdt.core.parser.KeywordSetKey;
 import org.eclipse.cdt.core.parser.ParserLanguage;
@@ -31,65 +32,70 @@ import org.eclipse.cdt.internal.core.parser.token.KeywordSets;
  * @since 5.1
  */
 public class CLanguageKeywords implements ICLanguageKeywords {
-	private final ParserLanguage language;
-	private final IScannerExtensionConfiguration config;
 
-	// lazily initialized
-	private String[] keywords = null;
-	private String[] builtinTypes = null;
-	private String[] preprocessorKeywords = null;
+    final public ParserLanguage language;
 
-	/**
-	 * @throws NullPointerException if either parameter is null
-	 */
-	public CLanguageKeywords(ParserLanguage language, IScannerExtensionConfiguration config) {
-		if (language == null)
-			throw new NullPointerException("language is null"); //$NON-NLS-1$
-		if (config == null)
-			throw new NullPointerException("config is null"); //$NON-NLS-1$
+    final public IScannerExtensionConfiguration config;
 
-		this.language = language;
-		this.config = config;
-	}
+    // lazily initialized
+    public String[] keywords = null;
 
-	@Override
-	public String[] getKeywords() {
-		if (keywords == null) {
-			Set<String> keywordSet = new HashSet<>(KeywordSets.getKeywords(KeywordSetKey.KEYWORDS, language));
-			CharArrayIntMap additionalKeywords = config.getAdditionalKeywords();
-			if (additionalKeywords != null) {
-				for (Iterator<char[]> iterator = additionalKeywords.toList().iterator(); iterator.hasNext();) {
-					char[] name = iterator.next();
-					keywordSet.add(new String(name));
-				}
-			}
-			keywords = keywordSet.toArray(new String[keywordSet.size()]);
-		}
-		return keywords;
-	}
+    public String[] builtinTypes = null;
 
-	@Override
-	public String[] getBuiltinTypes() {
-		if (builtinTypes == null) {
-			Set<String> types = KeywordSets.getKeywords(KeywordSetKey.TYPES, language);
-			builtinTypes = types.toArray(new String[types.size()]);
-		}
-		return builtinTypes;
-	}
+    public String[] preprocessorKeywords = null;
 
-	@Override
-	public String[] getPreprocessorKeywords() {
-		if (preprocessorKeywords == null) {
-			Set<String> keywords = new HashSet<>(KeywordSets.getKeywords(KeywordSetKey.PP_DIRECTIVE, language));
-			CharArrayIntMap additionalKeywords = config.getAdditionalPreprocessorKeywords();
-			if (additionalKeywords != null) {
-				for (Iterator<char[]> iterator = additionalKeywords.toList().iterator(); iterator.hasNext();) {
-					char[] name = iterator.next();
-					keywords.add(new String(name));
-				}
-			}
-			preprocessorKeywords = keywords.toArray(new String[keywords.size()]);
-		}
-		return preprocessorKeywords;
-	}
+    /**
+     * @throws NullPointerException if either parameter is null
+     */
+    public CLanguageKeywords(ParserLanguage language, IScannerExtensionConfiguration config) {
+        if (language == null)
+            //$NON-NLS-1$
+            throw new NullPointerException("language is null");
+        if (config == null)
+            //$NON-NLS-1$
+            throw new NullPointerException("config is null");
+        this.language = language;
+        this.config = config;
+    }
+
+    @Override
+    public String[] getKeywords() {
+        if (keywords == null) {
+            Set<String> keywordSet = new HashSet<>(KeywordSets.getKeywords(KeywordSetKey.KEYWORDS, language));
+            CharArrayIntMap additionalKeywords = config.getAdditionalKeywords();
+            if (additionalKeywords != null) {
+                for (Iterator<char[]> iterator = additionalKeywords.toList().iterator(); iterator.hasNext(); ) {
+                    char[] name = iterator.next();
+                    keywordSet.add(new String(name));
+                }
+            }
+            keywords = keywordSet.toArray(new String[keywordSet.size()]);
+        }
+        return keywords;
+    }
+
+    @Override
+    public String[] getBuiltinTypes() {
+        if (builtinTypes == null) {
+            Set<String> types = KeywordSets.getKeywords(KeywordSetKey.TYPES, language);
+            builtinTypes = types.toArray(new String[types.size()]);
+        }
+        return builtinTypes;
+    }
+
+    @Override
+    public String[] getPreprocessorKeywords() {
+        if (preprocessorKeywords == null) {
+            Set<String> keywords = new HashSet<>(KeywordSets.getKeywords(KeywordSetKey.PP_DIRECTIVE, language));
+            CharArrayIntMap additionalKeywords = config.getAdditionalPreprocessorKeywords();
+            if (additionalKeywords != null) {
+                for (Iterator<char[]> iterator = additionalKeywords.toList().iterator(); iterator.hasNext(); ) {
+                    char[] name = iterator.next();
+                    keywords.add(new String(name));
+                }
+            }
+            preprocessorKeywords = keywords.toArray(new String[keywords.size()]);
+        }
+        return preprocessorKeywords;
+    }
 }

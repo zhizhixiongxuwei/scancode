@@ -36,16 +36,16 @@ public class PDOMCPPConcept extends PDOMCPPBinding implements ICPPConcept, IPDOM
      * Offset of RecPtr to record holding template parameters (relative to the beginning of the record).
      * Field size: PDOMCPPBinding.RECORD_SIZE
      */
-    private static final int TEMPLATE_PARAMS = PDOMCPPBinding.RECORD_SIZE + 0;
+    static final public int TEMPLATE_PARAMS = PDOMCPPBinding.RECORD_SIZE + 0;
 
     /**
      * The size in bytes of a PDOMCPPConcept record in the database.
      */
     @SuppressWarnings("hiding")
-    protected static final int RECORD_SIZE = TEMPLATE_PARAMS + PDOMCPPBinding.RECORD_SIZE;
+    static final public int RECORD_SIZE = TEMPLATE_PARAMS + PDOMCPPBinding.RECORD_SIZE;
 
     // Cached template parameters.
-    private volatile IPDOMCPPTemplateParameter[] parameters;
+    volatile public IPDOMCPPTemplateParameter[] parameters;
 
     public PDOMCPPConcept(PDOMCPPLinkage linkage, PDOMNode parent, ICPPConcept concept) throws CoreException, DOMException {
         super(linkage, parent, concept.getNameCharArray());

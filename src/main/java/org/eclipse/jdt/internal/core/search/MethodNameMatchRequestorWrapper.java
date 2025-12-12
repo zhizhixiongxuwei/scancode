@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2015 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2015 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *      IBM Corporation - initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.jdt.internal.core.search;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -22,6 +24,7 @@ import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.MethodNameMatchRequestor;
 import org.eclipse.jdt.core.search.MethodNameRequestor;
 import org.eclipse.jdt.internal.compiler.env.AccessRestriction;
+
 /**
  * Wrapper used to link {@link IRestrictedAccessMethodRequestor} with {@link MethodNameRequestor}.
  * This wrapper specifically allows usage of internal method {@link BasicSearchEngine#searchAllMethodNames(
@@ -51,44 +54,42 @@ import org.eclipse.jdt.internal.compiler.env.AccessRestriction;
  * int waitingPolicy,
  * IProgressMonitor progressMonitor)}.
  */
-
 public class MethodNameMatchRequestorWrapper extends NameMatchRequestorWrapper implements IRestrictedAccessMethodRequestor {
 
-	MethodNameMatchRequestor requestor;
+    public MethodNameMatchRequestor requestor;
 
-	public MethodNameMatchRequestorWrapper(MethodNameMatchRequestor requestor, IJavaSearchScope scope) {
-		super(scope);
-		this.requestor = requestor;
-	}
+    public MethodNameMatchRequestorWrapper(MethodNameMatchRequestor requestor, IJavaSearchScope scope) {
+        super(scope);
+        this.requestor = requestor;
+    }
 
-	@Override
-	public void acceptMethod(char[] methodName, int parameterCount, char[] declaringQualifier,
-			char[] simpleTypeName, int typeModifiers, char[] packageName, char[] signature, char[][] parameterTypes,
-			char[][] parameterNames, char[] returnType, int modifiers, String path,
-			AccessRestriction access, int methodIndex) {
-		// Get the type
-		char[][] enclosingTypeNames = declaringQualifier != null && declaringQualifier.length > 0 ? CharOperation.splitOn('.', declaringQualifier) : CharOperation.NO_CHAR_CHAR;
-		IType type = getType(typeModifiers, packageName, simpleTypeName, enclosingTypeNames, path, access);
-		if (type == null) return;
-		if (!(!(this.scope instanceof HierarchyScope) || ((HierarchyScope) this.scope).enclosesFineGrained(type))) return;
-		parameterTypes = parameterTypes == null ? CharOperation.NO_CHAR_CHAR : parameterTypes;
-		String[] paramTypeSigs = CharOperation.NO_STRINGS;
-		if (signature != null) {
-			char[][] parTypes = Signature.getParameterTypes(signature);
-			if (parTypes.length > 0) {
-				for (char[] parType : parTypes) {
-					CharOperation.replace(parType, '/', '.');
-				}
-			}
-			paramTypeSigs = CharOperation.toStrings(parTypes);
-		} else if (parameterTypes.length > 0) {
-			int l = parameterTypes.length;
-			paramTypeSigs = new String[l];
-			for (int i = 0; i < l; ++i) {
-				paramTypeSigs[i] = Signature.createTypeSignature(parameterTypes[i], false);
-			}
-		}
-		IMethod method = type.getMethod(new String(methodName), paramTypeSigs);
-		this.requestor.acceptMethodNameMatch(new JavaSearchMethodNameMatch(method, modifiers));
-	}
+    @Override
+    public void acceptMethod(char[] methodName, int parameterCount, char[] declaringQualifier, char[] simpleTypeName, int typeModifiers, char[] packageName, char[] signature, char[][] parameterTypes, char[][] parameterNames, char[] returnType, int modifiers, String path, AccessRestriction access, int methodIndex) {
+        // Get the type
+        char[][] enclosingTypeNames = declaringQualifier != null && declaringQualifier.length > 0 ? CharOperation.splitOn('.', declaringQualifier) : CharOperation.NO_CHAR_CHAR;
+        IType type = getType(typeModifiers, packageName, simpleTypeName, enclosingTypeNames, path, access);
+        if (type == null)
+            return;
+        if (!(!(this.scope instanceof HierarchyScope) || ((HierarchyScope) this.scope).enclosesFineGrained(type)))
+            return;
+        parameterTypes = parameterTypes == null ? CharOperation.NO_CHAR_CHAR : parameterTypes;
+        String[] paramTypeSigs = CharOperation.NO_STRINGS;
+        if (signature != null) {
+            char[][] parTypes = Signature.getParameterTypes(signature);
+            if (parTypes.length > 0) {
+                for (char[] parType : parTypes) {
+                    CharOperation.replace(parType, '/', '.');
+                }
+            }
+            paramTypeSigs = CharOperation.toStrings(parTypes);
+        } else if (parameterTypes.length > 0) {
+            int l = parameterTypes.length;
+            paramTypeSigs = new String[l];
+            for (int i = 0; i < l; ++i) {
+                paramTypeSigs[i] = Signature.createTypeSignature(parameterTypes[i], false);
+            }
+        }
+        IMethod method = type.getMethod(new String(methodName), paramTypeSigs);
+        this.requestor.acceptMethodNameMatch(new JavaSearchMethodNameMatch(method, modifiers));
+    }
 }

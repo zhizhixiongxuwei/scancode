@@ -30,9 +30,9 @@ import java.util.Collections;
  */
 public class OnDemandReduction {
 
-    final ImportName containerOnDemand;
+    final public ImportName containerOnDemand;
 
-    final Collection<ImportName> reducibleImports;
+    final public Collection<ImportName> reducibleImports;
 
     OnDemandReduction(ImportName containerName, Collection<ImportName> reducibleImports) {
         this.containerOnDemand = containerName;

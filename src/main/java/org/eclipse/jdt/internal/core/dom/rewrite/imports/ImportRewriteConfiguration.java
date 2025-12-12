@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2015 Google Inc and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2015 Google Inc and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     John Glassmyer <jogl@google.com> - import group sorting is broken - https://bugs.eclipse.org/430303
- *******************************************************************************/
+ *  Contributors:
+ *      John Glassmyer <jogl@google.com> - import group sorting is broken - https://bugs.eclipse.org/430303
+ * *****************************************************************************
+ */
 package org.eclipse.jdt.internal.core.dom.rewrite.imports;
 
 import java.util.ArrayList;
@@ -31,254 +33,277 @@ import org.eclipse.jdt.internal.core.JavaProject;
  * The starting points are the two static factory methods of {@link Builder}.
  */
 public final class ImportRewriteConfiguration {
-	public enum OriginalImportHandling {
-		/**
-		 * Specifies to discard original imports and totally sort all new imports, as in the case of
-		 * the "Organize Imports" operation.
-		 */
-		DISCARD {
-			@Override
-			boolean shouldRemoveOriginalImports() {
-				return true;
-			}
 
-			@Override
-			boolean shouldFixAllLineDelimiters() {
-				return true;
-			}
+    public enum OriginalImportHandling {
 
-			@Override
-			ImportAdder createImportAdder(Comparator<ImportName> importComparator) {
-				return new ReorderingImportAdder(importComparator);
-			}
-		},
-		/**
-		 * Specifies to keep original imports in their original order, placing each newly added
-		 * import adjacent to the original import that it most closely matches.
-		 */
-		PRESERVE_IN_ORDER {
-			@Override
-			boolean shouldRemoveOriginalImports() {
-				return false;
-			}
+        /**
+         * Specifies to discard original imports and totally sort all new imports, as in the case of
+         * the "Organize Imports" operation.
+         */
+        DISCARD {
 
-			@Override
-			boolean shouldFixAllLineDelimiters() {
-				return false;
-			}
+            @Override
+            boolean shouldRemoveOriginalImports() {
+                return true;
+            }
 
-			@Override
-			ImportAdder createImportAdder(Comparator<ImportName> importComparator) {
-				return new OrderPreservingImportAdder(importComparator);
-			}
-		},
-		;
+            @Override
+            boolean shouldFixAllLineDelimiters() {
+                return true;
+            }
 
-		/**
-		 * If true, ImportRewriteAnalyzer will, during its initialization, mark all original imports
-		 * for removal.
-		 */
-		abstract boolean shouldRemoveOriginalImports();
+            @Override
+            ImportAdder createImportAdder(Comparator<ImportName> importComparator) {
+                return new ReorderingImportAdder(importComparator);
+            }
+        }
+        ,
+        /**
+         * Specifies to keep original imports in their original order, placing each newly added
+         * import adjacent to the original import that it most closely matches.
+         */
+        PRESERVE_IN_ORDER {
 
-		/**
-		 * If true, line delimiters will be standardized between every pair of adjacent imports.
-		 * Otherwise, line delimiters will be corrected only between pairs of adjacent imports that
-		 * were not adjacent originally.
-		 */
-		abstract boolean shouldFixAllLineDelimiters();
+            @Override
+            boolean shouldRemoveOriginalImports() {
+                return false;
+            }
 
-		/**
-		 * Creates the {@link ImportAdder} which will combine and order new and existing imports
-		 * together.
-		 */
-		abstract ImportAdder createImportAdder(Comparator<ImportName> importComparator);
-	}
+            @Override
+            boolean shouldFixAllLineDelimiters() {
+                return false;
+            }
 
-	/**
-	 * Specifies how to sort import declarations by their packages and/or containing types.
-	 */
-	public enum ImportContainerSorting {
-		/**
-		 * Sorts imports by each import's package and any containing types, in lexicographic order.
-		 * For example (assuming that all of the imports belong to the same import group):
-		 * <pre>
-		 * import java.net.Socket;
-		 * import java.util.Map;
-		 * import java.util.Set;
-		 * import java.util.Map.Entry;
-		 * </pre>
-		 */
-		BY_PACKAGE_AND_CONTAINING_TYPE {
-			@Override
-			Comparator<ImportName> createContainerComparator(JavaProject javaProject) {
-				return new PackageAndContainingTypeImportComparator();
-			}
-		},
+            @Override
+            ImportAdder createImportAdder(Comparator<ImportName> importComparator) {
+                return new OrderPreservingImportAdder(importComparator);
+            }
+        }
+        ;
 
-		/**
-		 * Sorts imports by each import's package, in lexicographic order. For example (assuming all
-		 * of the imports belong to the same import group):
-		 * <pre>
-		 * import java.net.Socket;
-		 * import java.util.Map;
-		 * import java.util.Map.Entry;
-		 * import java.util.Set;
-		 * </pre>
-		 */
-		BY_PACKAGE {
-			@Override
-			Comparator<ImportName> createContainerComparator(JavaProject javaProject) {
-				return new PackageImportComparator(javaProject);
-			}
-		},
-		;
+        /**
+         * If true, ImportRewriteAnalyzer will, during its initialization, mark all original imports
+         * for removal.
+         */
+        abstract boolean shouldRemoveOriginalImports();
 
-		abstract Comparator<ImportName> createContainerComparator(JavaProject javaProject);
-	}
+        /**
+         * If true, line delimiters will be standardized between every pair of adjacent imports.
+         * Otherwise, line delimiters will be corrected only between pairs of adjacent imports that
+         * were not adjacent originally.
+         */
+        abstract boolean shouldFixAllLineDelimiters();
 
-	/**
-	 * Specifies which types are considered to be implicitly imported.
-	 * <p>
-	 * An import declaration of such a type will not be added to the compilation unit unless it is
-	 * needed to resolve a conflict with an on-demand imports, or the type's simple name has been
-	 * specified with {@link ImportRewriteAnalyzer#requireExplicitImport}.
-	 * <p>
-	 * Also, implicitly imported types will be considered for conflicts when deciding which types
-	 * from other packages can be reduced into on-demand imports. E.g. if java.lang.Integer were
-	 * considered to be implicitly imported, that would prevent an import of com.example.Integer
-	 * from being reduced into an on-demand import of com.example.*.
-	 */
-	public enum ImplicitImportIdentification {
-		/**
-		 * Specifies that types from the following packages are considered to be implicitly
-		 * imported:
-		 * <ul>
-		 * <li>java.lang</li>
-		 * <li>the package of the compilation unit being rewritten</li>
-		 * </ul>
-		 */
-		JAVA_LANG_AND_CU_PACKAGE {
-			@Override
-			Set<String> determineImplicitImportContainers(ICompilationUnit compilationUnit) {
-				Set<String> implicitImportContainerNames = new HashSet<>();
+        /**
+         * Creates the {@link ImportAdder} which will combine and order new and existing imports
+         * together.
+         */
+        abstract ImportAdder createImportAdder(Comparator<ImportName> importComparator);
+    }
 
-				implicitImportContainerNames.add("java.lang"); //$NON-NLS-1$
+    /**
+     * Specifies how to sort import declarations by their packages and/or containing types.
+     */
+    public enum ImportContainerSorting {
 
-				IJavaElement packageFragment = compilationUnit.getParent();
-				String compilationUnitPackageName = packageFragment.getElementName();
-				if (compilationUnitPackageName.isEmpty() && !packageFragment.exists() && compilationUnit.exists()) {
-					/*
+        /**
+         * Sorts imports by each import's package and any containing types, in lexicographic order.
+         * For example (assuming that all of the imports belong to the same import group):
+         * <pre>
+         * import java.net.Socket;
+         * import java.util.Map;
+         * import java.util.Set;
+         * import java.util.Map.Entry;
+         * </pre>
+         */
+        BY_PACKAGE_AND_CONTAINING_TYPE {
+
+            @Override
+            Comparator<ImportName> createContainerComparator(JavaProject javaProject) {
+                return new PackageAndContainingTypeImportComparator();
+            }
+        }
+        ,
+        /**
+         * Sorts imports by each import's package, in lexicographic order. For example (assuming all
+         * of the imports belong to the same import group):
+         * <pre>
+         * import java.net.Socket;
+         * import java.util.Map;
+         * import java.util.Map.Entry;
+         * import java.util.Set;
+         * </pre>
+         */
+        BY_PACKAGE {
+
+            @Override
+            Comparator<ImportName> createContainerComparator(JavaProject javaProject) {
+                return new PackageImportComparator(javaProject);
+            }
+        }
+        ;
+
+        abstract Comparator<ImportName> createContainerComparator(JavaProject javaProject);
+    }
+
+    /**
+     * Specifies which types are considered to be implicitly imported.
+     * <p>
+     * An import declaration of such a type will not be added to the compilation unit unless it is
+     * needed to resolve a conflict with an on-demand imports, or the type's simple name has been
+     * specified with {@link ImportRewriteAnalyzer#requireExplicitImport}.
+     * <p>
+     * Also, implicitly imported types will be considered for conflicts when deciding which types
+     * from other packages can be reduced into on-demand imports. E.g. if java.lang.Integer were
+     * considered to be implicitly imported, that would prevent an import of com.example.Integer
+     * from being reduced into an on-demand import of com.example.*.
+     */
+    public enum ImplicitImportIdentification {
+
+        /**
+         * Specifies that types from the following packages are considered to be implicitly
+         * imported:
+         * <ul>
+         * <li>java.lang</li>
+         * <li>the package of the compilation unit being rewritten</li>
+         * </ul>
+         */
+        JAVA_LANG_AND_CU_PACKAGE {
+
+            @Override
+            Set<String> determineImplicitImportContainers(ICompilationUnit compilationUnit) {
+                Set<String> implicitImportContainerNames = new HashSet<>();
+                //$NON-NLS-1$
+                implicitImportContainerNames.add("java.lang");
+                IJavaElement packageFragment = compilationUnit.getParent();
+                String compilationUnitPackageName = packageFragment.getElementName();
+                if (compilationUnitPackageName.isEmpty() && !packageFragment.exists() && compilationUnit.exists()) {
+                    /*
 					 * For a file outside of the build path, JavaCore#create(IFile) creates an
 					 * ICompilationUnit with the file's parent folder as package fragment root, and a default package.
 					 * That "wrong" package is problematic for the ImportRewrite, since it doesn't get filtered
 					 * and eventually leads to unused import statements.
 					 */
-					try {
-						IPackageDeclaration[] packageDeclarations = compilationUnit.getPackageDeclarations();
-						if (packageDeclarations.length > 0) {
-							implicitImportContainerNames.add(packageDeclarations[0].getElementName());
-							return implicitImportContainerNames;
-						}
-					} catch (JavaModelException e) {
-						// continue
-					}
-				}
-				implicitImportContainerNames.add(compilationUnitPackageName);
+                    try {
+                        IPackageDeclaration[] packageDeclarations = compilationUnit.getPackageDeclarations();
+                        if (packageDeclarations.length > 0) {
+                            implicitImportContainerNames.add(packageDeclarations[0].getElementName());
+                            return implicitImportContainerNames;
+                        }
+                    } catch (JavaModelException e) {
+                        // continue
+                    }
+                }
+                implicitImportContainerNames.add(compilationUnitPackageName);
+                return implicitImportContainerNames;
+            }
+        }
+        ,
+        /**
+         * Specifies that no types are considered to be implicitly imported.
+         */
+        NONE {
 
-				return implicitImportContainerNames;
-			}
-		},
-		/**
-		 * Specifies that no types are considered to be implicitly imported.
-		 */
-		NONE {
-			@Override
-			Set<String> determineImplicitImportContainers(ICompilationUnit compilationUnit) {
-				return Collections.emptySet();
-			}
-		},
-		;
+            @Override
+            Set<String> determineImplicitImportContainers(ICompilationUnit compilationUnit) {
+                return Collections.emptySet();
+            }
+        }
+        ;
 
-		abstract Set<String> determineImplicitImportContainers(ICompilationUnit compilationUnit);
-	}
+        abstract Set<String> determineImplicitImportContainers(ICompilationUnit compilationUnit);
+    }
 
-	public static class Builder {
-		public static Builder discardingOriginalImports() {
-			return new Builder(OriginalImportHandling.DISCARD);
-		}
+    public static class Builder {
 
-		public static Builder preservingOriginalImports() {
-			return new Builder(OriginalImportHandling.PRESERVE_IN_ORDER);
-		}
+        public static Builder discardingOriginalImports() {
+            return new Builder(OriginalImportHandling.DISCARD);
+        }
 
-		final OriginalImportHandling originalImportHandling;
-		ImportContainerSorting typeContainerSorting;
-		ImportContainerSorting staticContainerSorting;
-		ImplicitImportIdentification implicitImportIdentification;
-		List<String> importOrder;
-		Integer typeOnDemandThreshold;
-		Integer staticOnDemandThreshold;
+        public static Builder preservingOriginalImports() {
+            return new Builder(OriginalImportHandling.PRESERVE_IN_ORDER);
+        }
 
-		private Builder(OriginalImportHandling originalImportHandling) {
-			this.originalImportHandling = originalImportHandling;
-			this.typeContainerSorting = ImportContainerSorting.BY_PACKAGE;
-			this.staticContainerSorting = ImportContainerSorting.BY_PACKAGE_AND_CONTAINING_TYPE;
-			this.implicitImportIdentification = ImplicitImportIdentification.JAVA_LANG_AND_CU_PACKAGE;
-			this.importOrder = Collections.emptyList();
-			this.typeOnDemandThreshold = null;
-			this.staticOnDemandThreshold = null;
-		}
+        final OriginalImportHandling originalImportHandling;
 
-		public Builder setTypeContainerSorting(ImportContainerSorting typeContainerSorting) {
-			this.typeContainerSorting = typeContainerSorting;
-			return this;
-		}
+        ImportContainerSorting typeContainerSorting;
 
-		public Builder setStaticContainerSorting(ImportContainerSorting staticContainerSorting) {
-			this.staticContainerSorting = staticContainerSorting;
-			return this;
-		}
+        ImportContainerSorting staticContainerSorting;
 
-		public Builder setImplicitImportIdentification(ImplicitImportIdentification implicitImportIdentification) {
-			this.implicitImportIdentification = implicitImportIdentification;
-			return this;
-		}
+        ImplicitImportIdentification implicitImportIdentification;
 
-		public Builder setImportOrder(List<String> importOrder) {
-			this.importOrder = Collections.unmodifiableList(new ArrayList<>(importOrder));
-			return this;
-		}
+        List<String> importOrder;
 
-		public Builder setTypeOnDemandThreshold(int typeOnDemandThreshold) {
-			this.typeOnDemandThreshold = typeOnDemandThreshold;
-			return this;
-		}
+        Integer typeOnDemandThreshold;
 
-		public Builder setStaticOnDemandThreshold(int staticOnDemandThreshold) {
-			this.staticOnDemandThreshold = staticOnDemandThreshold;
-			return this;
-		}
+        Integer staticOnDemandThreshold;
 
-		public ImportRewriteConfiguration build() {
-			return new ImportRewriteConfiguration(this);
-		}
-	}
+        private Builder(OriginalImportHandling originalImportHandling) {
+            this.originalImportHandling = originalImportHandling;
+            this.typeContainerSorting = ImportContainerSorting.BY_PACKAGE;
+            this.staticContainerSorting = ImportContainerSorting.BY_PACKAGE_AND_CONTAINING_TYPE;
+            this.implicitImportIdentification = ImplicitImportIdentification.JAVA_LANG_AND_CU_PACKAGE;
+            this.importOrder = Collections.emptyList();
+            this.typeOnDemandThreshold = null;
+            this.staticOnDemandThreshold = null;
+        }
 
-	final OriginalImportHandling originalImportHandling;
-	final ImportContainerSorting typeContainerSorting;
-	final ImportContainerSorting staticContainerSorting;
-	final ImplicitImportIdentification implicitImportIdentification;
-	final List<String> importOrder;
-	final int typeOnDemandThreshold;
-	final int staticOnDemandThreshold;
+        public Builder setTypeContainerSorting(ImportContainerSorting typeContainerSorting) {
+            this.typeContainerSorting = typeContainerSorting;
+            return this;
+        }
 
-	ImportRewriteConfiguration(Builder builder) {
-		this.originalImportHandling = builder.originalImportHandling;
-		this.typeContainerSorting = builder.typeContainerSorting;
-		this.staticContainerSorting = builder.staticContainerSorting;
-		this.implicitImportIdentification = builder.implicitImportIdentification;
-		this.importOrder = builder.importOrder;
-		this.typeOnDemandThreshold = builder.typeOnDemandThreshold;
-		this.staticOnDemandThreshold = builder.staticOnDemandThreshold;
-	}
+        public Builder setStaticContainerSorting(ImportContainerSorting staticContainerSorting) {
+            this.staticContainerSorting = staticContainerSorting;
+            return this;
+        }
+
+        public Builder setImplicitImportIdentification(ImplicitImportIdentification implicitImportIdentification) {
+            this.implicitImportIdentification = implicitImportIdentification;
+            return this;
+        }
+
+        public Builder setImportOrder(List<String> importOrder) {
+            this.importOrder = Collections.unmodifiableList(new ArrayList<>(importOrder));
+            return this;
+        }
+
+        public Builder setTypeOnDemandThreshold(int typeOnDemandThreshold) {
+            this.typeOnDemandThreshold = typeOnDemandThreshold;
+            return this;
+        }
+
+        public Builder setStaticOnDemandThreshold(int staticOnDemandThreshold) {
+            this.staticOnDemandThreshold = staticOnDemandThreshold;
+            return this;
+        }
+
+        public ImportRewriteConfiguration build() {
+            return new ImportRewriteConfiguration(this);
+        }
+    }
+
+    final public OriginalImportHandling originalImportHandling;
+
+    final public ImportContainerSorting typeContainerSorting;
+
+    final public ImportContainerSorting staticContainerSorting;
+
+    final public ImplicitImportIdentification implicitImportIdentification;
+
+    final public List<String> importOrder;
+
+    final int typeOnDemandThreshold;
+
+    final int staticOnDemandThreshold;
+
+    ImportRewriteConfiguration(Builder builder) {
+        this.originalImportHandling = builder.originalImportHandling;
+        this.typeContainerSorting = builder.typeContainerSorting;
+        this.staticContainerSorting = builder.staticContainerSorting;
+        this.implicitImportIdentification = builder.implicitImportIdentification;
+        this.importOrder = builder.importOrder;
+        this.typeOnDemandThreshold = builder.typeOnDemandThreshold;
+        this.staticOnDemandThreshold = builder.staticOnDemandThreshold;
+    }
 }

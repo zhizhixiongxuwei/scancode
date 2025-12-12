@@ -1,23 +1,24 @@
-/*******************************************************************************
- * Copyright (c) 2008, 2013 Institute for Software, HSR Hochschule fuer Technik
- * Rapperswil, University of applied sciences and others
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2008, 2013 Institute for Software, HSR Hochschule fuer Technik
+ *  Rapperswil, University of applied sciences and others
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Institute for Software - initial API and implementation
- *     Sergey Prigogin (Google)
- *******************************************************************************/
+ *  Contributors:
+ *      Institute for Software - initial API and implementation
+ *      Sergey Prigogin (Google)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.rewrite.commenthandler;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.eclipse.cdt.core.dom.ast.ASTVisitor;
 import org.eclipse.cdt.core.dom.ast.IASTComment;
 import org.eclipse.cdt.core.dom.ast.IASTDeclaration;
@@ -64,212 +65,205 @@ import org.eclipse.cdt.internal.core.dom.parser.cpp.CPPASTWhileStatement;
  * @author Guido Zgraggen IFS
  */
 public class NodeCommenter {
-	protected ASTVisitor visitor;
-	protected CommentHandler commentHandler;
-	protected NodeCommentMap commentMap;
-	protected List<IASTNode> children;
 
-	public NodeCommenter(ASTVisitor visitor, CommentHandler commHandler, NodeCommentMap commentMap) {
-		this.visitor = visitor;
-		this.commentHandler = commHandler;
-		this.commentMap = commentMap;
-		this.children = new ArrayList<>();
-	}
+    public ASTVisitor visitor;
 
-	protected void writeNodeList(IASTNode[] nodes) {
-		for (int i = 0; i < nodes.length; ++i) {
-			nodes[i].accept(visitor);
-		}
-	}
+    public CommentHandler commentHandler;
 
-	protected void visitNodeIfNotNull(IASTNode node) {
-		if (node != null) {
-			node.accept(visitor);
-		}
-	}
+    public NodeCommentMap commentMap;
 
-	protected boolean appendComment(ASTNode node, IASTComment comment) {
-		ASTNode com = (ASTNode) comment;
+    public List<IASTNode> children;
 
-		if (node.getFileLocation() == null) {
-			// MacroExpansions have no FileLocation
-			return false;
-		}
+    public NodeCommenter(ASTVisitor visitor, CommentHandler commHandler, NodeCommentMap commentMap) {
+        this.visitor = visitor;
+        this.commentHandler = commHandler;
+        this.commentMap = commentMap;
+        this.children = new ArrayList<>();
+    }
 
-		int nodeLineNumber = getEndingLineNumber(node);
-		int commentLineNumber = getStartingLineNumber(comment);
+    protected void writeNodeList(IASTNode[] nodes) {
+        for (int i = 0; i < nodes.length; ++i) {
+            nodes[i].accept(visitor);
+        }
+    }
 
-		if (getNodeEndPoint(com) <= getNodeOffset(node)) {
-			addLeadingCommentToMap(node, comment);
-			return true;
-		} else if (isTrailing(node, com, nodeLineNumber, commentLineNumber)) {
-			addTrailingCommentToMap(node, comment);
-			return true;
-		}
-		return false;
-	}
+    protected void visitNodeIfNotNull(IASTNode node) {
+        if (node != null) {
+            node.accept(visitor);
+        }
+    }
 
-	protected boolean appendFreestandingComment(ASTNode node, IASTComment comment) {
-		ASTNode com = (ASTNode) comment;
+    protected boolean appendComment(ASTNode node, IASTComment comment) {
+        ASTNode com = (ASTNode) comment;
+        if (node.getFileLocation() == null) {
+            // MacroExpansions have no FileLocation
+            return false;
+        }
+        int nodeLineNumber = getEndingLineNumber(node);
+        int commentLineNumber = getStartingLineNumber(comment);
+        if (getNodeEndPoint(com) <= getNodeOffset(node)) {
+            addLeadingCommentToMap(node, comment);
+            return true;
+        } else if (isTrailing(node, com, nodeLineNumber, commentLineNumber)) {
+            addTrailingCommentToMap(node, comment);
+            return true;
+        }
+        return false;
+    }
 
-		if (node.getFileLocation() == null) {
-			// MacroExpansions have no FileLocation
-			return false;
-		}
-		if (getNodeEndPoint(com) <= getNodeEndPoint(node)) {
-			addFreestandingCommentToMap(node, comment);
-			return true;
-		}
-		return false;
-	}
+    protected boolean appendFreestandingComment(ASTNode node, IASTComment comment) {
+        ASTNode com = (ASTNode) comment;
+        if (node.getFileLocation() == null) {
+            // MacroExpansions have no FileLocation
+            return false;
+        }
+        if (getNodeEndPoint(com) <= getNodeEndPoint(node)) {
+            addFreestandingCommentToMap(node, comment);
+            return true;
+        }
+        return false;
+    }
 
-	private void addLeadingCommentToMap(ASTNode node, IASTComment comment) {
-		commentMap.addLeadingCommentToNode(node, comment);
-		commentHandler.allreadyAdded(comment);
-	}
+    private void addLeadingCommentToMap(ASTNode node, IASTComment comment) {
+        commentMap.addLeadingCommentToNode(node, comment);
+        commentHandler.allreadyAdded(comment);
+    }
 
-	private void addTrailingCommentToMap(ASTNode node, IASTComment comment) {
-		commentMap.addTrailingCommentToNode(node, comment);
-		commentHandler.allreadyAdded(comment);
-	}
+    private void addTrailingCommentToMap(ASTNode node, IASTComment comment) {
+        commentMap.addTrailingCommentToNode(node, comment);
+        commentHandler.allreadyAdded(comment);
+    }
 
-	private void addFreestandingCommentToMap(ASTNode node, IASTComment comment) {
-		commentMap.addFreestandingCommentToNode(node, comment);
-		commentHandler.allreadyAdded(comment);
-	}
+    private void addFreestandingCommentToMap(ASTNode node, IASTComment comment) {
+        commentMap.addFreestandingCommentToNode(node, comment);
+        commentHandler.allreadyAdded(comment);
+    }
 
-	private boolean isTrailing(ASTNode node, ASTNode com, int nodeLineNumber, int commentLineNumber) {
-		if (nodeLineNumber != commentLineNumber || getNodeOffset(com) < getNodeEndPoint(node)
-				|| !canNotBeAddedToParent(node, com) || mustBeAddedToSubnodes(node)) {
-			return false;
-		}
-		if (getNodeOffset(com) < getNodeEndPoint(node) + 2) {
-			return true;
-		}
-		String code = node.getTranslationUnit().getRawSignature();
-		int commentOffset = getNodeOffset(com) - getNodeEndPoint(node) + getNodeEndOffset(node);
-		for (int offset = getNodeEndOffset(node); offset < commentOffset; offset++) {
-			if (!Character.isWhitespace(code.charAt(offset)))
-				return false;
-		}
-		return true;
-	}
+    private boolean isTrailing(ASTNode node, ASTNode com, int nodeLineNumber, int commentLineNumber) {
+        if (nodeLineNumber != commentLineNumber || getNodeOffset(com) < getNodeEndPoint(node) || !canNotBeAddedToParent(node, com) || mustBeAddedToSubnodes(node)) {
+            return false;
+        }
+        if (getNodeOffset(com) < getNodeEndPoint(node) + 2) {
+            return true;
+        }
+        String code = node.getTranslationUnit().getRawSignature();
+        int commentOffset = getNodeOffset(com) - getNodeEndPoint(node) + getNodeEndOffset(node);
+        for (int offset = getNodeEndOffset(node); offset < commentOffset; offset++) {
+            if (!Character.isWhitespace(code.charAt(offset)))
+                return false;
+        }
+        return true;
+    }
 
-	private boolean canNotBeAddedToParent(ASTNode node, ASTNode com) {
-		ASTNode parent = (ASTNode) node.getParent();
+    private boolean canNotBeAddedToParent(ASTNode node, ASTNode com) {
+        ASTNode parent = (ASTNode) node.getParent();
+        if (hasNodeSameEndingAsSubnode(parent)) {
+            return true;
+        } else if (parent instanceof IASTTranslationUnit) {
+            return true;
+        } else if (parent instanceof ICPPASTTemplateDeclaration) {
+            return true;
+        } else if (parent instanceof CPPASTIfStatement) {
+            return true;
+        } else if (parent instanceof ICPPASTBaseSpecifier) {
+            parent = (ASTNode) parent.getParent();
+        }
+        return getNodeOffset(com) < getNodeEndPoint(parent);
+    }
 
-		if (hasNodeSameEndingAsSubnode(parent)) {
-			return true;
-		} else if (parent instanceof IASTTranslationUnit) {
-			return true;
-		} else if (parent instanceof ICPPASTTemplateDeclaration) {
-			return true;
-		} else if (parent instanceof CPPASTIfStatement) {
-			return true;
-		} else if (parent instanceof ICPPASTBaseSpecifier) {
-			parent = (ASTNode) parent.getParent();
-		}
-		return getNodeOffset(com) < getNodeEndPoint(parent);
-	}
+    private boolean mustBeAddedToSubnodes(ASTNode node) {
+        return hasNodeSameEndingAsSubnode(node);
+    }
 
-	private boolean mustBeAddedToSubnodes(ASTNode node) {
-		return hasNodeSameEndingAsSubnode(node);
-	}
+    private boolean hasNodeSameEndingAsSubnode(ASTNode node) {
+        if (node instanceof CPPASTFunctionDefinition) {
+            return true;
+        } else if (node instanceof CPPASTDeclarationStatement) {
+            return true;
+        } else if (node instanceof CPPASTForStatement) {
+            return true;
+        } else if (node instanceof CPPASTLabelStatement) {
+            return true;
+        } else if (node instanceof CPPASTIfStatement) {
+            return true;
+        } else if (node instanceof CPPASTSwitchStatement) {
+            return true;
+        } else if (node instanceof CPPASTWhileStatement) {
+            return true;
+        } else if (node instanceof CPPASTTemplateDeclaration) {
+            return true;
+        } else if (node instanceof CPPASTLinkageSpecification) {
+            return true;
+        } else if (node instanceof CPPASTExplicitTemplateInstantiation) {
+            return true;
+        }
+        return false;
+    }
 
-	private boolean hasNodeSameEndingAsSubnode(ASTNode node) {
-		if (node instanceof CPPASTFunctionDefinition) {
-			return true;
-		} else if (node instanceof CPPASTDeclarationStatement) {
-			return true;
-		} else if (node instanceof CPPASTForStatement) {
-			return true;
-		} else if (node instanceof CPPASTLabelStatement) {
-			return true;
-		} else if (node instanceof CPPASTIfStatement) {
-			return true;
-		} else if (node instanceof CPPASTSwitchStatement) {
-			return true;
-		} else if (node instanceof CPPASTWhileStatement) {
-			return true;
-		} else if (node instanceof CPPASTTemplateDeclaration) {
-			return true;
-		} else if (node instanceof CPPASTLinkageSpecification) {
-			return true;
-		} else if (node instanceof CPPASTExplicitTemplateInstantiation) {
-			return true;
-		}
-		return false;
-	}
+    protected int appendComments(ASTNode node) {
+        while (commentHandler.hasMore()) {
+            IASTComment comment = commentHandler.getFirst();
+            if (isNotSameFile(node, comment)) {
+                return ASTVisitor.PROCESS_SKIP;
+            }
+            if (!appendComment(node, comment)) {
+                return ASTVisitor.PROCESS_CONTINUE;
+            }
+        }
+        return ASTVisitor.PROCESS_ABORT;
+    }
 
-	protected int appendComments(ASTNode node) {
-		while (commentHandler.hasMore()) {
-			IASTComment comment = commentHandler.getFirst();
+    protected int appendFreestandingComments(ASTNode node) {
+        while (commentHandler.hasMore()) {
+            IASTComment comment = commentHandler.getFirst();
+            if (isNotSameFile(node, comment)) {
+                return ASTVisitor.PROCESS_SKIP;
+            }
+            if (appendComment(node, comment)) {
+                return ASTVisitor.PROCESS_CONTINUE;
+            }
+            if (!appendFreestandingComment(node, comment)) {
+                return ASTVisitor.PROCESS_CONTINUE;
+            }
+        }
+        return ASTVisitor.PROCESS_ABORT;
+    }
 
-			if (isNotSameFile(node, comment)) {
-				return ASTVisitor.PROCESS_SKIP;
-			}
+    public void appendRemainingComments(IASTDeclaration declaration) {
+        while (commentHandler.hasMore()) {
+            IASTComment comment = commentHandler.getFirst();
+            if (appendComment((ASTNode) declaration, comment)) {
+                continue;
+            }
+            addFreestandingCommentToMap((ASTNode) declaration, comment);
+        }
+    }
 
-			if (!appendComment(node, comment)) {
-				return ASTVisitor.PROCESS_CONTINUE;
-			}
-		}
-		return ASTVisitor.PROCESS_ABORT;
-	}
+    private boolean isNotSameFile(IASTNode node, IASTComment comment) {
+        if (node.getFileLocation() == null) {
+            return true;
+        }
+        return !node.getFileLocation().getFileName().equals(comment.getFileLocation().getFileName());
+    }
 
-	protected int appendFreestandingComments(ASTNode node) {
-		while (commentHandler.hasMore()) {
-			IASTComment comment = commentHandler.getFirst();
+    private static int getNodeEndOffset(IASTNode node) {
+        IASTFileLocation fileLocation = node.getFileLocation();
+        return fileLocation.getNodeOffset() + fileLocation.getNodeLength();
+    }
 
-			if (isNotSameFile(node, comment)) {
-				return ASTVisitor.PROCESS_SKIP;
-			}
+    private static int getNodeOffset(ASTNode node) {
+        return node.getOffset();
+    }
 
-			if (appendComment(node, comment)) {
-				return ASTVisitor.PROCESS_CONTINUE;
-			}
+    private static int getNodeEndPoint(ASTNode node) {
+        return node.getOffset() + node.getLength();
+    }
 
-			if (!appendFreestandingComment(node, comment)) {
-				return ASTVisitor.PROCESS_CONTINUE;
-			}
-		}
-		return ASTVisitor.PROCESS_ABORT;
-	}
+    private static int getStartingLineNumber(IASTNode node) {
+        return node.getFileLocation().getStartingLineNumber();
+    }
 
-	public void appendRemainingComments(IASTDeclaration declaration) {
-		while (commentHandler.hasMore()) {
-			IASTComment comment = commentHandler.getFirst();
-			if (appendComment((ASTNode) declaration, comment)) {
-				continue;
-			}
-			addFreestandingCommentToMap((ASTNode) declaration, comment);
-		}
-	}
-
-	private boolean isNotSameFile(IASTNode node, IASTComment comment) {
-		if (node.getFileLocation() == null) {
-			return true;
-		}
-		return !node.getFileLocation().getFileName().equals(comment.getFileLocation().getFileName());
-	}
-
-	private static int getNodeEndOffset(IASTNode node) {
-		IASTFileLocation fileLocation = node.getFileLocation();
-		return fileLocation.getNodeOffset() + fileLocation.getNodeLength();
-	}
-
-	private static int getNodeOffset(ASTNode node) {
-		return node.getOffset();
-	}
-
-	private static int getNodeEndPoint(ASTNode node) {
-		return node.getOffset() + node.getLength();
-	}
-
-	private static int getStartingLineNumber(IASTNode node) {
-		return node.getFileLocation().getStartingLineNumber();
-	}
-
-	private static int getEndingLineNumber(IASTNode node) {
-		return node.getFileLocation().getEndingLineNumber();
-	}
+    private static int getEndingLineNumber(IASTNode node) {
+        return node.getFileLocation().getEndingLineNumber();
+    }
 }

@@ -1,18 +1,20 @@
-/*******************************************************************************
- * Copyright (c) 2008, 2015 Institute for Software, HSR Hochschule fuer Technik
- * Rapperswil, University of applied sciences and others
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2008, 2015 Institute for Software, HSR Hochschule fuer Technik
+ *  Rapperswil, University of applied sciences and others
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Institute for Software - initial API and implementation
- *     Thomas Corbat (IFS)
- *******************************************************************************/
+ *  Contributors:
+ *      Institute for Software - initial API and implementation
+ *      Thomas Corbat (IFS)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.rewrite.astwriter;
 
 import org.eclipse.cdt.core.dom.ast.IASTFunctionDeclarator;
@@ -36,105 +38,106 @@ import org.eclipse.cdt.internal.core.dom.rewrite.commenthandler.NodeCommentMap;
  * @author Emanuel Graf IFS
  */
 public class NameWriter extends NodeWriter {
-	private static final String OPERATOR = "operator "; //$NON-NLS-1$
 
-	/**
-	 * @param scribe
-	 * @param visitor
-	 */
-	public NameWriter(Scribe scribe, ASTWriterVisitor visitor, NodeCommentMap commentMap) {
-		super(scribe, visitor, commentMap);
-	}
+    //$NON-NLS-1$
+    static final public String OPERATOR = "operator ";
 
-	protected void writeName(IASTName name) {
-		if (name instanceof ICPPASTTemplateId) {
-			writeTempalteId((ICPPASTTemplateId) name);
-		} else if (name instanceof ICPPASTConversionName) {
-			scribe.print(OPERATOR);
-			((ICPPASTConversionName) name).getTypeId().accept(visitor);
-		} else if (name instanceof ICPPASTQualifiedName) {
-			writeQualifiedName((ICPPASTQualifiedName) name);
-		} else {
-			scribe.print(name.toString());
-		}
+    /**
+     * @param scribe
+     * @param visitor
+     */
+    public NameWriter(Scribe scribe, ASTWriterVisitor visitor, NodeCommentMap commentMap) {
+        super(scribe, visitor, commentMap);
+    }
 
-		if (hasTrailingComments(name)) {
-			writeTrailingComments(name);
-		}
-	}
+    protected void writeName(IASTName name) {
+        if (name instanceof ICPPASTTemplateId) {
+            writeTempalteId((ICPPASTTemplateId) name);
+        } else if (name instanceof ICPPASTConversionName) {
+            scribe.print(OPERATOR);
+            ((ICPPASTConversionName) name).getTypeId().accept(visitor);
+        } else if (name instanceof ICPPASTQualifiedName) {
+            writeQualifiedName((ICPPASTQualifiedName) name);
+        } else {
+            scribe.print(name.toString());
+        }
+        if (hasTrailingComments(name)) {
+            writeTrailingComments(name);
+        }
+    }
 
-	private void writeTempalteId(ICPPASTTemplateId tempId) {
-		if (needsTemplateQualifier(tempId)) {
-			scribe.printStringSpace(Keywords.TEMPLATE);
-		}
-		scribe.print(tempId.getTemplateName().toString());
-		scribe.print('<');
-		IASTNode[] nodes = tempId.getTemplateArguments();
-		for (int i = 0; i < nodes.length; ++i) {
-			nodes[i].accept(visitor);
-			if (i + 1 < nodes.length) {
-				scribe.print(',');
-			}
-		}
-		scribe.print('>');
-		if (isNestedTemplateId(tempId)) {
-			scribe.printSpace();
-		}
-	}
+    private void writeTempalteId(ICPPASTTemplateId tempId) {
+        if (needsTemplateQualifier(tempId)) {
+            scribe.printStringSpace(Keywords.TEMPLATE);
+        }
+        scribe.print(tempId.getTemplateName().toString());
+        scribe.print('<');
+        IASTNode[] nodes = tempId.getTemplateArguments();
+        for (int i = 0; i < nodes.length; ++i) {
+            nodes[i].accept(visitor);
+            if (i + 1 < nodes.length) {
+                scribe.print(',');
+            }
+        }
+        scribe.print('>');
+        if (isNestedTemplateId(tempId)) {
+            scribe.printSpace();
+        }
+    }
 
-	private boolean needsTemplateQualifier(ICPPASTTemplateId templId) {
-		if (templId.getParent() instanceof ICPPASTQualifiedName) {
-			ICPPASTQualifiedName qName = (ICPPASTQualifiedName) templId.getParent();
-			return !isPartOfFunctionDeclarator(qName) && isDependentName(qName, templId);
-		}
-		return false;
-	}
+    private boolean needsTemplateQualifier(ICPPASTTemplateId templId) {
+        if (templId.getParent() instanceof ICPPASTQualifiedName) {
+            ICPPASTQualifiedName qName = (ICPPASTQualifiedName) templId.getParent();
+            return !isPartOfFunctionDeclarator(qName) && isDependentName(qName, templId);
+        }
+        return false;
+    }
 
-	private boolean isPartOfFunctionDeclarator(ICPPASTQualifiedName qName) {
-		return qName.getParent() instanceof IASTFunctionDeclarator;
-	}
+    private boolean isPartOfFunctionDeclarator(ICPPASTQualifiedName qName) {
+        return qName.getParent() instanceof IASTFunctionDeclarator;
+    }
 
-	private boolean isDependentName(ICPPASTQualifiedName qname, ICPPASTTemplateId tempId) {
-		ICPPASTNameSpecifier[] segments = qname.getAllSegments();
-		for (int i = 0; i < segments.length; ++i) {
-			if (segments[i] == tempId) {
-				return isDependentName(qname, tempId, i);
-			}
-		}
-		return false;
-	}
+    private boolean isDependentName(ICPPASTQualifiedName qname, ICPPASTTemplateId tempId) {
+        ICPPASTNameSpecifier[] segments = qname.getAllSegments();
+        for (int i = 0; i < segments.length; ++i) {
+            if (segments[i] == tempId) {
+                return isDependentName(qname, tempId, i);
+            }
+        }
+        return false;
+    }
 
-	private boolean isDependentName(ICPPASTQualifiedName qname, ICPPASTTemplateId tempId, int i) {
-		if (i <= 0) {
-			return false;
-		}
-		if (qname.getQualifier()[i - 1] instanceof ICPPASTTemplateId) {
-			return true;
-		}
-		IBinding binding = qname.getQualifier()[i - 1].resolveBinding();
-		if (binding instanceof CPPTemplateTypeParameter) {
-			return true;
-		}
-		return isDependentName(qname, tempId, i - 1);
-	}
+    private boolean isDependentName(ICPPASTQualifiedName qname, ICPPASTTemplateId tempId, int i) {
+        if (i <= 0) {
+            return false;
+        }
+        if (qname.getQualifier()[i - 1] instanceof ICPPASTTemplateId) {
+            return true;
+        }
+        IBinding binding = qname.getQualifier()[i - 1].resolveBinding();
+        if (binding instanceof CPPTemplateTypeParameter) {
+            return true;
+        }
+        return isDependentName(qname, tempId, i - 1);
+    }
 
-	private boolean isNestedTemplateId(IASTNode node) {
-		while ((node = node.getParent()) != null) {
-			if (node instanceof ICPPASTTemplateId) {
-				return true;
-			}
-		}
-		return false;
-	}
+    private boolean isNestedTemplateId(IASTNode node) {
+        while ((node = node.getParent()) != null) {
+            if (node instanceof ICPPASTTemplateId) {
+                return true;
+            }
+        }
+        return false;
+    }
 
-	private void writeQualifiedName(ICPPASTQualifiedName qname) {
-		if (qname.isFullyQualified()) {
-			scribe.print(COLON_COLON);
-		}
-		for (ICPPASTNameSpecifier segment : qname.getQualifier()) {
-			segment.accept(visitor);
-			scribe.print(COLON_COLON);
-		}
-		qname.getLastName().accept(visitor);
-	}
+    private void writeQualifiedName(ICPPASTQualifiedName qname) {
+        if (qname.isFullyQualified()) {
+            scribe.print(COLON_COLON);
+        }
+        for (ICPPASTNameSpecifier segment : qname.getQualifier()) {
+            segment.accept(visitor);
+            scribe.print(COLON_COLON);
+        }
+        qname.getLastName().accept(visitor);
+    }
 }

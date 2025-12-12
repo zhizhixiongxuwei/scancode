@@ -23,7 +23,7 @@ import org.eclipse.jdt.internal.eval.GlobalVariable;
  */
 public class GlobalVariableWrapper implements IGlobalVariable {
 
-    GlobalVariable variable;
+    public GlobalVariable variable;
 
     /**
      * Creates a new wrapper around the given infrastructure global variable.

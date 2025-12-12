@@ -107,15 +107,15 @@ final public class ImportEditor {
         return false;
     }
 
-    private final String lineDelimiter;
+    final public String lineDelimiter;
 
-    private final String twoLineDelimiters;
+    final public String twoLineDelimiters;
 
-    private final boolean fixAllLineDelimiters;
+    final public boolean fixAllLineDelimiters;
 
-    private final int lineDelimitersBetweenImportGroups;
+    final public int lineDelimitersBetweenImportGroups;
 
-    private final ImportGroupComparator importGroupComparator;
+    final public ImportGroupComparator importGroupComparator;
 
     private final RemovedImportCommentReassigner commentReassigner;
 

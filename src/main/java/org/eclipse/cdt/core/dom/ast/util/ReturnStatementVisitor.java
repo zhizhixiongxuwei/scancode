@@ -1,13 +1,15 @@
-/*******************************************************************************
- * Copyright (c) 2017 Nathan Ridge.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2017 Nathan Ridge.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
- *******************************************************************************/
+ *  SPDX-License-Identifier: EPL-2.0
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.core.dom.ast.util;
 
 import org.eclipse.cdt.core.dom.ast.ASTVisitor;
@@ -25,54 +27,56 @@ import org.eclipse.cdt.core.dom.ast.cpp.ICPPASTLambdaExpression;
  * @since 6.3
  */
 public abstract class ReturnStatementVisitor extends ASTVisitor {
-	private final IASTFunctionDefinition fFunction;
 
-	/**
-	 * Constructs a ReturnStatementVisitor that will visit the
-	 * body of a function.
-	 * @param function the function to be visited
-	 */
-	protected ReturnStatementVisitor(IASTFunctionDefinition function) {
-		shouldVisitStatements = true;
-		shouldVisitDeclarations = true;
-		shouldVisitExpressions = true;
-		this.fFunction = function;
-	}
+    final public IASTFunctionDefinition fFunction;
 
-	/**
-	 * Gets the function being visited.
-	 */
-	protected IASTFunctionDefinition getFunction() {
-		return fFunction;
-	}
+    /**
+     * Constructs a ReturnStatementVisitor that will visit the
+     * body of a function.
+     * @param function the function to be visited
+     */
+    protected ReturnStatementVisitor(IASTFunctionDefinition function) {
+        shouldVisitStatements = true;
+        shouldVisitDeclarations = true;
+        shouldVisitExpressions = true;
+        this.fFunction = function;
+    }
 
-	/**
-	 * Called when a return statement is encountered in the function body.
-	 * @param stmt the return statement that was encountered
-	 */
-	protected abstract void onReturnStatement(IASTReturnStatement stmt);
+    /**
+     * Gets the function being visited.
+     */
+    protected IASTFunctionDefinition getFunction() {
+        return fFunction;
+    }
 
-	@Override
-	public int visit(IASTDeclaration element) {
-		if (element != fFunction)
-			return PROCESS_SKIP; // skip inner functions
-		return PROCESS_CONTINUE;
-	}
+    /**
+     * Called when a return statement is encountered in the function body.
+     * @param stmt the return statement that was encountered
+     */
+    protected abstract void onReturnStatement(IASTReturnStatement stmt);
 
-	@Override
-	public int visit(IASTExpression expr) {
-		if (expr instanceof ICPPASTLambdaExpression) {
-			return PROCESS_SKIP;
-		}
-		return PROCESS_CONTINUE;
-	}
+    @Override
+    public int visit(IASTDeclaration element) {
+        if (element != fFunction)
+            // skip inner functions
+            return PROCESS_SKIP;
+        return PROCESS_CONTINUE;
+    }
 
-	@Override
-	public int visit(IASTStatement stmt) {
-		if (stmt instanceof IASTReturnStatement) {
-			onReturnStatement((IASTReturnStatement) stmt);
-			return PROCESS_SKIP;
-		}
-		return PROCESS_CONTINUE;
-	}
+    @Override
+    public int visit(IASTExpression expr) {
+        if (expr instanceof ICPPASTLambdaExpression) {
+            return PROCESS_SKIP;
+        }
+        return PROCESS_CONTINUE;
+    }
+
+    @Override
+    public int visit(IASTStatement stmt) {
+        if (stmt instanceof IASTReturnStatement) {
+            onReturnStatement((IASTReturnStatement) stmt);
+            return PROCESS_SKIP;
+        }
+        return PROCESS_CONTINUE;
+    }
 }

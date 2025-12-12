@@ -44,18 +44,18 @@ public class InternalASTRewrite extends NodeEventHandler {
     /**
      * root node for the rewrite: Only nodes under this root are accepted
      */
-    private final CompilationUnit root;
+    final public CompilationUnit root;
 
-    protected final RewriteEventStore eventStore;
+    final public RewriteEventStore eventStore;
 
-    protected final NodeInfoStore nodeStore;
+    final public NodeInfoStore nodeStore;
 
     /**
      * ASTNode clone -> ASTNode original
      */
-    protected final Hashtable clonedNodes;
+    final public Hashtable clonedNodes;
 
-    int cloneDepth = 0;
+    public int cloneDepth = 0;
 
     /**
      * Constructor

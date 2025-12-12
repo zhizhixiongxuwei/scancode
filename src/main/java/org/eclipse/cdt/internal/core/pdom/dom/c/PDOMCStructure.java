@@ -1,23 +1,24 @@
-/*******************************************************************************
- * Copyright (c) 2006, 2015 QNX Software Systems and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2006, 2015 QNX Software Systems and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     QNX - Initial API and implementation
- *     Markus Schorn (Wind River Systems)
- *     Andrew Ferguson (Symbian)
- *******************************************************************************/
+ *  Contributors:
+ *      QNX - Initial API and implementation
+ *      Markus Schorn (Wind River Systems)
+ *      Andrew Ferguson (Symbian)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.pdom.dom.c;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.eclipse.cdt.core.CCorePlugin;
 import org.eclipse.cdt.core.dom.IPDOMNode;
 import org.eclipse.cdt.core.dom.IPDOMVisitor;
@@ -50,277 +51,284 @@ import org.eclipse.core.runtime.Status;
 /**
  * @author Doug Schaefer
  */
-public class PDOMCStructure extends PDOMBinding
-		implements ICompositeType, ICCompositeTypeScope, IPDOMMemberOwner, IIndexType, IIndexScope {
-	private static final int MEMBERLIST = PDOMBinding.RECORD_SIZE;
-	private static final int KEY = MEMBERLIST + 4; // byte
-	private static final int ANONYMOUS = MEMBERLIST + 5;
-	@SuppressWarnings("hiding")
-	protected static final int RECORD_SIZE = MEMBERLIST + 6;
+public class PDOMCStructure extends PDOMBinding implements ICompositeType, ICCompositeTypeScope, IPDOMMemberOwner, IIndexType, IIndexScope {
 
-	public PDOMCStructure(PDOMLinkage linkage, PDOMNode parent, ICompositeType compType) throws CoreException {
-		super(linkage, parent, compType.getNameCharArray());
-		setKind(compType);
-		setAnonymous(compType);
-		// Linked list is initialized by malloc zeroing allocated storage.
-	}
+    static final public int MEMBERLIST = PDOMBinding.RECORD_SIZE;
 
-	public PDOMCStructure(PDOMLinkage linkage, long record) {
-		super(linkage, record);
-	}
+    // byte
+    static final public int KEY = MEMBERLIST + 4;
 
-	@Override
-	public EScopeKind getKind() {
-		return EScopeKind.eClassType;
-	}
+    static final public int ANONYMOUS = MEMBERLIST + 5;
 
-	@Override
-	public void update(PDOMLinkage linkage, IBinding newBinding) throws CoreException {
-		if (newBinding instanceof ICompositeType) {
-			ICompositeType ct = (ICompositeType) newBinding;
-			setKind(ct);
-			setAnonymous(ct);
-			super.update(linkage, newBinding);
-		}
-	}
+    @SuppressWarnings("hiding")
+    static final public int RECORD_SIZE = MEMBERLIST + 6;
 
-	private void setKind(ICompositeType ct) throws CoreException {
-		getDB().putByte(record + KEY, (byte) ct.getKey());
-	}
+    public PDOMCStructure(PDOMLinkage linkage, PDOMNode parent, ICompositeType compType) throws CoreException {
+        super(linkage, parent, compType.getNameCharArray());
+        setKind(compType);
+        setAnonymous(compType);
+        // Linked list is initialized by malloc zeroing allocated storage.
+    }
 
-	private void setAnonymous(ICompositeType ct) throws CoreException {
-		getDB().putByte(record + ANONYMOUS, (byte) (ct.isAnonymous() ? 1 : 0));
-	}
+    public PDOMCStructure(PDOMLinkage linkage, long record) {
+        super(linkage, record);
+    }
 
-	@Override
-	public void accept(IPDOMVisitor visitor) throws CoreException {
-		super.accept(visitor);
-		new PDOMNodeLinkedList(getLinkage(), record + MEMBERLIST).accept(visitor);
-	}
+    @Override
+    public EScopeKind getKind() {
+        return EScopeKind.eClassType;
+    }
 
-	@Override
-	public int getNodeType() {
-		return IIndexCBindingConstants.CSTRUCTURE;
-	}
+    @Override
+    public void update(PDOMLinkage linkage, IBinding newBinding) throws CoreException {
+        if (newBinding instanceof ICompositeType) {
+            ICompositeType ct = (ICompositeType) newBinding;
+            setKind(ct);
+            setAnonymous(ct);
+            super.update(linkage, newBinding);
+        }
+    }
 
-	@Override
-	public Object clone() {
-		throw new UnsupportedOperationException();
-	}
+    private void setKind(ICompositeType ct) throws CoreException {
+        getDB().putByte(record + KEY, (byte) ct.getKey());
+    }
 
-	@Override
-	public int getKey() {
-		try {
-			return getDB().getByte(record + KEY);
-		} catch (CoreException e) {
-			CCorePlugin.log(e);
-			return ICompositeType.k_struct; // or something
-		}
-	}
+    private void setAnonymous(ICompositeType ct) throws CoreException {
+        getDB().putByte(record + ANONYMOUS, (byte) (ct.isAnonymous() ? 1 : 0));
+    }
 
-	@Override
-	public boolean isAnonymous() {
-		try {
-			return getDB().getByte(record + ANONYMOUS) != 0;
-		} catch (CoreException e) {
-			CCorePlugin.log(e);
-			return false;
-		}
-	}
+    @Override
+    public void accept(IPDOMVisitor visitor) throws CoreException {
+        super.accept(visitor);
+        new PDOMNodeLinkedList(getLinkage(), record + MEMBERLIST).accept(visitor);
+    }
 
-	private static class GetFields implements IPDOMVisitor {
-		private final List<IPDOMNode> fields = new ArrayList<>();
+    @Override
+    public int getNodeType() {
+        return IIndexCBindingConstants.CSTRUCTURE;
+    }
 
-		@Override
-		public boolean visit(IPDOMNode node) throws CoreException {
-			if (node instanceof IField) {
-				IField field = (IField) node;
-				if (IndexFilter.ALL_DECLARED_OR_IMPLICIT.acceptBinding(field)) {
-					fields.add(node);
-				}
-			} else if (node instanceof ICompositeType) {
-				if (((ICompositeType) node).isAnonymous()) {
-					return true; // visit children
-				}
-			}
-			return false;
-		}
+    @Override
+    public Object clone() {
+        throw new UnsupportedOperationException();
+    }
 
-		@Override
-		public void leave(IPDOMNode node) throws CoreException {
-		}
+    @Override
+    public int getKey() {
+        try {
+            return getDB().getByte(record + KEY);
+        } catch (CoreException e) {
+            CCorePlugin.log(e);
+            // or something
+            return ICompositeType.k_struct;
+        }
+    }
 
-		public IField[] getFields() {
-			return fields.toArray(new IField[fields.size()]);
-		}
-	}
+    @Override
+    public boolean isAnonymous() {
+        try {
+            return getDB().getByte(record + ANONYMOUS) != 0;
+        } catch (CoreException e) {
+            CCorePlugin.log(e);
+            return false;
+        }
+    }
 
-	@Override
-	public IField[] getFields() {
-		try {
-			GetFields fields = new GetFields();
-			accept(fields);
-			return fields.getFields();
-		} catch (CoreException e) {
-			CCorePlugin.log(e);
-			return IField.EMPTY_FIELD_ARRAY;
-		}
-	}
+    private static class GetFields implements IPDOMVisitor {
 
-	public static class FindField implements IPDOMVisitor {
-		private IField field;
-		private final String name;
+        private final List<IPDOMNode> fields = new ArrayList<>();
 
-		public FindField(String name) {
-			this.name = name;
-		}
+        @Override
+        public boolean visit(IPDOMNode node) throws CoreException {
+            if (node instanceof IField) {
+                IField field = (IField) node;
+                if (IndexFilter.ALL_DECLARED_OR_IMPLICIT.acceptBinding(field)) {
+                    fields.add(node);
+                }
+            } else if (node instanceof ICompositeType) {
+                if (((ICompositeType) node).isAnonymous()) {
+                    // visit children
+                    return true;
+                }
+            }
+            return false;
+        }
 
-		@Override
-		public boolean visit(IPDOMNode node) throws CoreException {
-			if (node instanceof IField) {
-				IField tField = (IField) node;
-				if (IndexFilter.ALL_DECLARED_OR_IMPLICIT.acceptBinding(tField)) {
-					if (name.equals(tField.getName())) {
-						field = tField;
-						throw new CoreException(Status.OK_STATUS);
-					}
-				}
-			} else if (node instanceof ICompositeType) {
-				if (((ICompositeType) node).isAnonymous()) {
-					return true; // visit children
-				}
-			}
-			return false;
-		}
+        @Override
+        public void leave(IPDOMNode node) throws CoreException {
+        }
 
-		@Override
-		public void leave(IPDOMNode node) throws CoreException {
-		}
+        public IField[] getFields() {
+            return fields.toArray(new IField[fields.size()]);
+        }
+    }
 
-		public IField getField() {
-			return field;
-		}
-	}
+    @Override
+    public IField[] getFields() {
+        try {
+            GetFields fields = new GetFields();
+            accept(fields);
+            return fields.getFields();
+        } catch (CoreException e) {
+            CCorePlugin.log(e);
+            return IField.EMPTY_FIELD_ARRAY;
+        }
+    }
 
-	@Override
-	public IField findField(String name) {
-		final PDOM pdom = getPDOM();
-		final String key = pdom.createKeyForCache(record, name.toCharArray());
-		IField result = (IField) pdom.getCachedResult(key);
-		if (result != null) {
-			return result;
-		}
+    public static class FindField implements IPDOMVisitor {
 
-		FindField visitor = new FindField(name);
-		try {
-			accept(visitor);
-			// returned => not found
-			return null;
-		} catch (CoreException e) {
-			if (e.getStatus().equals(Status.OK_STATUS)) {
-				result = visitor.getField();
-			} else {
-				CCorePlugin.log(e);
-				return null;
-			}
-		}
-		if (result != null) {
-			pdom.putCachedResult(key, result);
-		}
-		return result;
-	}
+        private IField field;
 
-	@Override
-	public IScope getCompositeScope() {
-		return this;
-	}
+        private final String name;
 
-	@Override
-	public boolean isSameType(IType type) {
-		if (type instanceof ITypedef) {
-			return type.isSameType(this);
-		}
+        public FindField(String name) {
+            this.name = name;
+        }
 
-		if (type instanceof PDOMNode) {
-			PDOMNode node = (PDOMNode) type;
-			if (node.getPDOM() == getPDOM()) {
-				return node.getRecord() == getRecord();
-			}
-		}
+        @Override
+        public boolean visit(IPDOMNode node) throws CoreException {
+            if (node instanceof IField) {
+                IField tField = (IField) node;
+                if (IndexFilter.ALL_DECLARED_OR_IMPLICIT.acceptBinding(tField)) {
+                    if (name.equals(tField.getName())) {
+                        field = tField;
+                        throw new CoreException(Status.OK_STATUS);
+                    }
+                }
+            } else if (node instanceof ICompositeType) {
+                if (((ICompositeType) node).isAnonymous()) {
+                    // visit children
+                    return true;
+                }
+            }
+            return false;
+        }
 
-		if (type instanceof ICompositeType) {
-			ICompositeType etype = (ICompositeType) type;
-			etype = (ICompositeType) PDOMASTAdapter.getAdapterForAnonymousASTBinding(etype);
-			try {
-				return getDBName().equals(etype.getNameCharArray());
-			} catch (CoreException e) {
-				CCorePlugin.log(e);
-			}
-		}
-		return false;
-	}
+        @Override
+        public void leave(IPDOMNode node) throws CoreException {
+        }
 
-	@Override
-	protected int getRecordSize() {
-		return RECORD_SIZE;
-	}
+        public IField getField() {
+            return field;
+        }
+    }
 
-	@Override
-	public void addChild(PDOMNode member) throws CoreException {
-		new PDOMNodeLinkedList(getLinkage(), record + MEMBERLIST).addMember(member);
-	}
+    @Override
+    public IField findField(String name) {
+        final PDOM pdom = getPDOM();
+        final String key = pdom.createKeyForCache(record, name.toCharArray());
+        IField result = (IField) pdom.getCachedResult(key);
+        if (result != null) {
+            return result;
+        }
+        FindField visitor = new FindField(name);
+        try {
+            accept(visitor);
+            // returned => not found
+            return null;
+        } catch (CoreException e) {
+            if (e.getStatus().equals(Status.OK_STATUS)) {
+                result = visitor.getField();
+            } else {
+                CCorePlugin.log(e);
+                return null;
+            }
+        }
+        if (result != null) {
+            pdom.putCachedResult(key, result);
+        }
+        return result;
+    }
 
-	@Override
-	public boolean mayHaveChildren() {
-		return true;
-	}
+    @Override
+    public IScope getCompositeScope() {
+        return this;
+    }
 
-	@Override
-	public ICompositeType getCompositeType() {
-		return this;
-	}
+    @Override
+    public boolean isSameType(IType type) {
+        if (type instanceof ITypedef) {
+            return type.isSameType(this);
+        }
+        if (type instanceof PDOMNode) {
+            PDOMNode node = (PDOMNode) type;
+            if (node.getPDOM() == getPDOM()) {
+                return node.getRecord() == getRecord();
+            }
+        }
+        if (type instanceof ICompositeType) {
+            ICompositeType etype = (ICompositeType) type;
+            etype = (ICompositeType) PDOMASTAdapter.getAdapterForAnonymousASTBinding(etype);
+            try {
+                return getDBName().equals(etype.getNameCharArray());
+            } catch (CoreException e) {
+                CCorePlugin.log(e);
+            }
+        }
+        return false;
+    }
 
-	@Override
-	public IBinding getBinding(char[] name) {
-		return findField(new String(name));
-	}
+    @Override
+    protected int getRecordSize() {
+        return RECORD_SIZE;
+    }
 
-	@Override
-	public IBinding getBinding(IASTName name, boolean resolve, IIndexFileSet fileSet) {
-		return getBinding(name.toCharArray());
-	}
+    @Override
+    public void addChild(PDOMNode member) throws CoreException {
+        new PDOMNodeLinkedList(getLinkage(), record + MEMBERLIST).addMember(member);
+    }
 
-	@Deprecated
-	@Override
-	public IBinding[] getBindings(IASTName name, boolean resolve, boolean prefixLookup, IIndexFileSet fileSet) {
-		return getBindings(new ScopeLookupData(name, resolve, prefixLookup));
-	}
+    @Override
+    public boolean mayHaveChildren() {
+        return true;
+    }
 
-	@Override
-	public IBinding[] getBindings(ScopeLookupData lookup) {
-		return getBindings(lookup.getLookupKey());
-	}
+    @Override
+    public ICompositeType getCompositeType() {
+        return this;
+    }
 
-	@Override
-	public IBinding[] find(String name, IASTTranslationUnit tu) {
-		return getBindings(name.toCharArray());
-	}
+    @Override
+    public IBinding getBinding(char[] name) {
+        return findField(new String(name));
+    }
 
-	@Override
-	@Deprecated
-	public IBinding[] find(String name) {
-		return getBindings(name.toCharArray());
-	}
+    @Override
+    public IBinding getBinding(IASTName name, boolean resolve, IIndexFileSet fileSet) {
+        return getBinding(name.toCharArray());
+    }
 
-	private IBinding[] getBindings(char[] name) {
-		IBinding b = getBinding(name);
-		if (b == null)
-			return IBinding.EMPTY_BINDING_ARRAY;
-		return new IBinding[] { b };
-	}
+    @Deprecated
+    @Override
+    public IBinding[] getBindings(IASTName name, boolean resolve, boolean prefixLookup, IIndexFileSet fileSet) {
+        return getBindings(new ScopeLookupData(name, resolve, prefixLookup));
+    }
 
-	@Override
-	public IIndexBinding getScopeBinding() {
-		return this;
-	}
+    @Override
+    public IBinding[] getBindings(ScopeLookupData lookup) {
+        return getBindings(lookup.getLookupKey());
+    }
+
+    @Override
+    public IBinding[] find(String name, IASTTranslationUnit tu) {
+        return getBindings(name.toCharArray());
+    }
+
+    @Override
+    @Deprecated
+    public IBinding[] find(String name) {
+        return getBindings(name.toCharArray());
+    }
+
+    private IBinding[] getBindings(char[] name) {
+        IBinding b = getBinding(name);
+        if (b == null)
+            return IBinding.EMPTY_BINDING_ARRAY;
+        return new IBinding[] { b };
+    }
+
+    @Override
+    public IIndexBinding getScopeBinding() {
+        return this;
+    }
 }

@@ -39,13 +39,13 @@ public class DOMInitializer extends DOMMember implements IDOMInitializer {
      * body has been altered from the contents in the
      * document, otherwise <code>null</code>.
      */
-    protected String fBody;
+    public String fBody;
 
     /**
      * The original inclusive source range of the
      * body in the document.
      */
-    protected int[] fBodyRange;
+    public int[] fBodyRange;
 
     /**
      * Constructs an empty initializer node.

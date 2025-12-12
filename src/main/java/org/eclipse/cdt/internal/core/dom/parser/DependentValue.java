@@ -1,13 +1,15 @@
-/*******************************************************************************
- * Copyright (c) 2016 Nathan Ridge and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2016 Nathan Ridge and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
- *******************************************************************************/
+ *  SPDX-License-Identifier: EPL-2.0
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.parser;
 
 import org.eclipse.cdt.core.dom.ast.IValue;
@@ -24,119 +26,122 @@ import org.eclipse.core.runtime.CoreException;
  * usually because it depends on the value of a template parameter.
  */
 public class DependentValue implements IValue {
-	public static final int MAX_RECURSION_DEPTH = 25;
 
-	private ICPPEvaluation fEvaluation;
-	private char[] fSignature;
+    public static final int MAX_RECURSION_DEPTH = 25;
 
-	private DependentValue(ICPPEvaluation evaluation) {
-		fEvaluation = evaluation;
-	}
+    public ICPPEvaluation fEvaluation;
 
-	@Override
-	public final Number numberValue() {
-		return null;
-	}
+    public char[] fSignature;
 
-	@Override
-	public final ICPPEvaluation getEvaluation() {
-		return fEvaluation;
-	}
+    private DependentValue(ICPPEvaluation evaluation) {
+        fEvaluation = evaluation;
+    }
 
-	@Override
-	public final char[] getSignature() {
-		if (fSignature == null) {
-			fSignature = fEvaluation.getSignature();
-		}
-		return fSignature;
-	}
+    @Override
+    public final Number numberValue() {
+        return null;
+    }
 
-	@Override
-	public void marshal(ITypeMarshalBuffer buf) throws CoreException {
-		buf.putShort(ITypeMarshalBuffer.DEPENDENT_VALUE);
-		fEvaluation.marshal(buf, true);
-	}
+    @Override
+    public final ICPPEvaluation getEvaluation() {
+        return fEvaluation;
+    }
 
-	public static IValue unmarshal(short firstBytes, ITypeMarshalBuffer buf) throws CoreException {
-		ICPPEvaluation eval = buf.unmarshalEvaluation();
-		if (eval != null)
-			return new DependentValue(eval);
-		return IntegralValue.UNKNOWN;
-	}
+    @Override
+    public final char[] getSignature() {
+        if (fSignature == null) {
+            fSignature = fEvaluation.getSignature();
+        }
+        return fSignature;
+    }
 
-	@Override
-	public int hashCode() {
-		return CharArrayUtils.hash(getSignature());
-	}
+    @Override
+    public void marshal(ITypeMarshalBuffer buf) throws CoreException {
+        buf.putShort(ITypeMarshalBuffer.DEPENDENT_VALUE);
+        fEvaluation.marshal(buf, true);
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (!(obj instanceof DependentValue)) {
-			return false;
-		}
-		final DependentValue rhs = (DependentValue) obj;
-		return CharArrayUtils.equals(getSignature(), rhs.getSignature());
-	}
+    public static IValue unmarshal(short firstBytes, ITypeMarshalBuffer buf) throws CoreException {
+        ICPPEvaluation eval = buf.unmarshalEvaluation();
+        if (eval != null)
+            return new DependentValue(eval);
+        return IntegralValue.UNKNOWN;
+    }
 
-	/**
-	 * For debugging only.
-	 */
-	@Override
-	public String toString() {
-		return new String(getSignature());
-	}
+    @Override
+    public int hashCode() {
+        return CharArrayUtils.hash(getSignature());
+    }
 
-	/**
-	 * Creates a value representing the given template parameter
-	 * in the given template.
-	 */
-	public static DependentValue create(ICPPTemplateDefinition template, ICPPTemplateNonTypeParameter tntp) {
-		EvalBinding eval = new EvalBinding(tntp, null, template);
-		return new DependentValue(eval);
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof DependentValue)) {
+            return false;
+        }
+        final DependentValue rhs = (DependentValue) obj;
+        return CharArrayUtils.equals(getSignature(), rhs.getSignature());
+    }
 
-	/**
-	 * Create a value wrapping the given evaluation.
-	 */
-	public static DependentValue create(ICPPEvaluation eval) {
-		return new DependentValue(eval);
-	}
+    /**
+     * For debugging only.
+     */
+    @Override
+    public String toString() {
+        return new String(getSignature());
+    }
 
-	@Override
-	public final int numberOfSubValues() {
-		return 1;
-	}
+    /**
+     * Creates a value representing the given template parameter
+     * in the given template.
+     */
+    public static DependentValue create(ICPPTemplateDefinition template, ICPPTemplateNonTypeParameter tntp) {
+        EvalBinding eval = new EvalBinding(tntp, null, template);
+        return new DependentValue(eval);
+    }
 
-	@Override
-	public final ICPPEvaluation getSubValue(int index) {
-		return index == 0 ? fEvaluation : EvalFixed.INCOMPLETE;
-	}
+    /**
+     * Create a value wrapping the given evaluation.
+     */
+    public static DependentValue create(ICPPEvaluation eval) {
+        return new DependentValue(eval);
+    }
 
-	@Override
-	public final ICPPEvaluation[] getAllSubValues() {
-		return new ICPPEvaluation[] { getEvaluation() };
-	}
+    @Override
+    public final int numberOfSubValues() {
+        return 1;
+    }
 
-	@Override
-	public void setSubValue(int position, ICPPEvaluation newValue) {
-		if (position == 0) {
-			fEvaluation = newValue;
-		} else {
-			throw new IllegalArgumentException("Invalid offset in POD value: " + position); //$NON-NLS-1$
-		}
-	}
+    @Override
+    public final ICPPEvaluation getSubValue(int index) {
+        return index == 0 ? fEvaluation : EvalFixed.INCOMPLETE;
+    }
 
-	@Override
-	public IValue clone() {
-		return new DependentValue(fEvaluation);
-	}
+    @Override
+    public final ICPPEvaluation[] getAllSubValues() {
+        return new ICPPEvaluation[] { getEvaluation() };
+    }
 
-	@Override
-	public boolean isEquivalentTo(IValue other) {
-		if (!(other instanceof DependentValue)) {
-			return false;
-		}
-		DependentValue o = (DependentValue) other;
-		return fEvaluation.isEquivalentTo(o.fEvaluation);
-	}
+    @Override
+    public void setSubValue(int position, ICPPEvaluation newValue) {
+        if (position == 0) {
+            fEvaluation = newValue;
+        } else {
+            //$NON-NLS-1$
+            throw new IllegalArgumentException("Invalid offset in POD value: " + position);
+        }
+    }
+
+    @Override
+    public IValue clone() {
+        return new DependentValue(fEvaluation);
+    }
+
+    @Override
+    public boolean isEquivalentTo(IValue other) {
+        if (!(other instanceof DependentValue)) {
+            return false;
+        }
+        DependentValue o = (DependentValue) other;
+        return fEvaluation.isEquivalentTo(o.fEvaluation);
+    }
 }

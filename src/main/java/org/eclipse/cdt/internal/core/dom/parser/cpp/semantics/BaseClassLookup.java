@@ -76,15 +76,15 @@ public class BaseClassLookup {
         }
     }
 
-    private final ICPPClassType fClassType;
+    final public ICPPClassType fClassType;
 
-    private IBinding[] fBindings;
+    public IBinding[] fBindings;
 
-    private List<BaseClassLookup> fChildren = Collections.emptyList();
+    public List<BaseClassLookup> fChildren = Collections.emptyList();
 
-    private BitSet fVirtual;
+    public BitSet fVirtual;
 
-    private boolean fHiddenAsVirtualBase;
+    public boolean fHiddenAsVirtualBase;
 
     private boolean fPropagationDone;
 

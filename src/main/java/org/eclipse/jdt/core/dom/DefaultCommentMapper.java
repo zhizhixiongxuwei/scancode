@@ -28,16 +28,16 @@ import org.eclipse.jdt.internal.compiler.util.Util;
  */
 public class DefaultCommentMapper {
 
-    Comment[] comments;
+    public Comment[] comments;
 
-    Scanner scanner;
+    public Scanner scanner;
 
     // extended nodes storage
-    int leadingPtr;
+    public int leadingPtr;
 
-    ASTNode[] leadingNodes;
+    public ASTNode[] leadingNodes;
 
-    long[] leadingIndexes;
+    public long[] leadingIndexes;
 
     int trailingPtr, lastTrailingPtr;
 
@@ -621,7 +621,7 @@ public class DefaultCommentMapper {
         }
 
         @Override
-        protected void endVisitNode(ASTNode node) {
+        public void endVisitNode(ASTNode node) {
             // Look if a child node is waiting for trailing comments computing
             ASTNode sibling = this.topSiblingParent == node ? (ASTNode) this.siblings[this.siblingPtr] : null;
             if (sibling != null) {

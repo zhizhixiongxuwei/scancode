@@ -35,15 +35,15 @@ public class PDOMCPPMethodTemplate extends PDOMCPPFunctionTemplate implements IC
      * Offset of remaining annotation information (relative to the beginning of the record).
      */
     // byte
-    private static final int METHOD_ANNOTATION = PDOMCPPFunctionTemplate.RECORD_SIZE;
+    static final public int METHOD_ANNOTATION = PDOMCPPFunctionTemplate.RECORD_SIZE;
 
     /**
      * The size in bytes of a PDOMCPPMethodTemplate record in the database.
      */
     @SuppressWarnings("hiding")
-    protected static final int RECORD_SIZE = PDOMCPPFunctionTemplate.RECORD_SIZE + 1;
+    static final public int RECORD_SIZE = PDOMCPPFunctionTemplate.RECORD_SIZE + 1;
 
-    private byte methodAnnotation = -1;
+    public byte methodAnnotation = -1;
 
     public PDOMCPPMethodTemplate(PDOMCPPLinkage linkage, PDOMNode parent, ICPPMethod method) throws CoreException, DOMException {
         super(linkage, parent, (ICPPFunctionTemplate) method);

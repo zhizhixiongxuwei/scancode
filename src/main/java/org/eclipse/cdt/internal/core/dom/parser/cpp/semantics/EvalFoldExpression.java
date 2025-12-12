@@ -1,20 +1,21 @@
-/*******************************************************************************
- * Copyright (c) 2022 Igor V. Kovalenko.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2022 Igor V. Kovalenko.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Igor V. Kovalenko - initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *      Igor V. Kovalenko - initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.parser.cpp.semantics;
 
 import static org.eclipse.cdt.core.dom.ast.IASTExpression.ValueCategory.PRVALUE;
-
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression;
 import org.eclipse.cdt.core.dom.ast.IASTExpression.ValueCategory;
 import org.eclipse.cdt.core.dom.ast.IASTNode;
@@ -31,297 +32,281 @@ import org.eclipse.cdt.internal.core.dom.parser.cpp.InstantiationContext;
 import org.eclipse.core.runtime.CoreException;
 
 public class EvalFoldExpression extends CPPDependentEvaluation {
-	private static final EvalFixed EVAL_TRUE = new EvalFixed(CPPBasicType.BOOLEAN, PRVALUE, IntegralValue.create(true));
-	private static final EvalFixed EVAL_FALSE = new EvalFixed(CPPBasicType.BOOLEAN, PRVALUE,
-			IntegralValue.create(false));
-	/*private static final EvalFixed EVAL_VOID = new EvalFixed(CPPBasicType.VOID, PRVALUE,
+
+    static final public EvalFixed EVAL_TRUE = new EvalFixed(CPPBasicType.BOOLEAN, PRVALUE, IntegralValue.create(true));
+
+    static final public EvalFixed EVAL_FALSE = new EvalFixed(CPPBasicType.BOOLEAN, PRVALUE, IntegralValue.create(false));
+
+    /*private static final EvalFixed EVAL_VOID = new EvalFixed(CPPBasicType.VOID, PRVALUE,
 			IntegralValue.create(0));*/
+    final public int fOperator;
 
-	private final int fOperator;
-	private final boolean fIsComma;
-	private final boolean fIsLeftFold;
-	private ICPPEvaluation[] fPackEvals;
-	private ICPPEvaluation fInitEval;
+    final public boolean fIsComma;
 
-	private IType fType;
+    final public boolean fIsLeftFold;
 
-	private boolean fCheckedIsConstantExpression;
-	private boolean fIsConstantExpression;
-	private ICPPEvaluation fEvaluation;
+    private ICPPEvaluation[] fPackEvals;
 
-	public EvalFoldExpression(int operator, boolean isComma, boolean isLeftFold, ICPPEvaluation[] packEvals,
-			ICPPEvaluation initEval, IASTNode pointOfDefinition) {
-		this(operator, isComma, isLeftFold, packEvals, initEval, findEnclosingTemplate(pointOfDefinition));
-	}
+    private ICPPEvaluation fInitEval;
 
-	public EvalFoldExpression(int operator, boolean isComma, boolean isLeftFold, ICPPEvaluation[] packEvals,
-			ICPPEvaluation initEval, IBinding templateDefinition) {
-		super(templateDefinition);
-		fOperator = operator;
-		fIsComma = isComma;
-		fIsLeftFold = isLeftFold;
-		fPackEvals = packEvals;
-		fInitEval = initEval;
-	}
+    private IType fType;
 
-	public int getOperator() {
-		return fOperator;
-	}
+    private boolean fCheckedIsConstantExpression;
 
-	public boolean getIsComma() {
-		return fIsComma;
-	}
+    private boolean fIsConstantExpression;
 
-	public boolean getIsLeftFold() {
-		return fIsLeftFold;
-	}
+    private ICPPEvaluation fEvaluation;
 
-	public ICPPEvaluation[] getExpansionPatterns() {
-		return fPackEvals;
-	}
+    public EvalFoldExpression(int operator, boolean isComma, boolean isLeftFold, ICPPEvaluation[] packEvals, ICPPEvaluation initEval, IASTNode pointOfDefinition) {
+        this(operator, isComma, isLeftFold, packEvals, initEval, findEnclosingTemplate(pointOfDefinition));
+    }
 
-	public ICPPEvaluation getInitExpression() {
-		return fInitEval;
-	}
+    public EvalFoldExpression(int operator, boolean isComma, boolean isLeftFold, ICPPEvaluation[] packEvals, ICPPEvaluation initEval, IBinding templateDefinition) {
+        super(templateDefinition);
+        fOperator = operator;
+        fIsComma = isComma;
+        fIsLeftFold = isLeftFold;
+        fPackEvals = packEvals;
+        fInitEval = initEval;
+    }
 
-	@Override
-	public boolean isInitializerList() {
-		return false;
-	}
+    public int getOperator() {
+        return fOperator;
+    }
 
-	@Override
-	public boolean isFunctionSet() {
-		return false;
-	}
+    public boolean getIsComma() {
+        return fIsComma;
+    }
 
-	@Override
-	public boolean isTypeDependent() {
-		return containsDependentType(fPackEvals) || (fInitEval != null && fInitEval.isTypeDependent());
-	}
+    public boolean getIsLeftFold() {
+        return fIsLeftFold;
+    }
 
-	@Override
-	public boolean isValueDependent() {
-		return containsDependentValue(fPackEvals) || (fInitEval != null && fInitEval.isValueDependent());
-	}
+    public ICPPEvaluation[] getExpansionPatterns() {
+        return fPackEvals;
+    }
 
-	@Override
-	public boolean isConstantExpression() {
-		if (!fCheckedIsConstantExpression) {
-			fCheckedIsConstantExpression = true;
-			fIsConstantExpression = computeIsConstantExpression();
-		}
-		return fIsConstantExpression;
-	}
+    public ICPPEvaluation getInitExpression() {
+        return fInitEval;
+    }
 
-	@Override
-	public boolean isEquivalentTo(ICPPEvaluation other) {
-		if (!(other instanceof EvalFoldExpression)) {
-			return false;
-		}
-		EvalFoldExpression o = (EvalFoldExpression) other;
-		return fOperator == o.fOperator && fIsComma == o.fIsComma && fIsLeftFold == o.fIsLeftFold
-				&& fPackEvals == o.fPackEvals
-				&& (fInitEval == null ? o.fInitEval == null : fInitEval.isEquivalentTo(o.fInitEval));
-	}
+    @Override
+    public boolean isInitializerList() {
+        return false;
+    }
 
-	private boolean computeIsConstantExpression() {
-		return areAllConstantExpressions(fPackEvals) && (fInitEval == null || fInitEval.isConstantExpression());
-	}
+    @Override
+    public boolean isFunctionSet() {
+        return false;
+    }
 
-	@Override
-	public IType getType() {
-		if (fType == null) {
-			if (isTypeDependent() || isValueDependent()) {
-				fType = new TypeOfDependentExpression(this);
-			} else {
-				fType = computeEvaluation().getType();
-			}
-		}
-		return fType;
-	}
+    @Override
+    public boolean isTypeDependent() {
+        return containsDependentType(fPackEvals) || (fInitEval != null && fInitEval.isTypeDependent());
+    }
 
-	@Override
-	public IValue getValue() {
-		ICPPEvaluation evaluation = computeEvaluation();
-		return evaluation.getValue();
-	}
+    @Override
+    public boolean isValueDependent() {
+        return containsDependentValue(fPackEvals) || (fInitEval != null && fInitEval.isValueDependent());
+    }
 
-	private ICPPEvaluation computeEvaluation() {
-		if (fEvaluation == null) {
-			if (fInitEval == null && fPackEvals.length == 0) {
-				// unary fold with empty pack
-				if (fIsComma) {
-					// expression: void(), cannot evaluate
-					fEvaluation = EvalFixed.INCOMPLETE;
-				} else if (fOperator == IASTBinaryExpression.op_logicalAnd) {
-					// expression: true
-					fEvaluation = EVAL_TRUE;
-				} else if (fOperator == IASTBinaryExpression.op_logicalOr) {
-					// expression: false
-					fEvaluation = EVAL_FALSE;
-				} else {
-					// error, cannot evaluate
-					fEvaluation = EvalFixed.INCOMPLETE;
-				}
-			} else {
-				// For right fold the expanded pack array is already reversed by instantiate()
-				if (fIsComma) {
-					int offset = 0;
-					ICPPEvaluation[] evals;
+    @Override
+    public boolean isConstantExpression() {
+        if (!fCheckedIsConstantExpression) {
+            fCheckedIsConstantExpression = true;
+            fIsConstantExpression = computeIsConstantExpression();
+        }
+        return fIsConstantExpression;
+    }
 
-					if (fInitEval != null) {
-						evals = new ICPPEvaluation[fPackEvals.length + 1];
-						if (fIsLeftFold) {
-							evals[0] = fInitEval;
-							offset = 1;
-						} else {
-							evals[fPackEvals.length] = fInitEval;
-							offset = 0;
-						}
-					} else {
-						evals = new ICPPEvaluation[fPackEvals.length];
-						offset = 0;
-					}
+    @Override
+    public boolean isEquivalentTo(ICPPEvaluation other) {
+        if (!(other instanceof EvalFoldExpression)) {
+            return false;
+        }
+        EvalFoldExpression o = (EvalFoldExpression) other;
+        return fOperator == o.fOperator && fIsComma == o.fIsComma && fIsLeftFold == o.fIsLeftFold && fPackEvals == o.fPackEvals && (fInitEval == null ? o.fInitEval == null : fInitEval.isEquivalentTo(o.fInitEval));
+    }
 
-					for (ICPPEvaluation packElement : fPackEvals) {
-						evals[offset++] = packElement;
-					}
+    private boolean computeIsConstantExpression() {
+        return areAllConstantExpressions(fPackEvals) && (fInitEval == null || fInitEval.isConstantExpression());
+    }
 
-					fEvaluation = new EvalComma(evals, getTemplateDefinition());
-				} else {
+    @Override
+    public IType getType() {
+        if (fType == null) {
+            if (isTypeDependent() || isValueDependent()) {
+                fType = new TypeOfDependentExpression(this);
+            } else {
+                fType = computeEvaluation().getType();
+            }
+        }
+        return fType;
+    }
 
-					ICPPEvaluation folded = fInitEval;
+    @Override
+    public IValue getValue() {
+        ICPPEvaluation evaluation = computeEvaluation();
+        return evaluation.getValue();
+    }
 
-					for (ICPPEvaluation packElement : fPackEvals) {
-						if (folded == null) {
-							folded = packElement;
-						} else {
-							if (fIsLeftFold) {
-								folded = new EvalBinary(fOperator, folded, packElement, getTemplateDefinition());
-							} else {
-								folded = new EvalBinary(fOperator, packElement, folded, getTemplateDefinition());
-							}
-						}
-					}
+    private ICPPEvaluation computeEvaluation() {
+        if (fEvaluation == null) {
+            if (fInitEval == null && fPackEvals.length == 0) {
+                // unary fold with empty pack
+                if (fIsComma) {
+                    // expression: void(), cannot evaluate
+                    fEvaluation = EvalFixed.INCOMPLETE;
+                } else if (fOperator == IASTBinaryExpression.op_logicalAnd) {
+                    // expression: true
+                    fEvaluation = EVAL_TRUE;
+                } else if (fOperator == IASTBinaryExpression.op_logicalOr) {
+                    // expression: false
+                    fEvaluation = EVAL_FALSE;
+                } else {
+                    // error, cannot evaluate
+                    fEvaluation = EvalFixed.INCOMPLETE;
+                }
+            } else {
+                // For right fold the expanded pack array is already reversed by instantiate()
+                if (fIsComma) {
+                    int offset = 0;
+                    ICPPEvaluation[] evals;
+                    if (fInitEval != null) {
+                        evals = new ICPPEvaluation[fPackEvals.length + 1];
+                        if (fIsLeftFold) {
+                            evals[0] = fInitEval;
+                            offset = 1;
+                        } else {
+                            evals[fPackEvals.length] = fInitEval;
+                            offset = 0;
+                        }
+                    } else {
+                        evals = new ICPPEvaluation[fPackEvals.length];
+                        offset = 0;
+                    }
+                    for (ICPPEvaluation packElement : fPackEvals) {
+                        evals[offset++] = packElement;
+                    }
+                    fEvaluation = new EvalComma(evals, getTemplateDefinition());
+                } else {
+                    ICPPEvaluation folded = fInitEval;
+                    for (ICPPEvaluation packElement : fPackEvals) {
+                        if (folded == null) {
+                            folded = packElement;
+                        } else {
+                            if (fIsLeftFold) {
+                                folded = new EvalBinary(fOperator, folded, packElement, getTemplateDefinition());
+                            } else {
+                                folded = new EvalBinary(fOperator, packElement, folded, getTemplateDefinition());
+                            }
+                        }
+                    }
+                    fEvaluation = folded;
+                }
+            }
+        }
+        return fEvaluation;
+    }
 
-					fEvaluation = folded;
-				}
-			}
-		}
+    @Override
+    public ValueCategory getValueCategory() {
+        return ValueCategory.PRVALUE;
+    }
 
-		return fEvaluation;
-	}
+    @Override
+    public void marshal(ITypeMarshalBuffer buffer, boolean includeValue) throws CoreException {
+        short firstBytes = ITypeMarshalBuffer.EVAL_FOLD_EXPRESSION;
+        if (fIsComma) {
+            firstBytes |= ITypeMarshalBuffer.FLAG1;
+        }
+        if (fIsLeftFold) {
+            firstBytes |= ITypeMarshalBuffer.FLAG2;
+        }
+        buffer.putShort((byte) firstBytes);
+        buffer.putInt(fOperator);
+        buffer.putInt(fPackEvals.length);
+        for (ICPPEvaluation arg : fPackEvals) {
+            buffer.marshalEvaluation(arg, includeValue);
+        }
+        buffer.marshalEvaluation(fInitEval, includeValue);
+        marshalTemplateDefinition(buffer);
+    }
 
-	@Override
-	public ValueCategory getValueCategory() {
-		return ValueCategory.PRVALUE;
-	}
+    public static ICPPEvaluation unmarshal(short firstBytes, ITypeMarshalBuffer buffer) throws CoreException {
+        boolean isComma = (firstBytes & ITypeMarshalBuffer.FLAG1) != 0;
+        boolean isLeftFold = (firstBytes & ITypeMarshalBuffer.FLAG2) != 0;
+        int operator = buffer.getInt();
+        int len = buffer.getInt();
+        ICPPEvaluation[] packEvals = new ICPPEvaluation[len];
+        for (int i = 0; i < packEvals.length; i++) {
+            packEvals[i] = buffer.unmarshalEvaluation();
+        }
+        ICPPEvaluation initEval = buffer.unmarshalEvaluation();
+        IBinding templateDefinition = buffer.unmarshalBinding();
+        return new EvalFoldExpression(operator, isComma, isLeftFold, packEvals, initEval, templateDefinition);
+    }
 
-	@Override
-	public void marshal(ITypeMarshalBuffer buffer, boolean includeValue) throws CoreException {
-		short firstBytes = ITypeMarshalBuffer.EVAL_FOLD_EXPRESSION;
-		if (fIsComma) {
-			firstBytes |= ITypeMarshalBuffer.FLAG1;
-		}
-		if (fIsLeftFold) {
-			firstBytes |= ITypeMarshalBuffer.FLAG2;
-		}
-		buffer.putShort((byte) firstBytes);
-		buffer.putInt(fOperator);
-		buffer.putInt(fPackEvals.length);
-		for (ICPPEvaluation arg : fPackEvals) {
-			buffer.marshalEvaluation(arg, includeValue);
-		}
-		buffer.marshalEvaluation(fInitEval, includeValue);
-		marshalTemplateDefinition(buffer);
-	}
+    @Override
+    public ICPPEvaluation instantiate(InstantiationContext context, int maxDepth) {
+        ICPPEvaluation[] packEvals = instantiateExpressions(fPackEvals, context, maxDepth);
+        ICPPEvaluation initEval = fInitEval == null ? null : fInitEval.instantiate(context, maxDepth);
+        if (packEvals == fPackEvals && initEval == fInitEval) {
+            return this;
+        }
+        if (!fIsLeftFold) {
+            ArrayUtil.reverse(packEvals);
+        }
+        return new EvalFoldExpression(fOperator, fIsComma, fIsLeftFold, packEvals, initEval, getTemplateDefinition());
+    }
 
-	public static ICPPEvaluation unmarshal(short firstBytes, ITypeMarshalBuffer buffer) throws CoreException {
-		boolean isComma = (firstBytes & ITypeMarshalBuffer.FLAG1) != 0;
-		boolean isLeftFold = (firstBytes & ITypeMarshalBuffer.FLAG2) != 0;
-		int operator = buffer.getInt();
-		int len = buffer.getInt();
-		ICPPEvaluation[] packEvals = new ICPPEvaluation[len];
-		for (int i = 0; i < packEvals.length; i++) {
-			packEvals[i] = buffer.unmarshalEvaluation();
-		}
-		ICPPEvaluation initEval = buffer.unmarshalEvaluation();
-		IBinding templateDefinition = buffer.unmarshalBinding();
+    @Override
+    public ICPPEvaluation computeForFunctionCall(ActivationRecord record, ConstexprEvaluationContext context) {
+        if (context.getStepsPerformed() >= ConstexprEvaluationContext.MAX_CONSTEXPR_EVALUATION_STEPS) {
+            return EvalFixed.INCOMPLETE;
+        }
+        ICPPEvaluation[] packEvals = new ICPPEvaluation[fPackEvals.length];
+        for (int i = 0; i < fPackEvals.length; i++) {
+            ICPPEvaluation arg = fPackEvals[i].computeForFunctionCall(record, context.recordStep());
+            packEvals[i] = arg;
+        }
+        ICPPEvaluation initEval = fInitEval == null ? null : fInitEval.computeForFunctionCall(record, context.recordStep());
+        if (packEvals == fPackEvals && initEval == fInitEval) {
+            return this;
+        }
+        return new EvalFoldExpression(fOperator, fIsComma, fIsLeftFold, packEvals, initEval, getTemplateDefinition());
+    }
 
-		return new EvalFoldExpression(operator, isComma, isLeftFold, packEvals, initEval, templateDefinition);
-	}
+    @Override
+    public int determinePackSize(ICPPTemplateParameterMap tpMap) {
+        int r = CPPTemplates.PACK_SIZE_NOT_FOUND;
+        for (ICPPEvaluation packElement : fPackEvals) {
+            r = CPPTemplates.combinePackSize(r, packElement.determinePackSize(tpMap));
+        }
+        return r;
+    }
 
-	@Override
-	public ICPPEvaluation instantiate(InstantiationContext context, int maxDepth) {
-		ICPPEvaluation[] packEvals = instantiateExpressions(fPackEvals, context, maxDepth);
-		ICPPEvaluation initEval = fInitEval == null ? null : fInitEval.instantiate(context, maxDepth);
+    @Override
+    public boolean referencesTemplateParameter() {
+        for (ICPPEvaluation arg : fPackEvals) {
+            if (arg.referencesTemplateParameter()) {
+                return true;
+            }
+        }
+        return fInitEval != null && fInitEval.referencesTemplateParameter();
+    }
 
-		if (packEvals == fPackEvals && initEval == fInitEval) {
-			return this;
-		}
-
-		if (!fIsLeftFold) {
-			ArrayUtil.reverse(packEvals);
-		}
-
-		return new EvalFoldExpression(fOperator, fIsComma, fIsLeftFold, packEvals, initEval, getTemplateDefinition());
-	}
-
-	@Override
-	public ICPPEvaluation computeForFunctionCall(ActivationRecord record, ConstexprEvaluationContext context) {
-		if (context.getStepsPerformed() >= ConstexprEvaluationContext.MAX_CONSTEXPR_EVALUATION_STEPS) {
-			return EvalFixed.INCOMPLETE;
-		}
-
-		ICPPEvaluation[] packEvals = new ICPPEvaluation[fPackEvals.length];
-
-		for (int i = 0; i < fPackEvals.length; i++) {
-			ICPPEvaluation arg = fPackEvals[i].computeForFunctionCall(record, context.recordStep());
-			packEvals[i] = arg;
-		}
-
-		ICPPEvaluation initEval = fInitEval == null ? null
-				: fInitEval.computeForFunctionCall(record, context.recordStep());
-
-		if (packEvals == fPackEvals && initEval == fInitEval) {
-			return this;
-		}
-
-		return new EvalFoldExpression(fOperator, fIsComma, fIsLeftFold, packEvals, initEval, getTemplateDefinition());
-	}
-
-	@Override
-	public int determinePackSize(ICPPTemplateParameterMap tpMap) {
-		int r = CPPTemplates.PACK_SIZE_NOT_FOUND;
-		for (ICPPEvaluation packElement : fPackEvals) {
-			r = CPPTemplates.combinePackSize(r, packElement.determinePackSize(tpMap));
-		}
-		return r;
-	}
-
-	@Override
-	public boolean referencesTemplateParameter() {
-		for (ICPPEvaluation arg : fPackEvals) {
-			if (arg.referencesTemplateParameter()) {
-				return true;
-			}
-		}
-		return fInitEval != null && fInitEval.referencesTemplateParameter();
-	}
-
-	@Override
-	public boolean isNoexcept() {
-		for (int i = 0; i < fPackEvals.length; i++) {
-			ICPPEvaluation eval = fPackEvals[i];
-			if (!eval.isNoexcept()) {
-				return false;
-			}
-		}
-
-		if (fInitEval != null) {
-			return fInitEval.isNoexcept();
-		}
-
-		return true;
-	}
+    @Override
+    public boolean isNoexcept() {
+        for (int i = 0; i < fPackEvals.length; i++) {
+            ICPPEvaluation eval = fPackEvals[i];
+            if (!eval.isNoexcept()) {
+                return false;
+            }
+        }
+        if (fInitEval != null) {
+            return fInitEval.isNoexcept();
+        }
+        return true;
+    }
 }

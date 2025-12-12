@@ -1,17 +1,19 @@
-/*******************************************************************************
- * Copyright (c) 2002, 2010 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2002, 2010 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *    IBM Rational Software - Initial API and implementation
- *    Markus Schorn (Wind River Systems)
- *******************************************************************************/
+ *  Contributors:
+ *     IBM Rational Software - Initial API and implementation
+ *     Markus Schorn (Wind River Systems)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.core.parser;
 
 /**
@@ -31,34 +33,39 @@ package org.eclipse.cdt.core.parser;
  */
 public class OffsetLimitReachedException extends EndOfFileException {
 
-	private static final long serialVersionUID = -4315255081891716385L;
+    static final public long serialVersionUID = -4315255081891716385L;
 
-	public static final int ORIGIN_UNKNOWN = 0;
-	public static final int ORIGIN_LEXER = 1;
-	public static final int ORIGIN_PREPROCESSOR_DIRECTIVE = 2;
-	public static final int ORIGIN_INACTIVE_CODE = 3;
-	public static final int ORIGIN_MACRO_EXPANSION = 4;
+    public static final int ORIGIN_UNKNOWN = 0;
 
-	private final IToken finalToken;
-	private final int fOrigin;
+    public static final int ORIGIN_LEXER = 1;
 
-	public OffsetLimitReachedException(int origin, IToken lastToken) {
-		super(lastToken != null ? lastToken.getEndOffset() : -1);
-		fOrigin = origin;
-		finalToken = lastToken;
-	}
+    public static final int ORIGIN_PREPROCESSOR_DIRECTIVE = 2;
 
-	/**
-	 * Returns one of ORIGIN_...
-	 */
-	public int getOriginator() {
-		return fOrigin;
-	}
+    public static final int ORIGIN_INACTIVE_CODE = 3;
 
-	/**
-	 * @return Returns the finalToken.
-	 */
-	public IToken getFinalToken() {
-		return finalToken;
-	}
+    public static final int ORIGIN_MACRO_EXPANSION = 4;
+
+    private final IToken finalToken;
+
+    private final int fOrigin;
+
+    public OffsetLimitReachedException(int origin, IToken lastToken) {
+        super(lastToken != null ? lastToken.getEndOffset() : -1);
+        fOrigin = origin;
+        finalToken = lastToken;
+    }
+
+    /**
+     * Returns one of ORIGIN_...
+     */
+    public int getOriginator() {
+        return fOrigin;
+    }
+
+    /**
+     * @return Returns the finalToken.
+     */
+    public IToken getFinalToken() {
+        return finalToken;
+    }
 }

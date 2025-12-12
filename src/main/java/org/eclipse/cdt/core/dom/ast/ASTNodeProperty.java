@@ -1,17 +1,19 @@
-/*******************************************************************************
- * Copyright (c) 2004, 2012 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2004, 2012 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- * 	   Doug Schaefer (IBM) - Initial API and implementation
- * 	   Mike Kucera - cleanup
- *******************************************************************************/
+ *  Contributors:
+ *  	   Doug Schaefer (IBM) - Initial API and implementation
+ *  	   Mike Kucera - cleanup
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.core.dom.ast;
 
 /**
@@ -24,24 +26,25 @@ package org.eclipse.cdt.core.dom.ast;
  * @noinstantiate This class is not intended to be instantiated by clients.
  */
 public class ASTNodeProperty {
-	private final String name;
 
-	public ASTNodeProperty(String n) {
-		this.name = n;
-	}
+    final public String name;
 
-	/**
-	 * Each property has a name to help distinguish it from other properties of
-	 * a node.
-	 *
-	 * @return the name of the property
-	 */
-	public String getName() {
-		return name;
-	}
+    public ASTNodeProperty(String n) {
+        this.name = n;
+    }
 
-	@Override
-	public String toString() {
-		return name;
-	}
+    /**
+     * Each property has a name to help distinguish it from other properties of
+     * a node.
+     *
+     * @return the name of the property
+     */
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public String toString() {
+        return name;
+    }
 }

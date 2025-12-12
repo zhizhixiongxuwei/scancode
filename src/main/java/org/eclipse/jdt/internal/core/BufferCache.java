@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2000, 2013 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *      IBM Corporation - initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.jdt.internal.core;
 
 import java.util.ArrayList;
@@ -23,52 +25,52 @@ import org.eclipse.jdt.internal.core.util.LRUCache;
  */
 public class BufferCache<K> extends OverflowingLRUCache<K, IBuffer> {
 
-	private final ThreadLocal<List<IBuffer>> buffersToClose = new ThreadLocal<>();
+    final public ThreadLocal<List<IBuffer>> buffersToClose = new ThreadLocal<>();
 
-	/**
-	 * Constructs a new buffer cache of the given size.
-	 */
-	public BufferCache(int size) {
-		super(size);
-	}
-	/**
-	 * Constructs a new buffer cache of the given size.
-	 */
-	public BufferCache(int size, int overflow) {
-		super(size, overflow);
-	}
+    /**
+     * Constructs a new buffer cache of the given size.
+     */
+    public BufferCache(int size) {
+        super(size);
+    }
 
-	@Override
-	protected boolean close(LRUCacheEntry<K, IBuffer> entry) {
-		IBuffer buffer= entry.value;
+    /**
+     * Constructs a new buffer cache of the given size.
+     */
+    public BufferCache(int size, int overflow) {
+        super(size, overflow);
+    }
 
-		// prevent buffer that have unsaved changes or working copy buffer to be removed
-		// see https://bugs.eclipse.org/bugs/show_bug.cgi?id=39311
-		if (!((Openable)buffer.getOwner()).canBufferBeRemovedFromCache(buffer)) {
-			return false;
-		} else {
-			List<IBuffer> buffers = this.buffersToClose.get();
-			if (buffers == null) {
-				buffers = new ArrayList<>();
-				this.buffersToClose.set(buffers);
-			}
-			buffers.add(buffer);
-			return true;
-		}
-	}
+    @Override
+    protected boolean close(LRUCacheEntry<K, IBuffer> entry) {
+        IBuffer buffer = entry.value;
+        // prevent buffer that have unsaved changes or working copy buffer to be removed
+        // see https://bugs.eclipse.org/bugs/show_bug.cgi?id=39311
+        if (!((Openable) buffer.getOwner()).canBufferBeRemovedFromCache(buffer)) {
+            return false;
+        } else {
+            List<IBuffer> buffers = this.buffersToClose.get();
+            if (buffers == null) {
+                buffers = new ArrayList<>();
+                this.buffersToClose.set(buffers);
+            }
+            buffers.add(buffer);
+            return true;
+        }
+    }
 
-	void closeBuffers() {
-		List<IBuffer> buffers = this.buffersToClose.get();
-		if (buffers == null)
-			return;
-		this.buffersToClose.remove();
-		for (IBuffer buffer : buffers) {
-			buffer.close();
-		}
-	}
+    void closeBuffers() {
+        List<IBuffer> buffers = this.buffersToClose.get();
+        if (buffers == null)
+            return;
+        this.buffersToClose.remove();
+        for (IBuffer buffer : buffers) {
+            buffer.close();
+        }
+    }
 
-	@Override
-	protected LRUCache<K, IBuffer> newInstance(int size, int newOverflow) {
-		return new BufferCache<>(size, newOverflow);
-	}
+    @Override
+    protected LRUCache<K, IBuffer> newInstance(int size, int newOverflow) {
+        return new BufferCache<>(size, newOverflow);
+    }
 }

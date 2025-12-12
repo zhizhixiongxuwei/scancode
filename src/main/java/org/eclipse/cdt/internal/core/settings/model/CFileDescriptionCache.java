@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2007, 2011 Intel Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2007, 2011 Intel Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- * Intel Corporation - Initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *  Intel Corporation - Initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.settings.model;
 
 import org.eclipse.cdt.core.settings.model.ICConfigurationDescription;
@@ -26,90 +28,91 @@ import org.eclipse.cdt.core.settings.model.extension.impl.CDefaultFileData;
 import org.eclipse.core.runtime.IPath;
 
 public class CFileDescriptionCache extends CDefaultFileData implements ICFileDescription, ICachedData {
-	private CConfigurationDescriptionCache fCfg;
-	private ResourceDescriptionHolder fRcDesHolder;
 
-	public CFileDescriptionCache(CFileData base, CConfigurationDescriptionCache cfg) {
-		super(base.getId(), base.getPath(), cfg, null);
-		fCfg = cfg;
-		fCfg.addResourceDescription(this);
+    public CConfigurationDescriptionCache fCfg;
 
-		copyDataFrom(base, true);
-	}
+    public ResourceDescriptionHolder fRcDesHolder;
 
-	@Override
-	protected CLanguageData copyLanguageData(CLanguageData data, boolean clone) {
-		return new CLanguageSettingCache(data, this);
-	}
+    public CFileDescriptionCache(CFileData base, CConfigurationDescriptionCache cfg) {
+        super(base.getId(), base.getPath(), cfg, null);
+        fCfg = cfg;
+        fCfg.addResourceDescription(this);
+        copyDataFrom(base, true);
+    }
 
-	@Override
-	public void setExcluded(boolean excluded) throws WriteAccessException {
-		throw ExceptionFactory.createIsReadOnlyException();
-	}
+    @Override
+    protected CLanguageData copyLanguageData(CLanguageData data, boolean clone) {
+        return new CLanguageSettingCache(data, this);
+    }
 
-	@Override
-	public boolean canExclude(boolean exclude) {
-		return exclude == isExcluded();
-	}
+    @Override
+    public void setExcluded(boolean excluded) throws WriteAccessException {
+        throw ExceptionFactory.createIsReadOnlyException();
+    }
 
-	@Override
-	public void setName(String name) throws WriteAccessException {
-		throw ExceptionFactory.createIsReadOnlyException();
-	}
+    @Override
+    public boolean canExclude(boolean exclude) {
+        return exclude == isExcluded();
+    }
 
-	@Override
-	public void setPath(IPath path) throws WriteAccessException {
-		throw ExceptionFactory.createIsReadOnlyException();
-	}
+    @Override
+    public void setName(String name) throws WriteAccessException {
+        throw ExceptionFactory.createIsReadOnlyException();
+    }
 
-	@Override
-	public ICConfigurationDescription getConfiguration() {
-		return fCfg;
-	}
+    @Override
+    public void setPath(IPath path) throws WriteAccessException {
+        throw ExceptionFactory.createIsReadOnlyException();
+    }
 
-	@Override
-	public ICSettingContainer getParent() {
-		return fCfg;
-	}
+    @Override
+    public ICConfigurationDescription getConfiguration() {
+        return fCfg;
+    }
 
-	@Override
-	public ICLanguageSetting getLanguageSetting() {
-		return (ICLanguageSetting) fLanguageData;
-	}
+    @Override
+    public ICSettingContainer getParent() {
+        return fCfg;
+    }
 
-	@Override
-	public ICSettingObject[] getChildSettings() {
-		return new ICSettingObject[] { (ICSettingObject) fLanguageData };
-	}
+    @Override
+    public ICLanguageSetting getLanguageSetting() {
+        return (ICLanguageSetting) fLanguageData;
+    }
 
-	@Override
-	public boolean isReadOnly() {
-		return true;
-	}
+    @Override
+    public ICSettingObject[] getChildSettings() {
+        return new ICSettingObject[] { (ICSettingObject) fLanguageData };
+    }
 
-	private ResourceDescriptionHolder getRcDesHolder() {
-		if (fRcDesHolder == null)
-			fRcDesHolder = fCfg.createHolderForRc(getPath());
-		return fRcDesHolder;
-	}
+    @Override
+    public boolean isReadOnly() {
+        return true;
+    }
 
-	@Override
-	public ICFolderDescription getParentFolderDescription() {
-		return getRcDesHolder().getParentFolderDescription();
-	}
+    private ResourceDescriptionHolder getRcDesHolder() {
+        if (fRcDesHolder == null)
+            fRcDesHolder = fCfg.createHolderForRc(getPath());
+        return fRcDesHolder;
+    }
 
-	@Override
-	public IPath getPath() {
-		return ResourceDescriptionHolder.normalizePath(super.getPath());
-	}
+    @Override
+    public ICFolderDescription getParentFolderDescription() {
+        return getRcDesHolder().getParentFolderDescription();
+    }
 
-	@Override
-	public boolean hasCustomSettings() {
-		return true;
-	}
+    @Override
+    public IPath getPath() {
+        return ResourceDescriptionHolder.normalizePath(super.getPath());
+    }
 
-	@Override
-	public boolean isExcluded() {
-		return fCfg.isExcluded(getPath());
-	}
+    @Override
+    public boolean hasCustomSettings() {
+        return true;
+    }
+
+    @Override
+    public boolean isExcluded() {
+        return fCfg.isExcluded(getPath());
+    }
 }

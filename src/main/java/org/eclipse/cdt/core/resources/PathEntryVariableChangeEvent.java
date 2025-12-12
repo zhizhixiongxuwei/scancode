@@ -1,22 +1,22 @@
-/*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2000, 2016 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     IBM Corporation - initial API and implementation
- *     QNX Software Systems - Initial API and implementation
- *******************************************************************************/
-
+ *  Contributors:
+ *      IBM Corporation - initial API and implementation
+ *      QNX Software Systems - Initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.core.resources;
 
 import java.util.EventObject;
-
 import org.eclipse.core.runtime.IPath;
 
 /**
@@ -25,71 +25,85 @@ import org.eclipse.core.runtime.IPath;
  * @noinstantiate This class is not intended to be instantiated by clients.
  */
 public class PathEntryVariableChangeEvent extends EventObject {
-	private static final long serialVersionUID = 1L;
 
-	/** Event type constant (value = 1) that denotes a value change . */
-	public final static int VARIABLE_CHANGED = 1;
+    static final public long serialVersionUID = 1L;
 
-	/** Event type constant (value = 2) that denotes a variable creation. */
-	public final static int VARIABLE_CREATED = 2;
+    /**
+     * Event type constant (value = 1) that denotes a value change .
+     */
+    public final static int VARIABLE_CHANGED = 1;
 
-	/** Event type constant (value = 3) that denotes a variable deletion. */
-	public final static int VARIABLE_DELETED = 3;
+    /**
+     * Event type constant (value = 2) that denotes a variable creation.
+     */
+    public final static int VARIABLE_CREATED = 2;
 
-	/**
-	 * The name of the changed variable.
-	 */
-	private String variableName;
+    /**
+     * Event type constant (value = 3) that denotes a variable deletion.
+     */
+    public final static int VARIABLE_DELETED = 3;
 
-	/**
-	 * The value of the changed variable (may be null).
-	 */
-	private IPath value;
+    /**
+     * The name of the changed variable.
+     */
+    public String variableName;
 
-	/** The event type. */
-	private int type;
+    /**
+     * The value of the changed variable (may be null).
+     */
+    private IPath value;
 
-	/**
-	 * Constructor for this class.
-	 */
-	public PathEntryVariableChangeEvent(IPathEntryVariableManager source, String variableName, IPath value, int type) {
-		super(source);
-		if (type < VARIABLE_CHANGED || type > VARIABLE_DELETED)
-			throw new IllegalArgumentException("Invalid event type: " + type); //$NON-NLS-1$
-		this.variableName = variableName;
-		this.value = value;
-		this.type = type;
-	}
+    /**
+     * The event type.
+     */
+    private int type;
 
-	public IPath getValue() {
-		return value;
-	}
+    /**
+     * Constructor for this class.
+     */
+    public PathEntryVariableChangeEvent(IPathEntryVariableManager source, String variableName, IPath value, int type) {
+        super(source);
+        if (type < VARIABLE_CHANGED || type > VARIABLE_DELETED)
+            //$NON-NLS-1$
+            throw new IllegalArgumentException("Invalid event type: " + type);
+        this.variableName = variableName;
+        this.value = value;
+        this.type = type;
+    }
 
-	public String getVariableName() {
-		return variableName;
-	}
+    public IPath getValue() {
+        return value;
+    }
 
-	public int getType() {
-		return type;
-	}
+    public String getVariableName() {
+        return variableName;
+    }
 
-	/**
-	 * Return a string representation of this object.
-	 */
-	@Override
-	public String toString() {
-		String[] typeStrings = { "VARIABLE_CHANGED", "VARIABLE_CREATED", "VARIABLE_DELETED" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-		StringBuilder sb = new StringBuilder(getClass().getName());
-		sb.append("[variable = "); //$NON-NLS-1$
-		sb.append(variableName);
-		sb.append(", type = "); //$NON-NLS-1$
-		sb.append(typeStrings[type - 1]);
-		if (type != VARIABLE_DELETED) {
-			sb.append(", value = "); //$NON-NLS-1$
-			sb.append(value);
-		}
-		sb.append("]"); //$NON-NLS-1$
-		return sb.toString();
-	}
+    public int getType() {
+        return type;
+    }
 
+    /**
+     * Return a string representation of this object.
+     */
+    @Override
+    public String toString() {
+        //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        String[] typeStrings = { "VARIABLE_CHANGED", "VARIABLE_CREATED", "VARIABLE_DELETED" };
+        StringBuilder sb = new StringBuilder(getClass().getName());
+        //$NON-NLS-1$
+        sb.append("[variable = ");
+        sb.append(variableName);
+        //$NON-NLS-1$
+        sb.append(", type = ");
+        sb.append(typeStrings[type - 1]);
+        if (type != VARIABLE_DELETED) {
+            //$NON-NLS-1$
+            sb.append(", value = ");
+            sb.append(value);
+        }
+        //$NON-NLS-1$
+        sb.append("]");
+        return sb.toString();
+    }
 }

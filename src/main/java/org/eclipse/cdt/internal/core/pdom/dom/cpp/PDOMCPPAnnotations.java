@@ -29,15 +29,15 @@ import org.eclipse.cdt.internal.core.dom.parser.ASTInternal;
 
 public class PDOMCPPAnnotations {
 
-    private static final int VISIBILITY_OFFSET = 0;
+    static final public int VISIBILITY_OFFSET = 0;
 
-    private static final int VISIBILITY_MASK = 0x03;
+    static final public int VISIBILITY_MASK = 0x03;
 
-    private static final int EXTERN_OFFSET = 2;
+    static final public int EXTERN_OFFSET = 2;
 
-    private static final int MUTABLE_OFFSET = 3;
+    static final public int MUTABLE_OFFSET = 3;
 
-    private static final int STATIC_OFFSET = 4;
+    static final public int STATIC_OFFSET = 4;
 
     private static final int CONSTEXPR_OFFSET = 5;
 

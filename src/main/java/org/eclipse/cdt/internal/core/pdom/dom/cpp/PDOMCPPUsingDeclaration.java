@@ -35,16 +35,16 @@ import org.eclipse.core.runtime.CoreException;
  */
 public class PDOMCPPUsingDeclaration extends PDOMCPPBinding implements ICPPUsingDeclaration {
 
-    private static final int TARGET_BINDING = PDOMCPPBinding.RECORD_SIZE;
+    static final public int TARGET_BINDING = PDOMCPPBinding.RECORD_SIZE;
 
     // Using declarations for functions may have multiple delegates. We model such case
     // by creating a chain of PDOMCPPUsingDeclaration objects linked by NEXT_DELEGATE field.
-    private static final int NEXT_DELEGATE = TARGET_BINDING + Database.TYPE_SIZE;
+    static final public int NEXT_DELEGATE = TARGET_BINDING + Database.TYPE_SIZE;
 
     @SuppressWarnings("hiding")
-    protected static final int RECORD_SIZE = NEXT_DELEGATE + Database.PTR_SIZE;
+    static final public int RECORD_SIZE = NEXT_DELEGATE + Database.PTR_SIZE;
 
-    private volatile IBinding[] delegates;
+    volatile public IBinding[] delegates;
 
     public PDOMCPPUsingDeclaration(PDOMLinkage linkage, PDOMNode parent, ICPPUsingDeclaration using) throws CoreException {
         super(linkage, parent, using.getNameCharArray());

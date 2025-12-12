@@ -53,13 +53,13 @@ public class PDOMCFunction extends PDOMBinding implements IFunction {
     /**
      * Offset for the type of this function (relative to the beginning of the record).
      */
-    private static final int FUNCTION_TYPE = FIRST_PARAM + Database.PTR_SIZE;
+    static final public int FUNCTION_TYPE = FIRST_PARAM + Database.PTR_SIZE;
 
     /**
      * Offset of annotation information (relative to the beginning of the record).
      */
     // byte
-    private static final int ANNOTATIONS = FUNCTION_TYPE + Database.TYPE_SIZE;
+    static final public int ANNOTATIONS = FUNCTION_TYPE + Database.TYPE_SIZE;
 
     /**
      * The size in bytes of a PDOMCPPFunction record in the database.

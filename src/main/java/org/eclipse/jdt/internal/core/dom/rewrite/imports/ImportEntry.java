@@ -25,7 +25,7 @@ package org.eclipse.jdt.internal.core.dom.rewrite.imports;
  */
 abstract public class ImportEntry {
 
-    final ImportName importName;
+    final public ImportName importName;
 
     protected ImportEntry(ImportName importName) {
         this.importName = importName;

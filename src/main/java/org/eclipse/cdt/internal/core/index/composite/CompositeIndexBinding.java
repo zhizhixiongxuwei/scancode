@@ -1,18 +1,20 @@
-/*******************************************************************************
- * Copyright (c) 2007, 2015 Symbian Software Systems and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2007, 2015 Symbian Software Systems and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *    Andrew Ferguson (Symbian) - Initial implementation
- *    Markus Schorn (Wind River Systems)
- *    Bryan Wilkinson (QNX)
- *******************************************************************************/
+ *  Contributors:
+ *     Andrew Ferguson (Symbian) - Initial implementation
+ *     Markus Schorn (Wind River Systems)
+ *     Bryan Wilkinson (QNX)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.index.composite;
 
 import org.eclipse.cdt.core.CCorePlugin;
@@ -33,123 +35,125 @@ import org.eclipse.core.runtime.CoreException;
  * associated IIndex
  */
 public abstract class CompositeIndexBinding implements IIndexBinding {
-	/**
-	 * The factory used for obtaining further composite bindings
-	 */
-	protected final ICompositesFactory cf;
-	/**
-	 * The representative binding for this composite binding. Most cases are simple
-	 * enough that this becomes a delegate, some need to use it as a search key over fragments,
-	 * and some ignore it as a representative binding from each fragment is needed to meet interface
-	 * contracts.
-	 */
-	protected final IIndexFragmentBinding rbinding;
 
-	public CompositeIndexBinding(ICompositesFactory cf, IIndexFragmentBinding rbinding) {
-		if (rbinding == null || cf == null)
-			throw new IllegalArgumentException();
-		this.cf = cf;
-		this.rbinding = rbinding;
-	}
+    /**
+     * The factory used for obtaining further composite bindings
+     */
+    final public ICompositesFactory cf;
 
-	@Override
-	public ILinkage getLinkage() {
-		return rbinding.getLinkage();
-	}
+    /**
+     * The representative binding for this composite binding. Most cases are simple
+     * enough that this becomes a delegate, some need to use it as a search key over fragments,
+     * and some ignore it as a representative binding from each fragment is needed to meet interface
+     * contracts.
+     */
+    final public IIndexFragmentBinding rbinding;
 
-	@Override
-	public String getName() {
-		return rbinding.getName();
-	}
+    public CompositeIndexBinding(ICompositesFactory cf, IIndexFragmentBinding rbinding) {
+        if (rbinding == null || cf == null)
+            throw new IllegalArgumentException();
+        this.cf = cf;
+        this.rbinding = rbinding;
+    }
 
-	@Override
-	public char[] getNameCharArray() {
-		return rbinding.getNameCharArray();
-	}
+    @Override
+    public ILinkage getLinkage() {
+        return rbinding.getLinkage();
+    }
 
-	@Override
-	@SuppressWarnings("unchecked")
-	public <T> T getAdapter(Class<T> adapter) {
-		if (adapter.isInstance(rbinding)) {
-			return (T) rbinding;
-		}
-		return null;
-	}
+    @Override
+    public String getName() {
+        return rbinding.getName();
+    }
 
-	@Override
-	public String[] getQualifiedName() {
-		return new String[] { getName() };
-	}
+    @Override
+    public char[] getNameCharArray() {
+        return rbinding.getNameCharArray();
+    }
 
-	@Override
-	public IIndexScope getScope() {
-		return cf.getCompositeScope(rbinding.getScope());
-	}
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> T getAdapter(Class<T> adapter) {
+        if (adapter.isInstance(rbinding)) {
+            return (T) rbinding;
+        }
+        return null;
+    }
 
-	public boolean hasDefinition() throws CoreException {
-		fail();
-		return false;
-	}
+    @Override
+    public String[] getQualifiedName() {
+        return new String[] { getName() };
+    }
 
-	protected final void fail() {
-		throw new CompositingNotImplementedError("Compositing feature not implemented"); //$NON-NLS-1$
-	}
+    @Override
+    public IIndexScope getScope() {
+        return cf.getCompositeScope(rbinding.getScope());
+    }
 
-	@Override
-	public String toString() {
-		return rbinding.toString();
-	}
+    public boolean hasDefinition() throws CoreException {
+        fail();
+        return false;
+    }
 
-	@Override
-	public boolean isFileLocal() throws CoreException {
-		return rbinding != null && rbinding.isFileLocal();
-	}
+    protected final void fail() {
+        //$NON-NLS-1$
+        throw new CompositingNotImplementedError("Compositing feature not implemented");
+    }
 
-	@Override
-	public IIndexFile getLocalToFile() throws CoreException {
-		return rbinding != null ? rbinding.getLocalToFile() : null;
-	}
+    @Override
+    public String toString() {
+        return rbinding.toString();
+    }
 
-	@Override
-	public boolean equals(Object other) {
-		if (other == this)
-			return true;
-		if (!(other instanceof CompositeIndexBinding))
-			return false;
-		CompositeIndexBinding otherComposite = (CompositeIndexBinding) other;
-		return rbinding.equals(otherComposite.rbinding) && cf.equals(otherComposite.cf);
-	}
+    @Override
+    public boolean isFileLocal() throws CoreException {
+        return rbinding != null && rbinding.isFileLocal();
+    }
 
-	@Override
-	public int hashCode() {
-		return rbinding.hashCode();
-	}
+    @Override
+    public IIndexFile getLocalToFile() throws CoreException {
+        return rbinding != null ? rbinding.getLocalToFile() : null;
+    }
 
-	@Override
-	public IIndexBinding getOwner() {
-		final IIndexFragmentBinding owner = rbinding.getOwner();
-		if (owner == null)
-			return null;
+    @Override
+    public boolean equals(Object other) {
+        if (other == this)
+            return true;
+        if (!(other instanceof CompositeIndexBinding))
+            return false;
+        CompositeIndexBinding otherComposite = (CompositeIndexBinding) other;
+        return rbinding.equals(otherComposite.rbinding) && cf.equals(otherComposite.cf);
+    }
 
-		return cf.getCompositeBinding(owner);
-	}
+    @Override
+    public int hashCode() {
+        return rbinding.hashCode();
+    }
 
-	public IIndexBinding getRawBinding() {
-		return rbinding;
-	}
+    @Override
+    public IIndexBinding getOwner() {
+        final IIndexFragmentBinding owner = rbinding.getOwner();
+        if (owner == null)
+            return null;
+        return cf.getCompositeBinding(owner);
+    }
 
-	protected IIndexFragmentBinding adaptBinding(IBinding binding) {
-		if (binding instanceof IIndexFragmentBinding) {
-			return (IIndexFragmentBinding) binding;
-		}
-		ILinkage linkage = rbinding.getLinkage();
-		if (linkage instanceof PDOMLinkage) {
-			try {
-				return ((PDOMLinkage) linkage).adaptBinding(binding);
-			} catch (CoreException e) {
-				CCorePlugin.log(e);
-			}
-		}
-		return null;
-	}
+    public IIndexBinding getRawBinding() {
+        return rbinding;
+    }
+
+    protected IIndexFragmentBinding adaptBinding(IBinding binding) {
+        if (binding instanceof IIndexFragmentBinding) {
+            return (IIndexFragmentBinding) binding;
+        }
+        ILinkage linkage = rbinding.getLinkage();
+        if (linkage instanceof PDOMLinkage) {
+            try {
+                return ((PDOMLinkage) linkage).adaptBinding(binding);
+            } catch (CoreException e) {
+                CCorePlugin.log(e);
+            }
+        }
+        return null;
+    }
 }

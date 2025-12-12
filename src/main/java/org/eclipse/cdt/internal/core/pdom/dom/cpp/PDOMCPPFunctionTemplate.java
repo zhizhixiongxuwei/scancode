@@ -40,13 +40,13 @@ import org.eclipse.core.runtime.CoreException;
  */
 public class PDOMCPPFunctionTemplate extends PDOMCPPFunction implements ICPPFunctionTemplate, ICPPInstanceCache, IPDOMMemberOwner, IPDOMCPPTemplateParameterOwner {
 
-    private static final int TEMPLATE_PARAMS = PDOMCPPFunction.RECORD_SIZE;
+    static final public int TEMPLATE_PARAMS = PDOMCPPFunction.RECORD_SIZE;
 
     @SuppressWarnings("hiding")
-    protected static final int RECORD_SIZE = TEMPLATE_PARAMS + Database.PTR_SIZE;
+    static final public int RECORD_SIZE = TEMPLATE_PARAMS + Database.PTR_SIZE;
 
     // Cached template parameters.
-    private volatile IPDOMCPPTemplateParameter[] params;
+    volatile public IPDOMCPPTemplateParameter[] params;
 
     public PDOMCPPFunctionTemplate(PDOMCPPLinkage linkage, PDOMNode parent, ICPPFunctionTemplate template) throws CoreException, DOMException {
         super(linkage, parent, template, false);

@@ -38,15 +38,15 @@ import org.eclipse.core.runtime.CoreException;
  */
 public class PDOMCPPClassInstance extends PDOMCPPClassSpecialization implements ICPPTemplateInstance {
 
-    private static final int ARGUMENTS = PDOMCPPClassSpecialization.RECORD_SIZE + 0;
+    static final public int ARGUMENTS = PDOMCPPClassSpecialization.RECORD_SIZE + 0;
 
     /**
      * The size in bytes of a PDOMCPPClassInstance record in the database.
      */
     @SuppressWarnings("hiding")
-    protected static final int RECORD_SIZE = PDOMCPPClassSpecialization.RECORD_SIZE + 4;
+    static final public int RECORD_SIZE = PDOMCPPClassSpecialization.RECORD_SIZE + 4;
 
-    private volatile ICPPTemplateArgument[] fTemplateArguments;
+    volatile public ICPPTemplateArgument[] fTemplateArguments;
 
     public PDOMCPPClassInstance(PDOMCPPLinkage linkage, PDOMNode parent, ICPPClassType classType, PDOMBinding orig) throws CoreException {
         super(linkage, parent, classType, orig);

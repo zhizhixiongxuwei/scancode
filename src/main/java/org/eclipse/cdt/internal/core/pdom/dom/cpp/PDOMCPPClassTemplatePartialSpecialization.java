@@ -39,19 +39,19 @@ import org.eclipse.core.runtime.CoreException;
  */
 public class PDOMCPPClassTemplatePartialSpecialization extends PDOMCPPClassTemplate implements IPDOMPartialSpecialization, IPDOMOverloader, ICPPClassTemplatePartialSpecialization {
 
-    private static final int ARGUMENTS = PDOMCPPClassTemplate.RECORD_SIZE + 0;
+    static final public int ARGUMENTS = PDOMCPPClassTemplate.RECORD_SIZE + 0;
 
-    private static final int SIGNATURE_HASH = PDOMCPPClassTemplate.RECORD_SIZE + 4;
+    static final public int SIGNATURE_HASH = PDOMCPPClassTemplate.RECORD_SIZE + 4;
 
-    private static final int PRIMARY = PDOMCPPClassTemplate.RECORD_SIZE + 8;
+    static final public int PRIMARY = PDOMCPPClassTemplate.RECORD_SIZE + 8;
 
-    private static final int NEXT_PARTIAL = PDOMCPPClassTemplate.RECORD_SIZE + 12;
+    static final public int NEXT_PARTIAL = PDOMCPPClassTemplate.RECORD_SIZE + 12;
 
     /**
      * The size in bytes of a PDOMCPPClassTemplatePartialSpecialization record in the database.
      */
     @SuppressWarnings("hiding")
-    protected static final int RECORD_SIZE = PDOMCPPClassTemplate.RECORD_SIZE + 16;
+    static final public int RECORD_SIZE = PDOMCPPClassTemplate.RECORD_SIZE + 16;
 
     public PDOMCPPClassTemplatePartialSpecialization(PDOMCPPLinkage linkage, PDOMNode parent, ICPPClassTemplatePartialSpecialization partial, PDOMCPPClassTemplate primary) throws CoreException, DOMException {
         super(linkage, parent, partial, false);

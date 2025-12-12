@@ -1,18 +1,20 @@
-/*******************************************************************************
- * Copyright (c) 2004, 2015 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2004, 2015 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     IBM - Initial API and implementation
- *     Markus Schorn (Wind River Systems)
- *     Sergey Prigogin (Google)
- *******************************************************************************/
+ *  Contributors:
+ *      IBM - Initial API and implementation
+ *      Markus Schorn (Wind River Systems)
+ *      Sergey Prigogin (Google)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.parser.cpp;
 
 import org.eclipse.cdt.core.dom.ast.IASTExpression;
@@ -24,48 +26,50 @@ import org.eclipse.cdt.internal.core.dom.parser.ASTAmbiguousNode;
 import org.eclipse.cdt.internal.core.dom.parser.IASTAmbiguousExpression;
 
 public class CPPASTAmbiguousExpression extends ASTAmbiguousNode implements IASTAmbiguousExpression, ICPPASTExpression {
-	private IASTExpression[] exp = new IASTExpression[2];
-	private int expPos;
 
-	public CPPASTAmbiguousExpression(IASTExpression... expressions) {
-		for (IASTExpression e : expressions) {
-			addExpression(e);
-		}
-	}
+    public IASTExpression[] exp = new IASTExpression[2];
 
-	@Override
-	public IASTExpression copy() {
-		throw new UnsupportedOperationException();
-	}
+    public int expPos;
 
-	@Override
-	public IASTExpression copy(CopyStyle style) {
-		throw new UnsupportedOperationException();
-	}
+    public CPPASTAmbiguousExpression(IASTExpression... expressions) {
+        for (IASTExpression e : expressions) {
+            addExpression(e);
+        }
+    }
 
-	@Override
-	public void addExpression(IASTExpression e) {
-		assertNotFrozen();
-		if (e != null) {
-			exp = ArrayUtil.appendAt(exp, expPos++, e);
-			e.setParent(this);
-			e.setPropertyInParent(SUBEXPRESSION);
-		}
-	}
+    @Override
+    public IASTExpression copy() {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public IASTExpression[] getExpressions() {
-		exp = ArrayUtil.trim(exp, expPos);
-		return exp;
-	}
+    @Override
+    public IASTExpression copy(CopyStyle style) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public IASTNode[] getNodes() {
-		return getExpressions();
-	}
+    @Override
+    public void addExpression(IASTExpression e) {
+        assertNotFrozen();
+        if (e != null) {
+            exp = ArrayUtil.appendAt(exp, expPos++, e);
+            e.setParent(this);
+            e.setPropertyInParent(SUBEXPRESSION);
+        }
+    }
 
-	@Override
-	public IASTImplicitDestructorName[] getImplicitDestructorNames() {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public IASTExpression[] getExpressions() {
+        exp = ArrayUtil.trim(exp, expPos);
+        return exp;
+    }
+
+    @Override
+    public IASTNode[] getNodes() {
+        return getExpressions();
+    }
+
+    @Override
+    public IASTImplicitDestructorName[] getImplicitDestructorNames() {
+        throw new UnsupportedOperationException();
+    }
 }

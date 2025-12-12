@@ -1,21 +1,22 @@
-/*******************************************************************************
- * Copyright (c) 2008, 2013 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2008, 2013 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *      IBM Corporation - initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.core.resources;
 
 import java.io.InputStream;
 import java.net.URI;
-
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileInfo;
 import org.eclipse.core.filesystem.IFileStore;
@@ -31,89 +32,81 @@ import org.eclipse.core.runtime.PlatformObject;
  *
  * @author crecoskie
  * @since 5.0
- *
  */
 public class EFSFileStorage extends PlatformObject implements IStorage {
 
-	private URI locationURI;
-	private InputStream inputStream;
+    public URI locationURI;
 
-	public EFSFileStorage(URI locationURI) {
-		this.locationURI = locationURI;
-	}
+    public InputStream inputStream;
 
-	@Override
-	public InputStream getContents() throws CoreException {
-		if (inputStream == null) {
+    public EFSFileStorage(URI locationURI) {
+        this.locationURI = locationURI;
+    }
 
-			IFileStore fileStore = EFS.getStore(locationURI);
+    @Override
+    public InputStream getContents() throws CoreException {
+        if (inputStream == null) {
+            IFileStore fileStore = EFS.getStore(locationURI);
+            if (fileStore != null) {
+                inputStream = fileStore.openInputStream(EFS.NONE, new NullProgressMonitor());
+            }
+        }
+        return inputStream;
+    }
 
-			if (fileStore != null) {
-				inputStream = fileStore.openInputStream(EFS.NONE, new NullProgressMonitor());
-			}
-		}
+    @Override
+    public IPath getFullPath() {
+        return URIUtil.toPath(locationURI);
+    }
 
-		return inputStream;
-	}
+    @Override
+    public String getName() {
+        IFileStore fileStore = null;
+        try {
+            fileStore = EFS.getStore(locationURI);
+        } catch (CoreException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return null;
+        }
+        if (fileStore != null) {
+            return fileStore.getName();
+        }
+        return null;
+    }
 
-	@Override
-	public IPath getFullPath() {
-		return URIUtil.toPath(locationURI);
-	}
+    @Override
+    public boolean isReadOnly() {
+        IFileStore fileStore = null;
+        try {
+            fileStore = EFS.getStore(locationURI);
+        } catch (CoreException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        if (fileStore != null) {
+            IFileInfo info = fileStore.fetchInfo();
+            if (info != null)
+                return info.getAttribute(EFS.ATTRIBUTE_READ_ONLY);
+        }
+        return false;
+    }
 
-	@Override
-	public String getName() {
-		IFileStore fileStore = null;
-		try {
-			fileStore = EFS.getStore(locationURI);
-		} catch (CoreException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return null;
-		}
+    /**
+     * Returns the location URI corresponding to the EFS resource that
+     * backs this storage.
+     *
+     * @return URI
+     */
+    public URI getLocationURI() {
+        return locationURI;
+    }
 
-		if (fileStore != null) {
-			return fileStore.getName();
-		}
-
-		return null;
-	}
-
-	@Override
-	public boolean isReadOnly() {
-		IFileStore fileStore = null;
-		try {
-			fileStore = EFS.getStore(locationURI);
-		} catch (CoreException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		if (fileStore != null) {
-			IFileInfo info = fileStore.fetchInfo();
-
-			if (info != null)
-				return info.getAttribute(EFS.ATTRIBUTE_READ_ONLY);
-		}
-
-		return false;
-	}
-
-	/**
-	 * Returns the location URI corresponding to the EFS resource that
-	 * backs this storage.
-	 *
-	 * @return URI
-	 */
-	public URI getLocationURI() {
-		return locationURI;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (obj instanceof EFSFileStorage && locationURI != null) {
-			return locationURI.equals(((EFSFileStorage) obj).getLocationURI());
-		}
-		return false;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof EFSFileStorage && locationURI != null) {
+            return locationURI.equals(((EFSFileStorage) obj).getLocationURI());
+        }
+        return false;
+    }
 }

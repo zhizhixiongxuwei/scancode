@@ -1,23 +1,24 @@
-/*******************************************************************************
- * Copyright (c) 2002, 2016 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2002, 2016 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- * Rational Software - Initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *  Rational Software - Initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.model;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-
 import org.eclipse.cdt.core.model.CModelException;
 import org.eclipse.cdt.core.model.ICElement;
 import org.eclipse.cdt.core.model.ICElementDelta;
@@ -34,398 +35,381 @@ import org.eclipse.cdt.core.model.IParent;
  *
  * This class is similar to the JDT CElementDeltaBuilder class.
  */
-
 public class CElementDeltaBuilder {
 
-	/**
-	 * The c element handle
-	 */
-	ICElement cElement;
+    /**
+     * The c element handle
+     */
+    public ICElement cElement;
 
-	/**
-	 * The maximum depth in the C element children we should look into
-	 */
-	int maxDepth = Integer.MAX_VALUE;
+    /**
+     * The maximum depth in the C element children we should look into
+     */
+    public int maxDepth = Integer.MAX_VALUE;
 
-	/**
-	 * The old handle to info relationships
-	 */
-	Map<ICElement, CElementInfo> infos;
+    /**
+     * The old handle to info relationships
+     */
+    public Map<ICElement, CElementInfo> infos;
 
-	/**
-	 * The old position info
-	 */
-	Map<ICElement, ListItem> oldPositions;
+    /**
+     * The old position info
+     */
+    public Map<ICElement, ListItem> oldPositions;
 
-	/**
-	 * The new position info
-	 */
-	Map<ICElement, ListItem> newPositions;
+    /**
+     * The new position info
+     */
+    public Map<ICElement, ListItem> newPositions;
 
-	/**
-	 * Change delta
-	 */
-	CElementDelta delta;
+    /**
+     * Change delta
+     */
+    CElementDelta delta;
 
-	/**
-	 * List of added elements
-	 */
-	ArrayList<ICElement> added;
+    /**
+     * List of added elements
+     */
+    ArrayList<ICElement> added;
 
-	/**
-	 * List of removed elements
-	 */
-	ArrayList<ICElement> removed;
+    /**
+     * List of removed elements
+     */
+    ArrayList<ICElement> removed;
 
-	/**
-	 * Doubly linked list item
-	 */
-	class ListItem {
-		public ICElement previous;
-		public ICElement next;
+    /**
+     * Doubly linked list item
+     */
+    class ListItem {
 
-		public ListItem(ICElement previous, ICElement next) {
-			this.previous = previous;
-			this.next = next;
-		}
-	}
+        public ICElement previous;
 
-	/**
-	 * Creates a C element comparator on a C element
-	 * looking as deep as necessary.
-	 */
-	public CElementDeltaBuilder(ICElement CElement) {
-		this.cElement = CElement;
-		this.initialize();
-		this.recordElementInfo(CElement, 0);
-	}
+        public ICElement next;
 
-	/**
-	 * Creates a C element comparator on a C element
-	 * looking only 'maxDepth' levels deep.
-	 */
-	public CElementDeltaBuilder(ICElement cElement, int maxDepth) {
-		this.cElement = cElement;
-		this.maxDepth = maxDepth;
-		this.initialize();
-		this.recordElementInfo(cElement, 0);
-	}
+        public ListItem(ICElement previous, ICElement next) {
+            this.previous = previous;
+            this.next = next;
+        }
+    }
 
-	/**
-	 * Repairs the positioning information
-	 * after an element has been added
-	 */
-	private void added(ICElement element) {
-		this.added.add(element);
-		ListItem current = this.getNewPosition(element);
-		ListItem previous = null, next = null;
-		if (current.previous != null)
-			previous = this.getNewPosition(current.previous);
-		if (current.next != null)
-			next = this.getNewPosition(current.next);
-		if (previous != null)
-			previous.next = current.next;
-		if (next != null)
-			next.previous = current.previous;
-	}
+    /**
+     * Creates a C element comparator on a C element
+     * looking as deep as necessary.
+     */
+    public CElementDeltaBuilder(ICElement CElement) {
+        this.cElement = CElement;
+        this.initialize();
+        this.recordElementInfo(CElement, 0);
+    }
 
-	/**
-	 * Builds the C element deltas between the old content of the translation unit
-	 * and its new content.
-	 */
-	public void buildDeltas() throws CModelException {
-		this.recordNewPositions(this.cElement, 0);
-		this.findAdditions(this.cElement, 0);
-		this.findDeletions();
-		this.findChangesInPositioning(this.cElement, 0);
-		this.trimDelta(this.delta);
-	}
+    /**
+     * Creates a C element comparator on a C element
+     * looking only 'maxDepth' levels deep.
+     */
+    public CElementDeltaBuilder(ICElement cElement, int maxDepth) {
+        this.cElement = cElement;
+        this.maxDepth = maxDepth;
+        this.initialize();
+        this.recordElementInfo(cElement, 0);
+    }
 
-	/**
-	 * Finds elements which have been added or changed.
-	 */
-	private void findAdditions(ICElement newElement, int depth) throws CModelException {
-		CElementInfo oldInfo = this.getElementInfo(newElement);
-		if (oldInfo == null && depth < this.maxDepth) {
-			this.delta.added(newElement);
-			added(newElement);
-		} else {
-			this.removeElementInfo(newElement);
-		}
+    /**
+     * Repairs the positioning information
+     * after an element has been added
+     */
+    private void added(ICElement element) {
+        this.added.add(element);
+        ListItem current = this.getNewPosition(element);
+        ListItem previous = null, next = null;
+        if (current.previous != null)
+            previous = this.getNewPosition(current.previous);
+        if (current.next != null)
+            next = this.getNewPosition(current.next);
+        if (previous != null)
+            previous.next = current.next;
+        if (next != null)
+            next.previous = current.previous;
+    }
 
-		if (depth >= this.maxDepth) {
-			// mark element as changed
-			this.delta.changed(newElement, ICElementDelta.F_CONTENT);
-			return;
-		}
+    /**
+     * Builds the C element deltas between the old content of the translation unit
+     * and its new content.
+     */
+    public void buildDeltas() throws CModelException {
+        this.recordNewPositions(this.cElement, 0);
+        this.findAdditions(this.cElement, 0);
+        this.findDeletions();
+        this.findChangesInPositioning(this.cElement, 0);
+        this.trimDelta(this.delta);
+    }
 
-		CElementInfo newInfo = null;
-		newInfo = ((CElement) newElement).getElementInfo();
+    /**
+     * Finds elements which have been added or changed.
+     */
+    private void findAdditions(ICElement newElement, int depth) throws CModelException {
+        CElementInfo oldInfo = this.getElementInfo(newElement);
+        if (oldInfo == null && depth < this.maxDepth) {
+            this.delta.added(newElement);
+            added(newElement);
+        } else {
+            this.removeElementInfo(newElement);
+        }
+        if (depth >= this.maxDepth) {
+            // mark element as changed
+            this.delta.changed(newElement, ICElementDelta.F_CONTENT);
+            return;
+        }
+        CElementInfo newInfo = null;
+        newInfo = ((CElement) newElement).getElementInfo();
+        this.findContentChange(oldInfo, newInfo, newElement);
+        if (oldInfo != null && newElement instanceof IParent) {
+            ICElement[] children = newInfo.getChildren();
+            if (children != null) {
+                int length = children.length;
+                for (int i = 0; i < length; i++) {
+                    this.findAdditions(children[i], depth + 1);
+                }
+            }
+        }
+    }
 
-		this.findContentChange(oldInfo, newInfo, newElement);
+    /**
+     * Looks for changed positioning of elements.
+     */
+    private void findChangesInPositioning(ICElement element, int depth) throws CModelException {
+        if (depth >= this.maxDepth || this.added.contains(element) || this.removed.contains(element))
+            return;
+        if (!isPositionedCorrectly(element)) {
+            this.delta.changed(element, ICElementDelta.F_REORDER);
+        }
+        if (element instanceof IParent) {
+            CElementInfo info = null;
+            info = ((CElement) element).getElementInfo();
+            ICElement[] children = info.getChildren();
+            if (children != null) {
+                int length = children.length;
+                for (int i = 0; i < length; i++) {
+                    this.findChangesInPositioning(children[i], depth + 1);
+                }
+            }
+        }
+    }
 
-		if (oldInfo != null && newElement instanceof IParent) {
+    /**
+     * The elements are equivalent, but might have content changes.
+     */
+    private void findContentChange(CElementInfo oldInfo, CElementInfo newInfo, ICElement newElement) {
+        if (oldInfo instanceof SourceManipulationInfo && newInfo instanceof SourceManipulationInfo) {
+            SourceManipulationInfo oldSourceInfo = (SourceManipulationInfo) oldInfo;
+            SourceManipulationInfo newSourceInfo = (SourceManipulationInfo) newInfo;
+            if ((oldSourceInfo).getModifiers() != (newSourceInfo).getModifiers()) {
+                this.delta.changed(newElement, ICElementDelta.F_MODIFIERS);
+            }
+            // The element info should be able to tell if the contents are the same.
+            if (!oldSourceInfo.hasSameContentsAs(newSourceInfo)) {
+                this.delta.changed(newElement, ICElementDelta.F_CONTENT);
+            }
+        }
+    }
 
-			ICElement[] children = newInfo.getChildren();
-			if (children != null) {
-				int length = children.length;
-				for (int i = 0; i < length; i++) {
-					this.findAdditions(children[i], depth + 1);
-				}
-			}
-		}
-	}
+    /**
+     * Adds removed deltas for any handles left in the table
+     */
+    private void findDeletions() {
+        Iterator<ICElement> iter = this.infos.keySet().iterator();
+        while (iter.hasNext()) {
+            ICElement element = iter.next();
+            this.delta.removed(element);
+            this.removed(element);
+        }
+    }
 
-	/**
-	 * Looks for changed positioning of elements.
-	 */
-	private void findChangesInPositioning(ICElement element, int depth) throws CModelException {
-		if (depth >= this.maxDepth || this.added.contains(element) || this.removed.contains(element))
-			return;
+    private CElementInfo getElementInfo(ICElement element) {
+        return this.infos.get(element);
+    }
 
-		if (!isPositionedCorrectly(element)) {
-			this.delta.changed(element, ICElementDelta.F_REORDER);
-		}
+    private ListItem getNewPosition(ICElement element) {
+        return this.newPositions.get(element);
+    }
 
-		if (element instanceof IParent) {
-			CElementInfo info = null;
-			info = ((CElement) element).getElementInfo();
+    private ListItem getOldPosition(ICElement element) {
+        return this.oldPositions.get(element);
+    }
 
-			ICElement[] children = info.getChildren();
-			if (children != null) {
-				int length = children.length;
-				for (int i = 0; i < length; i++) {
-					this.findChangesInPositioning(children[i], depth + 1);
-				}
-			}
-		}
-	}
+    private void initialize() {
+        this.infos = new HashMap<>(20);
+        this.oldPositions = new HashMap<>(20);
+        this.newPositions = new HashMap<>(20);
+        this.putOldPosition(this.cElement, new ListItem(null, null));
+        this.putNewPosition(this.cElement, new ListItem(null, null));
+        this.delta = new CElementDelta(cElement);
+        // if building a delta on a translation unit or below,
+        // it's a fine grained delta
+        if (cElement.getElementType() >= ICElement.C_UNIT) {
+            this.delta.fineGrained();
+        }
+        this.added = new ArrayList<>(5);
+        this.removed = new ArrayList<>(5);
+    }
 
-	/**
-	 * The elements are equivalent, but might have content changes.
-	 */
-	private void findContentChange(CElementInfo oldInfo, CElementInfo newInfo, ICElement newElement) {
-		if (oldInfo instanceof SourceManipulationInfo && newInfo instanceof SourceManipulationInfo) {
-			SourceManipulationInfo oldSourceInfo = (SourceManipulationInfo) oldInfo;
-			SourceManipulationInfo newSourceInfo = (SourceManipulationInfo) newInfo;
+    /**
+     * Inserts position information for the elements into the new or old positions table
+     */
+    private void insertPositions(ICElement[] elements, boolean isNew) {
+        int length = elements.length;
+        ICElement previous = null, current = null, next = (length > 0) ? elements[0] : null;
+        for (int i = 0; i < length; i++) {
+            previous = current;
+            current = next;
+            next = (i + 1 < length) ? elements[i + 1] : null;
+            if (isNew) {
+                this.putNewPosition(current, new ListItem(previous, next));
+            } else {
+                this.putOldPosition(current, new ListItem(previous, next));
+            }
+        }
+    }
 
-			if ((oldSourceInfo).getModifiers() != (newSourceInfo).getModifiers()) {
-				this.delta.changed(newElement, ICElementDelta.F_MODIFIERS);
-			}
+    /**
+     * Returns true if the given elements represent the an equivalent declaration.
+     *
+     * <p>NOTE: Since this comparison can be done with handle info only,
+     * none of the internal calls need to use the locally cached contents
+     * of the old translation unit.
+     */
+    //private boolean isIdentical(CElement e1, CElement e2) {
+    //	if (e1 == null ^ e2 == null)
+    //		return false;
+    //
+    //	if (e1 == null)
+    //		return true;
+    //
+    //	return e1.isIdentical(e2);
+    //}
+    /**
+     * Answers true if the elements position has not changed.
+     * Takes into account additions so that elements following
+     * new elements will not appear out of place.
+     */
+    private boolean isPositionedCorrectly(ICElement element) {
+        ListItem oldListItem = this.getOldPosition(element);
+        if (oldListItem == null)
+            return false;
+        ListItem newListItem = this.getNewPosition(element);
+        if (newListItem == null)
+            return false;
+        ICElement oldPrevious = oldListItem.previous;
+        ICElement newPrevious = newListItem.previous;
+        if (oldPrevious == null) {
+            return newPrevious == null;
+        }
+        return oldPrevious.equals(newPrevious);
+    }
 
-			// The element info should be able to tell if the contents are the same.
-			if (!oldSourceInfo.hasSameContentsAs(newSourceInfo)) {
-				this.delta.changed(newElement, ICElementDelta.F_CONTENT);
-			}
-		}
-	}
+    private void putElementInfo(ICElement element, CElementInfo info) {
+        this.infos.put(element, info);
+    }
 
-	/**
-	 * Adds removed deltas for any handles left in the table
-	 */
-	private void findDeletions() {
-		Iterator<ICElement> iter = this.infos.keySet().iterator();
-		while (iter.hasNext()) {
-			ICElement element = iter.next();
-			this.delta.removed(element);
-			this.removed(element);
-		}
-	}
+    private void putNewPosition(ICElement element, ListItem position) {
+        this.newPositions.put(element, position);
+    }
 
-	private CElementInfo getElementInfo(ICElement element) {
-		return this.infos.get(element);
-	}
+    private void putOldPosition(ICElement element, ListItem position) {
+        this.oldPositions.put(element, position);
+    }
 
-	private ListItem getNewPosition(ICElement element) {
-		return this.newPositions.get(element);
-	}
+    /**
+     * Records this elements info, and attempts
+     * to record the info for the children.
+     */
+    private void recordElementInfo(ICElement element, int depth) {
+        if (depth >= this.maxDepth) {
+            return;
+        }
+        CElementInfo info = (CElementInfo) CModelManager.getDefault().getInfo(element);
+        if (// no longer in the C model.
+        info == null)
+            return;
+        this.putElementInfo(element, info);
+        if (element instanceof IParent) {
+            ICElement[] children = info.getChildren();
+            if (children != null) {
+                insertPositions(children, false);
+                for (int i = 0, length = children.length; i < length; i++) recordElementInfo(children[i], depth + 1);
+            }
+        }
+    }
 
-	private ListItem getOldPosition(ICElement element) {
-		return this.oldPositions.get(element);
-	}
+    /**
+     * Fills the newPositions hashtable with the new position information
+     */
+    private void recordNewPositions(ICElement newElement, int depth) throws CModelException {
+        if (depth < this.maxDepth && newElement instanceof IParent) {
+            CElementInfo info = null;
+            info = ((CElement) newElement).getElementInfo();
+            ICElement[] children = info.getChildren();
+            if (children != null) {
+                insertPositions(children, true);
+                for (int i = 0, length = children.length; i < length; i++) {
+                    recordNewPositions(children[i], depth + 1);
+                }
+            }
+        }
+    }
 
-	private void initialize() {
-		this.infos = new HashMap<>(20);
-		this.oldPositions = new HashMap<>(20);
-		this.newPositions = new HashMap<>(20);
-		this.putOldPosition(this.cElement, new ListItem(null, null));
-		this.putNewPosition(this.cElement, new ListItem(null, null));
-		this.delta = new CElementDelta(cElement);
+    /**
+     * Repairs the positioning information
+     * after an element has been removed
+     */
+    private void removed(ICElement element) {
+        this.removed.add(element);
+        ListItem current = this.getOldPosition(element);
+        ListItem previous = null, next = null;
+        if (current.previous != null)
+            previous = this.getOldPosition(current.previous);
+        if (current.next != null)
+            next = this.getOldPosition(current.next);
+        if (previous != null)
+            previous.next = current.next;
+        if (next != null)
+            next.previous = current.previous;
+    }
 
-		// if building a delta on a translation unit or below,
-		// it's a fine grained delta
-		if (cElement.getElementType() >= ICElement.C_UNIT) {
-			this.delta.fineGrained();
-		}
+    private void removeElementInfo(ICElement element) {
+        this.infos.remove(element);
+    }
 
-		this.added = new ArrayList<>(5);
-		this.removed = new ArrayList<>(5);
-	}
+    @Override
+    public String toString() {
+        StringBuilder buffer = new StringBuilder();
+        //$NON-NLS-1$
+        buffer.append("Built delta:\n");
+        buffer.append(this.delta.toString());
+        return buffer.toString();
+    }
 
-	/**
-	 * Inserts position information for the elements into the new or old positions table
-	 */
-	private void insertPositions(ICElement[] elements, boolean isNew) {
-		int length = elements.length;
-		ICElement previous = null, current = null, next = (length > 0) ? elements[0] : null;
-		for (int i = 0; i < length; i++) {
-			previous = current;
-			current = next;
-			next = (i + 1 < length) ? elements[i + 1] : null;
-			if (isNew) {
-				this.putNewPosition(current, new ListItem(previous, next));
-			} else {
-				this.putOldPosition(current, new ListItem(previous, next));
-			}
-		}
-	}
+    /**
+     * Trims deletion deltas to only report the highest level of deletion
+     */
+    private void trimDelta(CElementDelta delta) {
+        if (delta.getKind() == ICElementDelta.REMOVED) {
+            ICElementDelta[] children = delta.getAffectedChildren();
+            for (int i = 0, length = children.length; i < length; i++) {
+                delta.removeAffectedChild((CElementDelta) children[i]);
+            }
+        } else {
+            ICElementDelta[] children = delta.getAffectedChildren();
+            for (int i = 0, length = children.length; i < length; i++) {
+                trimDelta((CElementDelta) children[i]);
+            }
+        }
+    }
 
-	/**
-	 * Returns true if the given elements represent the an equivalent declaration.
-	 *
-	 * <p>NOTE: Since this comparison can be done with handle info only,
-	 * none of the internal calls need to use the locally cached contents
-	 * of the old translation unit.
-	 */
-	//private boolean isIdentical(CElement e1, CElement e2) {
-	//	if (e1 == null ^ e2 == null)
-	//		return false;
-	//
-	//	if (e1 == null)
-	//		return true;
-	//
-	//	return e1.isIdentical(e2);
-	//}
-	/**
-	 * Answers true if the elements position has not changed.
-	 * Takes into account additions so that elements following
-	 * new elements will not appear out of place.
-	 */
-	private boolean isPositionedCorrectly(ICElement element) {
-		ListItem oldListItem = this.getOldPosition(element);
-		if (oldListItem == null)
-			return false;
-
-		ListItem newListItem = this.getNewPosition(element);
-		if (newListItem == null)
-			return false;
-
-		ICElement oldPrevious = oldListItem.previous;
-		ICElement newPrevious = newListItem.previous;
-
-		if (oldPrevious == null) {
-			return newPrevious == null;
-		}
-		return oldPrevious.equals(newPrevious);
-	}
-
-	private void putElementInfo(ICElement element, CElementInfo info) {
-		this.infos.put(element, info);
-	}
-
-	private void putNewPosition(ICElement element, ListItem position) {
-		this.newPositions.put(element, position);
-	}
-
-	private void putOldPosition(ICElement element, ListItem position) {
-		this.oldPositions.put(element, position);
-	}
-
-	/**
-	 * Records this elements info, and attempts
-	 * to record the info for the children.
-	 */
-	private void recordElementInfo(ICElement element, int depth) {
-		if (depth >= this.maxDepth) {
-			return;
-		}
-		CElementInfo info = (CElementInfo) CModelManager.getDefault().getInfo(element);
-		if (info == null) // no longer in the C model.
-			return;
-		this.putElementInfo(element, info);
-
-		if (element instanceof IParent) {
-			ICElement[] children = info.getChildren();
-			if (children != null) {
-				insertPositions(children, false);
-				for (int i = 0, length = children.length; i < length; i++)
-					recordElementInfo(children[i], depth + 1);
-			}
-		}
-	}
-
-	/**
-	 * Fills the newPositions hashtable with the new position information
-	 */
-	private void recordNewPositions(ICElement newElement, int depth) throws CModelException {
-		if (depth < this.maxDepth && newElement instanceof IParent) {
-			CElementInfo info = null;
-			info = ((CElement) newElement).getElementInfo();
-
-			ICElement[] children = info.getChildren();
-			if (children != null) {
-				insertPositions(children, true);
-				for (int i = 0, length = children.length; i < length; i++) {
-					recordNewPositions(children[i], depth + 1);
-				}
-			}
-		}
-	}
-
-	/**
-	 * Repairs the positioning information
-	 * after an element has been removed
-	 */
-	private void removed(ICElement element) {
-		this.removed.add(element);
-		ListItem current = this.getOldPosition(element);
-		ListItem previous = null, next = null;
-		if (current.previous != null)
-			previous = this.getOldPosition(current.previous);
-		if (current.next != null)
-			next = this.getOldPosition(current.next);
-		if (previous != null)
-			previous.next = current.next;
-		if (next != null)
-			next.previous = current.previous;
-
-	}
-
-	private void removeElementInfo(ICElement element) {
-		this.infos.remove(element);
-	}
-
-	@Override
-	public String toString() {
-		StringBuilder buffer = new StringBuilder();
-		buffer.append("Built delta:\n"); //$NON-NLS-1$
-		buffer.append(this.delta.toString());
-		return buffer.toString();
-	}
-
-	/**
-	 * Trims deletion deltas to only report the highest level of deletion
-	 */
-	private void trimDelta(CElementDelta delta) {
-		if (delta.getKind() == ICElementDelta.REMOVED) {
-			ICElementDelta[] children = delta.getAffectedChildren();
-			for (int i = 0, length = children.length; i < length; i++) {
-				delta.removeAffectedChild((CElementDelta) children[i]);
-			}
-		} else {
-			ICElementDelta[] children = delta.getAffectedChildren();
-			for (int i = 0, length = children.length; i < length; i++) {
-				trimDelta((CElementDelta) children[i]);
-			}
-		}
-	}
-
-	/**
-	 * Get the change delta built by the builder.
-	 * @return the change delta built by the builder.
-	 */
-	public CElementDelta getDelta() {
-		return delta;
-	}
-
+    /**
+     * Get the change delta built by the builder.
+     * @return the change delta built by the builder.
+     */
+    public CElementDelta getDelta() {
+        return delta;
+    }
 }

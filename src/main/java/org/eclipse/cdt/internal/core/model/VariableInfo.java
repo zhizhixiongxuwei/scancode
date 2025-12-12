@@ -18,13 +18,13 @@ package org.eclipse.cdt.internal.core.model;
 public class VariableInfo extends SourceManipulationInfo {
 
     //$NON-NLS-1$
-    String typeStr = "";
+    public String typeStr = "";
 
-    boolean isConst = false;
+    public boolean isConst = false;
 
-    boolean isVolatile = false;
+    public boolean isVolatile = false;
 
-    boolean isStatic = false;
+    public boolean isStatic = false;
 
     protected VariableInfo(CElement element) {
         super(element);

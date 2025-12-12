@@ -1,23 +1,24 @@
-/*******************************************************************************
- * Copyright (c) 2000, 2015 QNX Software Systems and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2000, 2015 QNX Software Systems and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     QNX Software Systems - Initial API and implementation
- *     Anton Leherbauer (Wind River Systems)
- *******************************************************************************/
+ *  Contributors:
+ *      QNX Software Systems - Initial API and implementation
+ *      Anton Leherbauer (Wind River Systems)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.model;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 import org.eclipse.cdt.core.IBinaryParser;
 import org.eclipse.cdt.core.IBinaryParser.IBinaryArchive;
 import org.eclipse.cdt.core.IBinaryParser.IBinaryFile;
@@ -41,254 +42,257 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 
 public class CContainer extends Openable implements ICContainer {
-	CModelManager factory = CModelManager.getDefault();
 
-	public CContainer(ICElement parent, IResource res) {
-		this(parent, res, ICElement.C_CCONTAINER);
-	}
+    public CModelManager factory = CModelManager.getDefault();
 
-	public CContainer(ICElement parent, IResource res, int type) {
-		super(parent, res, type);
-	}
+    public CContainer(ICElement parent, IResource res) {
+        this(parent, res, ICElement.C_CCONTAINER);
+    }
 
-	@Override
-	public IBinary[] getBinaries() throws CModelException {
-		List<?> list = getChildrenOfType(C_BINARY);
-		IBinary[] array = new IBinary[list.size()];
-		list.toArray(array);
-		return array;
-	}
+    public CContainer(ICElement parent, IResource res, int type) {
+        super(parent, res, type);
+    }
 
-	@Override
-	public IBinary getBinary(String name) {
-		IFile file = getContainer().getFile(new Path(name));
-		return getBinary(file);
-	}
+    @Override
+    public IBinary[] getBinaries() throws CModelException {
+        List<?> list = getChildrenOfType(C_BINARY);
+        IBinary[] array = new IBinary[list.size()];
+        list.toArray(array);
+        return array;
+    }
 
-	public IBinary getBinary(IFile file) {
-		IBinaryFile bin = factory.createBinaryFile(file);
-		if (bin instanceof IBinaryObject) {
-			return new Binary(this, file, (IBinaryObject) bin);
-		}
-		return new Binary(this, file, null);
-	}
+    @Override
+    public IBinary getBinary(String name) {
+        IFile file = getContainer().getFile(new Path(name));
+        return getBinary(file);
+    }
 
-	@Override
-	public IArchive[] getArchives() throws CModelException {
-		List<?> list = getChildrenOfType(C_ARCHIVE);
-		IArchive[] array = new IArchive[list.size()];
-		list.toArray(array);
-		return array;
-	}
+    public IBinary getBinary(IFile file) {
+        IBinaryFile bin = factory.createBinaryFile(file);
+        if (bin instanceof IBinaryObject) {
+            return new Binary(this, file, (IBinaryObject) bin);
+        }
+        return new Binary(this, file, null);
+    }
 
-	@Override
-	public IArchive getArchive(String name) {
-		IFile file = getContainer().getFile(new Path(name));
-		return getArchive(file);
-	}
+    @Override
+    public IArchive[] getArchives() throws CModelException {
+        List<?> list = getChildrenOfType(C_ARCHIVE);
+        IArchive[] array = new IArchive[list.size()];
+        list.toArray(array);
+        return array;
+    }
 
-	public IArchive getArchive(IFile file) {
-		IBinaryFile ar = factory.createBinaryFile(file);
-		if (ar != null && ar.getType() == IBinaryFile.ARCHIVE) {
-			return new Archive(this, file, (IBinaryArchive) ar);
-		}
-		return new Archive(this, file, null);
-	}
+    @Override
+    public IArchive getArchive(String name) {
+        IFile file = getContainer().getFile(new Path(name));
+        return getArchive(file);
+    }
 
-	@Override
-	public ITranslationUnit[] getTranslationUnits() throws CModelException {
-		List<?> list = getChildrenOfType(C_UNIT);
-		ITranslationUnit[] array = new ITranslationUnit[list.size()];
-		list.toArray(array);
-		return array;
-	}
+    public IArchive getArchive(IFile file) {
+        IBinaryFile ar = factory.createBinaryFile(file);
+        if (ar != null && ar.getType() == IBinaryFile.ARCHIVE) {
+            return new Archive(this, file, (IBinaryArchive) ar);
+        }
+        return new Archive(this, file, null);
+    }
 
-	@Override
-	public ITranslationUnit getTranslationUnit(String name) {
-		IFile file = getContainer().getFile(new Path(name));
-		return getTranslationUnit(file);
-	}
+    @Override
+    public ITranslationUnit[] getTranslationUnits() throws CModelException {
+        List<?> list = getChildrenOfType(C_UNIT);
+        ITranslationUnit[] array = new ITranslationUnit[list.size()];
+        list.toArray(array);
+        return array;
+    }
 
-	public ITranslationUnit getTranslationUnit(IFile file) {
-		String id = CoreModel.getRegistedContentTypeId(file.getProject(), file.getName());
-		return new TranslationUnit(this, file, id);
-	}
+    @Override
+    public ITranslationUnit getTranslationUnit(String name) {
+        IFile file = getContainer().getFile(new Path(name));
+        return getTranslationUnit(file);
+    }
 
-	@Override
-	public ICContainer[] getCContainers() throws CModelException {
-		List<?> list = getChildrenOfType(C_CCONTAINER);
-		ICContainer[] array = new ICContainer[list.size()];
-		list.toArray(array);
-		return array;
-	}
+    public ITranslationUnit getTranslationUnit(IFile file) {
+        String id = CoreModel.getRegistedContentTypeId(file.getProject(), file.getName());
+        return new TranslationUnit(this, file, id);
+    }
 
-	@Override
-	public ICContainer getCContainer(String name) {
-		IFolder folder = getContainer().getFolder(new Path(name));
-		return getCContainer(folder);
-	}
+    @Override
+    public ICContainer[] getCContainers() throws CModelException {
+        List<?> list = getChildrenOfType(C_CCONTAINER);
+        ICContainer[] array = new ICContainer[list.size()];
+        list.toArray(array);
+        return array;
+    }
 
-	public ICContainer getCContainer(IFolder folder) {
-		return new CContainer(this, folder);
-	}
+    @Override
+    public ICContainer getCContainer(String name) {
+        IFolder folder = getContainer().getFolder(new Path(name));
+        return getCContainer(folder);
+    }
 
-	public IContainer getContainer() {
-		return getResource();
-	}
+    public ICContainer getCContainer(IFolder folder) {
+        return new CContainer(this, folder);
+    }
 
-	@Override
-	protected CElementInfo createElementInfo() {
-		return new CContainerInfo(this);
-	}
+    public IContainer getContainer() {
+        return getResource();
+    }
 
-	// CHECKPOINT: folders will return the hash code of their path
-	@Override
-	public int hashCode() {
-		return getPath().hashCode();
-	}
+    @Override
+    protected CElementInfo createElementInfo() {
+        return new CContainerInfo(this);
+    }
 
-	@Override
-	protected boolean buildStructure(OpenableInfo info, IProgressMonitor pm, Map<ICElement, CElementInfo> newElements,
-			IResource underlyingResource) throws CModelException {
-		boolean validInfo = false;
-		try {
-			IResource res = getResource();
-			if (res != null && res.isAccessible()) {
-				validInfo = computeChildren(info, res);
-			} else {
-				throw newNotPresentException();
-			}
-		} finally {
-			if (!validInfo) {
-				CModelManager.getDefault().removeInfo(this);
-			}
-		}
-		return validInfo;
-	}
+    // CHECKPOINT: folders will return the hash code of their path
+    @Override
+    public int hashCode() {
+        return getPath().hashCode();
+    }
 
-	@Override
-	public Object[] getNonCResources() throws CModelException {
-		return ((CContainerInfo) getElementInfo()).getNonCResources(getResource());
-	}
+    @Override
+    protected boolean buildStructure(OpenableInfo info, IProgressMonitor pm, Map<ICElement, CElementInfo> newElements, IResource underlyingResource) throws CModelException {
+        boolean validInfo = false;
+        try {
+            IResource res = getResource();
+            if (res != null && res.isAccessible()) {
+                validInfo = computeChildren(info, res);
+            } else {
+                throw newNotPresentException();
+            }
+        } finally {
+            if (!validInfo) {
+                CModelManager.getDefault().removeInfo(this);
+            }
+        }
+        return validInfo;
+    }
 
-	protected boolean computeChildren(OpenableInfo info, IResource res) throws CModelException {
-		ArrayList<ICElement> vChildren = new ArrayList<>();
-		try {
-			IResource[] resources = null;
-			if (res instanceof IContainer) {
-				IContainer container = (IContainer) res;
-				resources = container.members(false);
-			}
-			if (resources != null) {
-				ICProject cproject = getCProject();
-				for (IResource resource : resources) {
-					ICElement celement = computeChild(resource, cproject);
-					if (celement != null) {
-						vChildren.add(celement);
-					}
-				}
-			}
-		} catch (CoreException e) {
-			throw new CModelException(e);
-		}
-		info.setChildren(vChildren);
-		if (info instanceof CContainerInfo) {
-			((CContainerInfo) info).setNonCResources(null);
-		}
-		return true;
-	}
+    @Override
+    public Object[] getNonCResources() throws CModelException {
+        return ((CContainerInfo) getElementInfo()).getNonCResources(getResource());
+    }
 
-	protected ICElement computeChild(IResource res, ICProject cproject) throws CModelException {
-		ICElement celement = null;
-		ISourceRoot sroot = getSourceRoot();
-		switch (res.getType()) {
-		case IResource.FILE: {
-			IFile file = (IFile) res;
-			boolean checkBinary = true;
-			if (sroot != null && sroot.isOnSourceEntry(res)) {
-				// Check for Valid C Element only.
-				String id = CoreModel.getRegistedContentTypeId(file.getProject(), file.getName());
-				if (id != null) {
-					celement = new TranslationUnit(this, file, id);
-					checkBinary = false;
-				} else {
-					checkBinary = true;
-				}
-			}
-			if (checkBinary && cproject.isOnOutputEntry(file)) {
-				IBinaryParser.IBinaryFile bin = factory.createBinaryFile(file);
-				if (bin != null) {
-					if (bin.getType() == IBinaryFile.ARCHIVE) {
-						celement = new Archive(this, file, (IBinaryArchive) bin);
-						ArchiveContainer vlib = (ArchiveContainer) cproject.getArchiveContainer();
-						vlib.addChild(celement);
-					} else {
-						final Binary binElement = new Binary(this, file, (IBinaryObject) bin);
-						celement = binElement;
-						if (binElement.showInBinaryContainer()) {
-							BinaryContainer vbin = (BinaryContainer) cproject.getBinaryContainer();
-							vbin.addChild(celement);
-						}
-					}
-				}
-			}
-			break;
-		}
-		case IResource.FOLDER:
-			if (sroot != null && sroot.isOnSourceEntry(res) || (sroot == null && cproject.isOnOutputEntry(res))) {
-				celement = new CContainer(this, res);
-			}
-			break;
-		}
-		return celement;
-	}
+    protected boolean computeChildren(OpenableInfo info, IResource res) throws CModelException {
+        ArrayList<ICElement> vChildren = new ArrayList<>();
+        try {
+            IResource[] resources = null;
+            if (res instanceof IContainer) {
+                IContainer container = (IContainer) res;
+                resources = container.members(false);
+            }
+            if (resources != null) {
+                ICProject cproject = getCProject();
+                for (IResource resource : resources) {
+                    ICElement celement = computeChild(resource, cproject);
+                    if (celement != null) {
+                        vChildren.add(celement);
+                    }
+                }
+            }
+        } catch (CoreException e) {
+            throw new CModelException(e);
+        }
+        info.setChildren(vChildren);
+        if (info instanceof CContainerInfo) {
+            ((CContainerInfo) info).setNonCResources(null);
+        }
+        return true;
+    }
 
-	@Override
-	public ICElement getHandleFromMemento(String token, MementoTokenizer memento) {
-		switch (token.charAt(0)) {
-		case CEM_SOURCEFOLDER:
-			String name;
-			if (memento.hasMoreTokens()) {
-				name = memento.nextToken();
-				char firstChar = name.charAt(0);
-				if (firstChar == CEM_TRANSLATIONUNIT) {
-					token = name;
-					name = ""; //$NON-NLS-1$
-				} else {
-					token = null;
-				}
-			} else {
-				name = ""; //$NON-NLS-1$
-				token = null;
-			}
-			CElement folder = (CElement) getCContainer(name);
-			if (folder != null) {
-				if (token == null) {
-					return folder.getHandleFromMemento(memento);
-				} else {
-					return folder.getHandleFromMemento(token, memento);
-				}
-			}
-			break;
-		case CEM_TRANSLATIONUNIT:
-			if (!memento.hasMoreTokens())
-				return this;
-			String tuName = memento.nextToken();
-			CElement tu = (CElement) getTranslationUnit(tuName);
-			if (tu != null) {
-				return tu.getHandleFromMemento(memento);
-			}
-		}
-		return null;
-	}
+    protected ICElement computeChild(IResource res, ICProject cproject) throws CModelException {
+        ICElement celement = null;
+        ISourceRoot sroot = getSourceRoot();
+        switch(res.getType()) {
+            case IResource.FILE:
+                {
+                    IFile file = (IFile) res;
+                    boolean checkBinary = true;
+                    if (sroot != null && sroot.isOnSourceEntry(res)) {
+                        // Check for Valid C Element only.
+                        String id = CoreModel.getRegistedContentTypeId(file.getProject(), file.getName());
+                        if (id != null) {
+                            celement = new TranslationUnit(this, file, id);
+                            checkBinary = false;
+                        } else {
+                            checkBinary = true;
+                        }
+                    }
+                    if (checkBinary && cproject.isOnOutputEntry(file)) {
+                        IBinaryParser.IBinaryFile bin = factory.createBinaryFile(file);
+                        if (bin != null) {
+                            if (bin.getType() == IBinaryFile.ARCHIVE) {
+                                celement = new Archive(this, file, (IBinaryArchive) bin);
+                                ArchiveContainer vlib = (ArchiveContainer) cproject.getArchiveContainer();
+                                vlib.addChild(celement);
+                            } else {
+                                final Binary binElement = new Binary(this, file, (IBinaryObject) bin);
+                                celement = binElement;
+                                if (binElement.showInBinaryContainer()) {
+                                    BinaryContainer vbin = (BinaryContainer) cproject.getBinaryContainer();
+                                    vbin.addChild(celement);
+                                }
+                            }
+                        }
+                    }
+                    break;
+                }
+            case IResource.FOLDER:
+                if (sroot != null && sroot.isOnSourceEntry(res) || (sroot == null && cproject.isOnOutputEntry(res))) {
+                    celement = new CContainer(this, res);
+                }
+                break;
+        }
+        return celement;
+    }
 
-	@Override
-	protected char getHandleMementoDelimiter() {
-		return CElement.CEM_SOURCEFOLDER;
-	}
+    @Override
+    public ICElement getHandleFromMemento(String token, MementoTokenizer memento) {
+        switch(token.charAt(0)) {
+            case CEM_SOURCEFOLDER:
+                String name;
+                if (memento.hasMoreTokens()) {
+                    name = memento.nextToken();
+                    char firstChar = name.charAt(0);
+                    if (firstChar == CEM_TRANSLATIONUNIT) {
+                        token = name;
+                        //$NON-NLS-1$
+                        name = "";
+                    } else {
+                        token = null;
+                    }
+                } else {
+                    //$NON-NLS-1$
+                    name = "";
+                    token = null;
+                }
+                CElement folder = (CElement) getCContainer(name);
+                if (folder != null) {
+                    if (token == null) {
+                        return folder.getHandleFromMemento(memento);
+                    } else {
+                        return folder.getHandleFromMemento(token, memento);
+                    }
+                }
+                break;
+            case CEM_TRANSLATIONUNIT:
+                if (!memento.hasMoreTokens())
+                    return this;
+                String tuName = memento.nextToken();
+                CElement tu = (CElement) getTranslationUnit(tuName);
+                if (tu != null) {
+                    return tu.getHandleFromMemento(memento);
+                }
+        }
+        return null;
+    }
 
-	@Override
-	public IContainer getResource() {
-		return (IContainer) super.getResource();
-	}
+    @Override
+    protected char getHandleMementoDelimiter() {
+        return CElement.CEM_SOURCEFOLDER;
+    }
+
+    @Override
+    public IContainer getResource() {
+        return (IContainer) super.getResource();
+    }
 }

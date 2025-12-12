@@ -36,13 +36,13 @@ public class LocationCtxContainer extends LocationCtx {
     /**
      * The total length of all children in terms of sequence numbers.
      */
-    private int fChildSequenceLength;
+    public int fChildSequenceLength;
 
-    private ArrayList<LocationCtx> fChildren;
+    public ArrayList<LocationCtx> fChildren;
 
-    private final AbstractCharArray fSource;
+    final public AbstractCharArray fSource;
 
-    private int[] fLineOffsets;
+    public int[] fLineOffsets;
 
     public LocationCtxContainer(LocationCtxContainer parent, AbstractCharArray source, int parentOffset, int parentEndOffset, int sequenceNumber) {
         super(parent, parentOffset, parentEndOffset, sequenceNumber);

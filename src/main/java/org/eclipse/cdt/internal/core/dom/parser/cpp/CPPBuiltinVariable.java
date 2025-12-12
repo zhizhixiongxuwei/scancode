@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2008, 2010 Wind River Systems Inc. and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2008, 2010 Wind River Systems Inc. and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Markus Schorn - Initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *      Markus Schorn - Initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.parser.cpp;
 
 import org.eclipse.cdt.core.dom.ast.IASTName;
@@ -26,95 +28,96 @@ import org.eclipse.cdt.core.dom.ast.IType;
  * An example is the built-in variable __func__.
  */
 public class CPPBuiltinVariable extends CPPVariable {
-	private IType type;
-	private char[] name;
-	private IScope scope;
 
-	public CPPBuiltinVariable(IType type, char[] name, IScope scope) {
-		super(null);
-		this.type = type;
-		this.name = name;
-		this.scope = scope;
-	}
+    public IType type;
 
-	@Override
-	public IType getType() {
-		return type;
-	}
+    public char[] name;
 
-	@Override
-	public String getName() {
-		return String.valueOf(name);
-	}
+    public IScope scope;
 
-	@Override
-	public char[] getNameCharArray() {
-		return name;
-	}
+    public CPPBuiltinVariable(IType type, char[] name, IScope scope) {
+        super(null);
+        this.type = type;
+        this.name = name;
+        this.scope = scope;
+    }
 
-	@Override
-	public IScope getScope() {
-		return scope;
-	}
+    @Override
+    public IType getType() {
+        return type;
+    }
 
-	/**
-	 * Returns null.
-	 */
-	@Override
-	public IASTName[] getDeclarations() {
-		return null;
-	}
+    @Override
+    public String getName() {
+        return String.valueOf(name);
+    }
 
-	/**
-	 * Returns null.
-	 */
-	@Override
-	public IASTNode getDefinition() {
-		return null;
-	}
+    @Override
+    public char[] getNameCharArray() {
+        return name;
+    }
 
-	/**
-	 * Does nothing.
-	 */
-	@Override
-	public void addDefinition(IASTNode node) {
-		// do nothing
-	}
+    @Override
+    public IScope getScope() {
+        return scope;
+    }
 
-	/**
-	 * Does nothing.
-	 */
-	@Override
-	public void addDeclaration(IASTNode node) {
-		// do nothing
-	}
+    /**
+     * Returns null.
+     */
+    @Override
+    public IASTName[] getDeclarations() {
+        return null;
+    }
 
-	@Override
-	public String[] getQualifiedName() {
-		String[] temp = new String[1];
-		temp[0] = String.valueOf(name);
+    /**
+     * Returns null.
+     */
+    @Override
+    public IASTNode getDefinition() {
+        return null;
+    }
 
-		return temp;
-	}
+    /**
+     * Does nothing.
+     */
+    @Override
+    public void addDefinition(IASTNode node) {
+        // do nothing
+    }
 
-	@Override
-	public char[][] getQualifiedNameCharArray() {
-		char[][] temp = new char[1][];
-		temp[0] = name;
+    /**
+     * Does nothing.
+     */
+    @Override
+    public void addDeclaration(IASTNode node) {
+        // do nothing
+    }
 
-		return temp;
-	}
+    @Override
+    public String[] getQualifiedName() {
+        String[] temp = new String[1];
+        temp[0] = String.valueOf(name);
+        return temp;
+    }
 
-	/**
-	 * Returns true.
-	 */
-	@Override
-	public boolean isGloballyQualified() {
-		return true;
-	}
+    @Override
+    public char[][] getQualifiedNameCharArray() {
+        char[][] temp = new char[1][];
+        temp[0] = name;
+        return temp;
+    }
 
-	@Override
-	public IBinding getOwner() {
-		return null;
-	}
+    /**
+     * Returns true.
+     */
+    @Override
+    public boolean isGloballyQualified() {
+        return true;
+    }
+
+    @Override
+    public IBinding getOwner() {
+        return null;
+    }
 }

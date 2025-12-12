@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2000, 2016 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2000, 2016 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *      IBM Corporation - initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.jdt.internal.core.search.matching;
 
 import java.util.ArrayList;
@@ -30,179 +32,199 @@ import org.eclipse.jdt.internal.core.util.Util;
  */
 public class MatchingNodeSet {
 
-/**
- * Map of matching ast nodes that don't need to be resolved to their accuracy level.
- * Each node is removed as it is reported.
- */
-Map<ASTNode, Integer> matchingNodes = new HashMap<>(); // node -> accuracy
-private final HashtableOfLong matchingNodesKeys = new HashtableOfLong(3); // sourceRange -> node
-static Integer EXACT_MATCH = Integer.valueOf(SearchMatch.A_ACCURATE);
-static Integer POTENTIAL_MATCH = Integer.valueOf(SearchMatch.A_INACCURATE);
-static Integer ERASURE_MATCH = Integer.valueOf(SearchPattern.R_ERASURE_MATCH);
+    /**
+     * Map of matching ast nodes that don't need to be resolved to their accuracy level.
+     * Each node is removed as it is reported.
+     */
+    // node -> accuracy
+    public Map<ASTNode, Integer> matchingNodes = new HashMap<>();
 
-/**
- * Tell whether locators need to resolve or not for current matching node set.
- */
-public boolean mustResolve;
+    // sourceRange -> node
+    final public HashtableOfLong matchingNodesKeys = new HashtableOfLong(3);
 
-/**
- * Set of possible matching ast nodes. They need to be resolved
- * to determine if they really match the search pattern.
- */
-SimpleSet possibleMatchingNodesSet = new SimpleSet(7);
-private final HashtableOfLong possibleMatchingNodesKeys = new HashtableOfLong(7);
+    static public Integer EXACT_MATCH = Integer.valueOf(SearchMatch.A_ACCURATE);
 
+    static public Integer POTENTIAL_MATCH = Integer.valueOf(SearchMatch.A_INACCURATE);
 
-public MatchingNodeSet(boolean mustResolvePattern) {
-	super();
-	this.mustResolve = mustResolvePattern;
-}
+    static public Integer ERASURE_MATCH = Integer.valueOf(SearchPattern.R_ERASURE_MATCH);
 
-public int addMatch(ASTNode node, int matchLevel) {
-	int maskedLevel = matchLevel & PatternLocator.MATCH_LEVEL_MASK;
-	switch (maskedLevel) {
-		case PatternLocator.INACCURATE_MATCH:
-			if (matchLevel != maskedLevel) {
-				addTrustedMatch(node, Integer.valueOf(SearchMatch.A_INACCURATE+(matchLevel & PatternLocator.FLAVORS_MASK)));
-			} else {
-				addTrustedMatch(node, POTENTIAL_MATCH);
-			}
-			break;
-		case PatternLocator.POSSIBLE_MATCH:
-			addPossibleMatch(node);
-			break;
-		case PatternLocator.ERASURE_MATCH:
-			if (matchLevel != maskedLevel) {
-				addTrustedMatch(node, Integer.valueOf(SearchPattern.R_ERASURE_MATCH+(matchLevel & PatternLocator.FLAVORS_MASK)));
-			} else {
-				addTrustedMatch(node, ERASURE_MATCH);
-			}
-			break;
-		case PatternLocator.ACCURATE_MATCH:
-			if (matchLevel != maskedLevel) {
-				addTrustedMatch(node, Integer.valueOf(SearchMatch.A_ACCURATE+(matchLevel & PatternLocator.FLAVORS_MASK)));
-			} else {
-				addTrustedMatch(node, EXACT_MATCH);
-			}
-			break;
-	}
-	return matchLevel;
-}
-public void addPossibleMatch(ASTNode node) {
-	// remove existing node at same position from set
-	// (case of recovery that created the same node several time
-	// see http://bugs.eclipse.org/bugs/show_bug.cgi?id=29366)
-	long key = (((long) node.sourceStart) << 32) + node.sourceEnd;
-	ASTNode existing = (ASTNode) this.possibleMatchingNodesKeys.get(key);
-	if (existing != null && existing.getClass().equals(node.getClass()))
-		this.possibleMatchingNodesSet.remove(existing);
+    /**
+     * Tell whether locators need to resolve or not for current matching node set.
+     */
+    public boolean mustResolve;
 
-	// add node to set
-	this.possibleMatchingNodesSet.add(node);
-	this.possibleMatchingNodesKeys.put(key, node);
-}
-public void addTrustedMatch(ASTNode node, boolean isExact) {
-	addTrustedMatch(node, isExact ? EXACT_MATCH : POTENTIAL_MATCH);
+    /**
+     * Set of possible matching ast nodes. They need to be resolved
+     * to determine if they really match the search pattern.
+     */
+    SimpleSet possibleMatchingNodesSet = new SimpleSet(7);
 
-}
-void addTrustedMatch(ASTNode node, Integer level) {
-	// remove existing node at same position from set
-	// (case of recovery that created the same node several time
-	// see http://bugs.eclipse.org/bugs/show_bug.cgi?id=29366)
-	long key = (((long) node.sourceStart) << 32) + node.sourceEnd;
-	ASTNode existing = (ASTNode) this.matchingNodesKeys.get(key);
-	if (existing != null && existing.getClass().equals(node.getClass()))
-		this.matchingNodes.remove(existing);
+    private final HashtableOfLong possibleMatchingNodesKeys = new HashtableOfLong(7);
 
-	// map node to its accuracy level
-	this.matchingNodes.put(node, level);
-	this.matchingNodesKeys.put(key, node);
-}
-protected boolean hasPossibleNodes(int start, int end) {
-	Object[] nodes = this.possibleMatchingNodesSet.values;
-	for (Object n : nodes) {
-		ASTNode node = (ASTNode) n;
-		if (node != null && start <= node.sourceStart && node.sourceEnd <= end)
-			return true;
-	}
-	for (ASTNode node : this.matchingNodes.keySet()) {
-		if (node != null && start <= node.sourceStart && node.sourceEnd <= end)
-			return true;
-	}
-	return false;
-}
-/**
- * Returns the matching nodes that are in the given range in the source order.
- */
-protected ASTNode[] matchingNodes(int start, int end) {
-	List<ASTNode> nodes = null;
-	for (ASTNode node : this.matchingNodes.keySet()) {
-		if (node != null && start <= node.sourceStart && node.sourceEnd <= end) {
-			if (nodes == null) nodes = new ArrayList<>();
-			nodes.add(node);
-		}
-	}
-	if (nodes == null) return null;
+    public MatchingNodeSet(boolean mustResolvePattern) {
+        super();
+        this.mustResolve = mustResolvePattern;
+    }
 
-	ASTNode[] result = nodes.toArray(ASTNode[]::new);
+    public int addMatch(ASTNode node, int matchLevel) {
+        int maskedLevel = matchLevel & PatternLocator.MATCH_LEVEL_MASK;
+        switch(maskedLevel) {
+            case PatternLocator.INACCURATE_MATCH:
+                if (matchLevel != maskedLevel) {
+                    addTrustedMatch(node, Integer.valueOf(SearchMatch.A_INACCURATE + (matchLevel & PatternLocator.FLAVORS_MASK)));
+                } else {
+                    addTrustedMatch(node, POTENTIAL_MATCH);
+                }
+                break;
+            case PatternLocator.POSSIBLE_MATCH:
+                addPossibleMatch(node);
+                break;
+            case PatternLocator.ERASURE_MATCH:
+                if (matchLevel != maskedLevel) {
+                    addTrustedMatch(node, Integer.valueOf(SearchPattern.R_ERASURE_MATCH + (matchLevel & PatternLocator.FLAVORS_MASK)));
+                } else {
+                    addTrustedMatch(node, ERASURE_MATCH);
+                }
+                break;
+            case PatternLocator.ACCURATE_MATCH:
+                if (matchLevel != maskedLevel) {
+                    addTrustedMatch(node, Integer.valueOf(SearchMatch.A_ACCURATE + (matchLevel & PatternLocator.FLAVORS_MASK)));
+                } else {
+                    addTrustedMatch(node, EXACT_MATCH);
+                }
+                break;
+        }
+        return matchLevel;
+    }
 
-	// sort nodes by source starts
-	Util.Comparer comparer = new Util.Comparer() {
-		@Override
-		public int compare(Object o1, Object o2) {
-			return ((ASTNode) o1).sourceStart - ((ASTNode) o2).sourceStart;
-		}
-	};
-	Util.sort(result, comparer);
-	return result;
-}
-public Object removePossibleMatch(ASTNode node) {
-	long key = (((long) node.sourceStart) << 32) + node.sourceEnd;
-	ASTNode existing = (ASTNode) this.possibleMatchingNodesKeys.get(key);
-	if (existing == null) return null;
+    public void addPossibleMatch(ASTNode node) {
+        // remove existing node at same position from set
+        // (case of recovery that created the same node several time
+        // see http://bugs.eclipse.org/bugs/show_bug.cgi?id=29366)
+        long key = (((long) node.sourceStart) << 32) + node.sourceEnd;
+        ASTNode existing = (ASTNode) this.possibleMatchingNodesKeys.get(key);
+        if (existing != null && existing.getClass().equals(node.getClass()))
+            this.possibleMatchingNodesSet.remove(existing);
+        // add node to set
+        this.possibleMatchingNodesSet.add(node);
+        this.possibleMatchingNodesKeys.put(key, node);
+    }
 
-	this.possibleMatchingNodesKeys.put(key, null);
-	return this.possibleMatchingNodesSet.remove(node);
-}
-public Object removeTrustedMatch(ASTNode node) {
-	long key = (((long) node.sourceStart) << 32) + node.sourceEnd;
-	ASTNode existing = (ASTNode) this.matchingNodesKeys.get(key);
-	if (existing == null) return null;
+    public void addTrustedMatch(ASTNode node, boolean isExact) {
+        addTrustedMatch(node, isExact ? EXACT_MATCH : POTENTIAL_MATCH);
+    }
 
-	this.matchingNodesKeys.put(key, null);
-	return this.matchingNodes.remove(node);
-}
-@Override
-public String toString() {
-	// TODO (jerome) should show both tables
-	StringBuilder result = new StringBuilder();
-	result.append("Exact matches:"); //$NON-NLS-1$
-	for (Entry<ASTNode, Integer> entry:this.matchingNodes.entrySet()) {
-		ASTNode node = entry.getKey();
-		if (node == null) continue;
-		result.append("\n\t"); //$NON-NLS-1$
-		switch (entry.getValue().intValue()) {
-			case SearchMatch.A_ACCURATE:
-				result.append("ACCURATE_MATCH: "); //$NON-NLS-1$
-				break;
-			case SearchMatch.A_INACCURATE:
-				result.append("INACCURATE_MATCH: "); //$NON-NLS-1$
-				break;
-			case SearchPattern.R_ERASURE_MATCH:
-				result.append("ERASURE_MATCH: "); //$NON-NLS-1$
-				break;
-		}
-		node.print(0, result);
-	}
+    void addTrustedMatch(ASTNode node, Integer level) {
+        // remove existing node at same position from set
+        // (case of recovery that created the same node several time
+        // see http://bugs.eclipse.org/bugs/show_bug.cgi?id=29366)
+        long key = (((long) node.sourceStart) << 32) + node.sourceEnd;
+        ASTNode existing = (ASTNode) this.matchingNodesKeys.get(key);
+        if (existing != null && existing.getClass().equals(node.getClass()))
+            this.matchingNodes.remove(existing);
+        // map node to its accuracy level
+        this.matchingNodes.put(node, level);
+        this.matchingNodesKeys.put(key, node);
+    }
 
-	result.append("\nPossible matches:"); //$NON-NLS-1$
-	Object[] nodes = this.possibleMatchingNodesSet.values;
-	for (Object n : nodes) {
-		ASTNode node = (ASTNode) n;
-		if (node == null) continue;
-		result.append("\nPOSSIBLE_MATCH: "); //$NON-NLS-1$
-		node.print(0, result);
-	}
-	return result.toString();
-}
+    protected boolean hasPossibleNodes(int start, int end) {
+        Object[] nodes = this.possibleMatchingNodesSet.values;
+        for (Object n : nodes) {
+            ASTNode node = (ASTNode) n;
+            if (node != null && start <= node.sourceStart && node.sourceEnd <= end)
+                return true;
+        }
+        for (ASTNode node : this.matchingNodes.keySet()) {
+            if (node != null && start <= node.sourceStart && node.sourceEnd <= end)
+                return true;
+        }
+        return false;
+    }
+
+    /**
+     * Returns the matching nodes that are in the given range in the source order.
+     */
+    protected ASTNode[] matchingNodes(int start, int end) {
+        List<ASTNode> nodes = null;
+        for (ASTNode node : this.matchingNodes.keySet()) {
+            if (node != null && start <= node.sourceStart && node.sourceEnd <= end) {
+                if (nodes == null)
+                    nodes = new ArrayList<>();
+                nodes.add(node);
+            }
+        }
+        if (nodes == null)
+            return null;
+        ASTNode[] result = nodes.toArray(ASTNode[]::new);
+        // sort nodes by source starts
+        Util.Comparer comparer = new Util.Comparer() {
+
+            @Override
+            public int compare(Object o1, Object o2) {
+                return ((ASTNode) o1).sourceStart - ((ASTNode) o2).sourceStart;
+            }
+        };
+        Util.sort(result, comparer);
+        return result;
+    }
+
+    public Object removePossibleMatch(ASTNode node) {
+        long key = (((long) node.sourceStart) << 32) + node.sourceEnd;
+        ASTNode existing = (ASTNode) this.possibleMatchingNodesKeys.get(key);
+        if (existing == null)
+            return null;
+        this.possibleMatchingNodesKeys.put(key, null);
+        return this.possibleMatchingNodesSet.remove(node);
+    }
+
+    public Object removeTrustedMatch(ASTNode node) {
+        long key = (((long) node.sourceStart) << 32) + node.sourceEnd;
+        ASTNode existing = (ASTNode) this.matchingNodesKeys.get(key);
+        if (existing == null)
+            return null;
+        this.matchingNodesKeys.put(key, null);
+        return this.matchingNodes.remove(node);
+    }
+
+    @Override
+    public String toString() {
+        // TODO (jerome) should show both tables
+        StringBuilder result = new StringBuilder();
+        //$NON-NLS-1$
+        result.append("Exact matches:");
+        for (Entry<ASTNode, Integer> entry : this.matchingNodes.entrySet()) {
+            ASTNode node = entry.getKey();
+            if (node == null)
+                continue;
+            //$NON-NLS-1$
+            result.append("\n\t");
+            switch(entry.getValue().intValue()) {
+                case SearchMatch.A_ACCURATE:
+                    //$NON-NLS-1$
+                    result.append("ACCURATE_MATCH: ");
+                    break;
+                case SearchMatch.A_INACCURATE:
+                    //$NON-NLS-1$
+                    result.append("INACCURATE_MATCH: ");
+                    break;
+                case SearchPattern.R_ERASURE_MATCH:
+                    //$NON-NLS-1$
+                    result.append("ERASURE_MATCH: ");
+                    break;
+            }
+            node.print(0, result);
+        }
+        //$NON-NLS-1$
+        result.append("\nPossible matches:");
+        Object[] nodes = this.possibleMatchingNodesSet.values;
+        for (Object n : nodes) {
+            ASTNode node = (ASTNode) n;
+            if (node == null)
+                continue;
+            //$NON-NLS-1$
+            result.append("\nPOSSIBLE_MATCH: ");
+            node.print(0, result);
+        }
+        return result.toString();
+    }
 }

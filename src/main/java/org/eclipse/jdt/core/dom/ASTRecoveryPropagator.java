@@ -31,9 +31,9 @@ import org.eclipse.jdt.internal.compiler.util.HashtableOfObjectToTokenArray;
 @SuppressWarnings({ "rawtypes" })
 public class ASTRecoveryPropagator extends DefaultASTVisitor {
 
-    private static final TerminalToken NOTHING = TerminalToken.TokenNameInvalid;
+    static final public TerminalToken NOTHING = TerminalToken.TokenNameInvalid;
 
-    HashtableOfObjectToTokenArray endingTokens = new HashtableOfObjectToTokenArray();
+    public HashtableOfObjectToTokenArray endingTokens = new HashtableOfObjectToTokenArray();
 
     {
         this.endingTokens.put(AnonymousClassDeclaration.class, new TerminalToken[] { TerminalToken.TokenNameRBRACE });
@@ -81,11 +81,11 @@ public class ASTRecoveryPropagator extends DefaultASTVisitor {
         this.endingTokens.put(VariableDeclarationStatement.class, new TerminalToken[] { TerminalToken.TokenNameSEMICOLON });
     }
 
-    private final CategorizedProblem[] problems;
+    final public CategorizedProblem[] problems;
 
-    private final boolean[] usedOrIrrelevantProblems;
+    final public boolean[] usedOrIrrelevantProblems;
 
-    private final RecoveryScannerData data;
+    final public RecoveryScannerData data;
 
     private int blockDepth = 0;
 

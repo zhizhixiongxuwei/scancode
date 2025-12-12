@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2005 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2005 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- * IBM - Initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *  IBM - Initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.parser;
 
 import org.eclipse.cdt.core.dom.ast.IASTNode;
@@ -21,28 +23,29 @@ import org.eclipse.cdt.core.dom.ast.IASTNode;
  * @author dsteffle
  */
 public class ASTPreprocessorSelectionResult {
-	IASTNode selectedNode = null;
-	int globalOffset = 0;
 
-	public ASTPreprocessorSelectionResult(IASTNode node, int offset) {
-		this.selectedNode = node;
-		this.globalOffset = offset;
-	}
+    public IASTNode selectedNode = null;
 
-	public IASTNode getSelectedNode() {
-		return selectedNode;
-	}
+    public int globalOffset = 0;
 
-	public void setSelectedNode(IASTNode selectedNode) {
-		this.selectedNode = selectedNode;
-	}
+    public ASTPreprocessorSelectionResult(IASTNode node, int offset) {
+        this.selectedNode = node;
+        this.globalOffset = offset;
+    }
 
-	public int getGlobalOffset() {
-		return globalOffset;
-	}
+    public IASTNode getSelectedNode() {
+        return selectedNode;
+    }
 
-	public void setGlobalOffset(int globalOffset) {
-		this.globalOffset = globalOffset;
-	}
+    public void setSelectedNode(IASTNode selectedNode) {
+        this.selectedNode = selectedNode;
+    }
 
+    public int getGlobalOffset() {
+        return globalOffset;
+    }
+
+    public void setGlobalOffset(int globalOffset) {
+        this.globalOffset = globalOffset;
+    }
 }

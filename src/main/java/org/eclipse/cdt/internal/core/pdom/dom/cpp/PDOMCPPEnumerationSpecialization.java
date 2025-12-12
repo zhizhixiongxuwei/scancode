@@ -48,15 +48,15 @@ import org.eclipse.core.runtime.CoreException;
  */
 public class PDOMCPPEnumerationSpecialization extends PDOMCPPSpecialization implements IPDOMCPPEnumType, IPDOMMemberOwner, ICPPEnumerationSpecialization {
 
-    private static final int OFFSET_ENUMERATOR_LIST = PDOMCPPSpecialization.RECORD_SIZE;
+    static final public int OFFSET_ENUMERATOR_LIST = PDOMCPPSpecialization.RECORD_SIZE;
 
-    private static final int OFFSET_MIN_VALUE = OFFSET_ENUMERATOR_LIST + Database.PTR_SIZE;
+    static final public int OFFSET_MIN_VALUE = OFFSET_ENUMERATOR_LIST + Database.PTR_SIZE;
 
-    private static final int OFFSET_MAX_VALUE = OFFSET_MIN_VALUE + 8;
+    static final public int OFFSET_MAX_VALUE = OFFSET_MIN_VALUE + 8;
 
-    private static final int OFFSET_FIXED_TYPE = OFFSET_MAX_VALUE + 8;
+    static final public int OFFSET_FIXED_TYPE = OFFSET_MAX_VALUE + 8;
 
-    private static final int OFFSET_NO_DISCARD = OFFSET_FIXED_TYPE + 8;
+    static final public int OFFSET_NO_DISCARD = OFFSET_FIXED_TYPE + 8;
 
     private static final int OFFSET_FLAGS = OFFSET_NO_DISCARD + Database.TYPE_SIZE;
 

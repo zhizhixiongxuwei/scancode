@@ -31,10 +31,10 @@ public class PositionTrackerChain implements IDocumentListener {
     public static int MEMORY_SIZE = 32 + LINKED_LIST_SIZE;
 
     // 100 saves
-    private static final int MAX_DEPTH = 100;
+    static final public int MAX_DEPTH = 100;
 
     // one day
-    private static final long MAX_AGE = 24 * 60 * 60 * 1000;
+    static final public long MAX_AGE = 24 * 60 * 60 * 1000;
 
     private Deque<PositionTracker> fTrackers = new ArrayDeque<>();
 

@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2008 Wind River Systems, Inc. and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2008 Wind River Systems, Inc. and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *    Markus Schorn - initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *     Markus Schorn - initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.parser.scanner;
 
 import org.eclipse.cdt.core.parser.IToken;
@@ -24,14 +26,14 @@ import org.eclipse.cdt.core.parser.OffsetLimitReachedException;
  */
 public class CompletionInMacroExpansionException extends OffsetLimitReachedException {
 
-	private TokenList fParameterTokens;
+    public TokenList fParameterTokens;
 
-	public CompletionInMacroExpansionException(int origin, IToken lastToken, TokenList paramTokens) {
-		super(origin, lastToken);
-		fParameterTokens = paramTokens;
-	}
+    public CompletionInMacroExpansionException(int origin, IToken lastToken, TokenList paramTokens) {
+        super(origin, lastToken);
+        fParameterTokens = paramTokens;
+    }
 
-	public TokenList getParameterTokens() {
-		return fParameterTokens;
-	}
+    public TokenList getParameterTokens() {
+        return fParameterTokens;
+    }
 }

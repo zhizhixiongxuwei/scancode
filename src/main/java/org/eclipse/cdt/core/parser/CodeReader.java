@@ -1,19 +1,21 @@
-/*******************************************************************************
- * Copyright (c) 2005, 2009 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2005, 2009 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *    John Camelon (IBM Rational Software) - Initial API and implementation
- *    Cheong, Jeong-Sik - fix for 162381
- *    Valeri Atamaniouk - fix for 170398
- *    Markus Schorn (Wind River Systems)
- *******************************************************************************/
+ *  Contributors:
+ *     John Camelon (IBM Rational Software) - Initial API and implementation
+ *     Cheong, Jeong-Sik - fix for 162381
+ *     Valeri Atamaniouk - fix for 170398
+ *     Markus Schorn (Wind River Systems)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.core.parser;
 
 import java.io.FileInputStream;
@@ -26,7 +28,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CoderResult;
 import java.nio.charset.CodingErrorAction;
-
 import org.eclipse.cdt.core.parser.util.CharArrayUtils;
 
 /**
@@ -37,164 +38,165 @@ import org.eclipse.cdt.core.parser.util.CharArrayUtils;
  */
 @Deprecated
 public class CodeReader {
-	public static final String SYSTEM_DEFAULT_ENCODING = System.getProperty("file.encoding"); //$NON-NLS-1$
 
-	private static final int MB = 1024 * 1024;
-	private static final String NF = "<text>"; //$NON-NLS-1$
-	private static final char[] NOFILE = NF.toCharArray();
-	private static final int MAX_FILE_SIZE;
-	static {
-		MAX_FILE_SIZE = (int) Math.min(Integer.MAX_VALUE, (Runtime.getRuntime().maxMemory()) / 4);
-	}
-	public final char[] buffer;
-	public final char[] filename;
+    //$NON-NLS-1$
+    public static final String SYSTEM_DEFAULT_ENCODING = System.getProperty("file.encoding");
 
-	// If you already have the buffer, e.g. working copy
-	public CodeReader(String filename, char[] buffer) {
-		this.filename = filename.toCharArray();
-		this.buffer = buffer;
-	}
+    static final public int MB = 1024 * 1024;
 
-	// If you are just scanning a string
-	public CodeReader(char[] buffer) {
-		this(NF, buffer);
-	}
+    //$NON-NLS-1$
+    static final public String NF = "<text>";
 
-	// If you are loading up a file normally
-	public CodeReader(String filename) throws IOException {
-		this.filename = filename.toCharArray();
+    static final public char[] NOFILE = NF.toCharArray();
 
-		FileInputStream stream = new FileInputStream(filename);
-		try {
-			buffer = load(SYSTEM_DEFAULT_ENCODING, stream);
-		} finally {
-			stream.close();
-		}
-	}
+    static final public int MAX_FILE_SIZE;
 
-	public CodeReader(String filename, String charSet) throws IOException {
-		this.filename = filename.toCharArray();
+    static {
+        MAX_FILE_SIZE = (int) Math.min(Integer.MAX_VALUE, (Runtime.getRuntime().maxMemory()) / 4);
+    }
 
-		FileInputStream stream = new FileInputStream(filename);
-		try {
-			buffer = load(charSet, stream);
-		} finally {
-			stream.close();
-		}
-	}
+    public final char[] buffer;
 
-	public CodeReader(String filename, InputStream stream) throws IOException {
-		this(filename, SYSTEM_DEFAULT_ENCODING, stream);
-	}
+    public final char[] filename;
 
-	public CodeReader(String fileName, String charSet, InputStream stream) throws IOException {
-		filename = fileName.toCharArray();
+    // If you already have the buffer, e.g. working copy
+    public CodeReader(String filename, char[] buffer) {
+        this.filename = filename.toCharArray();
+        this.buffer = buffer;
+    }
 
-		FileInputStream fstream = (stream instanceof FileInputStream) ? (FileInputStream) stream
-				: new FileInputStream(fileName);
-		try {
-			buffer = load(charSet, fstream);
-		} finally {
-			// If we create the FileInputStream we need close to it when done,
-			// if not we figure the above layer will do it.
-			if (!(stream instanceof FileInputStream)) {
-				fstream.close();
-			}
-		}
-	}
+    // If you are just scanning a string
+    public CodeReader(char[] buffer) {
+        this(NF, buffer);
+    }
 
-	/**
-	 * Load the stream content as a character array. The method loads the stream content using given
-	 * character set name. In case if the character set is not supported, the default one is used.
-	 */
-	private char[] load(String charSet, FileInputStream stream) throws IOException {
-		String encoding = Charset.isSupported(charSet) ? charSet : SYSTEM_DEFAULT_ENCODING;
-		FileChannel channel = stream.getChannel();
-		final long lsize = channel.size();
-		final int isize = (int) lsize;
-		if (lsize > MAX_FILE_SIZE) {
-			throw new IOException("File '" + getPath() + "' is larger than " + MAX_FILE_SIZE / 1024 / 1024 + "mb"); //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
-		}
+    // If you are loading up a file normally
+    public CodeReader(String filename) throws IOException {
+        this.filename = filename.toCharArray();
+        FileInputStream stream = new FileInputStream(filename);
+        try {
+            buffer = load(SYSTEM_DEFAULT_ENCODING, stream);
+        } finally {
+            stream.close();
+        }
+    }
 
-		CharBuffer charBuffer;
-		if (isize < MB) {
-			charBuffer = decodeSmallFile(channel, isize, encoding);
-		} else {
-			charBuffer = decodeLargeFile(channel, isize, encoding);
-		}
-		if (charBuffer.hasArray() && charBuffer.arrayOffset() == 0) {
-			char[] buff = charBuffer.array();
-			if (buff.length == charBuffer.remaining())
-				return buff;
-		}
-		char[] buff = new char[charBuffer.remaining()];
-		charBuffer.get(buff);
-		return buff;
-	}
+    public CodeReader(String filename, String charSet) throws IOException {
+        this.filename = filename.toCharArray();
+        FileInputStream stream = new FileInputStream(filename);
+        try {
+            buffer = load(charSet, stream);
+        } finally {
+            stream.close();
+        }
+    }
 
-	private CharBuffer decodeSmallFile(FileChannel channel, final int isize, String encoding) throws IOException {
-		ByteBuffer byteBuffer = ByteBuffer.allocate(isize);
-		channel.read(byteBuffer);
-		byteBuffer.flip();
+    public CodeReader(String filename, InputStream stream) throws IOException {
+        this(filename, SYSTEM_DEFAULT_ENCODING, stream);
+    }
 
-		return Charset.forName(encoding).decode(byteBuffer);
-	}
+    public CodeReader(String fileName, String charSet, InputStream stream) throws IOException {
+        filename = fileName.toCharArray();
+        FileInputStream fstream = (stream instanceof FileInputStream) ? (FileInputStream) stream : new FileInputStream(fileName);
+        try {
+            buffer = load(charSet, fstream);
+        } finally {
+            // If we create the FileInputStream we need close to it when done,
+            // if not we figure the above layer will do it.
+            if (!(stream instanceof FileInputStream)) {
+                fstream.close();
+            }
+        }
+    }
 
-	private CharBuffer decodeLargeFile(FileChannel channel, final int isize, String encoding) throws IOException {
-		int chunk = Math.min(isize, MB);
-		final ByteBuffer in = ByteBuffer.allocate(chunk);
-		final Charset charset = Charset.forName(encoding);
-		final CharsetDecoder decoder = charset.newDecoder().onMalformedInput(CodingErrorAction.REPLACE)
-				.onUnmappableCharacter(CodingErrorAction.REPLACE);
+    /**
+     * Load the stream content as a character array. The method loads the stream content using given
+     * character set name. In case if the character set is not supported, the default one is used.
+     */
+    private char[] load(String charSet, FileInputStream stream) throws IOException {
+        String encoding = Charset.isSupported(charSet) ? charSet : SYSTEM_DEFAULT_ENCODING;
+        FileChannel channel = stream.getChannel();
+        final long lsize = channel.size();
+        final int isize = (int) lsize;
+        if (lsize > MAX_FILE_SIZE) {
+            //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
+            throw new IOException("File '" + getPath() + "' is larger than " + MAX_FILE_SIZE / 1024 / 1024 + "mb");
+        }
+        CharBuffer charBuffer;
+        if (isize < MB) {
+            charBuffer = decodeSmallFile(channel, isize, encoding);
+        } else {
+            charBuffer = decodeLargeFile(channel, isize, encoding);
+        }
+        if (charBuffer.hasArray() && charBuffer.arrayOffset() == 0) {
+            char[] buff = charBuffer.array();
+            if (buff.length == charBuffer.remaining())
+                return buff;
+        }
+        char[] buff = new char[charBuffer.remaining()];
+        charBuffer.get(buff);
+        return buff;
+    }
 
-		int n = (int) (isize * (double) decoder.averageCharsPerByte()); // avoid rounding errors.
-		CharBuffer out = CharBuffer.allocate(n);
+    private CharBuffer decodeSmallFile(FileChannel channel, final int isize, String encoding) throws IOException {
+        ByteBuffer byteBuffer = ByteBuffer.allocate(isize);
+        channel.read(byteBuffer);
+        byteBuffer.flip();
+        return Charset.forName(encoding).decode(byteBuffer);
+    }
 
-		int offset = 0;
-		while (offset < isize) {
-			channel.read(in);
-			in.flip();
-			offset += in.limit();
+    private CharBuffer decodeLargeFile(FileChannel channel, final int isize, String encoding) throws IOException {
+        int chunk = Math.min(isize, MB);
+        final ByteBuffer in = ByteBuffer.allocate(chunk);
+        final Charset charset = Charset.forName(encoding);
+        final CharsetDecoder decoder = charset.newDecoder().onMalformedInput(CodingErrorAction.REPLACE).onUnmappableCharacter(CodingErrorAction.REPLACE);
+        // avoid rounding errors.
+        int n = (int) (isize * (double) decoder.averageCharsPerByte());
+        CharBuffer out = CharBuffer.allocate(n);
+        int offset = 0;
+        while (offset < isize) {
+            channel.read(in);
+            in.flip();
+            offset += in.limit();
+            CoderResult cr = decoder.decode(in, out, offset >= isize);
+            final int remainingBytes = in.remaining();
+            if (cr.isOverflow()) {
+                int totalRemainingBytes = isize - offset + remainingBytes;
+                if (totalRemainingBytes > 0) {
+                    // avoid rounding errors.
+                    n += (int) (totalRemainingBytes * (double) decoder.maxCharsPerByte());
+                    CharBuffer o = CharBuffer.allocate(n);
+                    out.flip();
+                    o.put(out);
+                    out = o;
+                }
+            } else if (!cr.isUnderflow()) {
+                cr.throwException();
+            }
+            if (remainingBytes == 0) {
+                in.clear();
+            } else {
+                byte[] rest = new byte[remainingBytes];
+                in.get(rest);
+                in.clear();
+                in.put(rest);
+                offset -= remainingBytes;
+            }
+        }
+        out.flip();
+        return out;
+    }
 
-			CoderResult cr = decoder.decode(in, out, offset >= isize);
-			final int remainingBytes = in.remaining();
-			if (cr.isOverflow()) {
-				int totalRemainingBytes = isize - offset + remainingBytes;
-				if (totalRemainingBytes > 0) {
-					n += (int) (totalRemainingBytes * (double) decoder.maxCharsPerByte()); // avoid rounding errors.
-					CharBuffer o = CharBuffer.allocate(n);
-					out.flip();
-					o.put(out);
-					out = o;
-				}
-			} else if (!cr.isUnderflow()) {
-				cr.throwException();
-			}
+    public boolean isFile() {
+        return !CharArrayUtils.equals(filename, NOFILE);
+    }
 
-			if (remainingBytes == 0) {
-				in.clear();
-			} else {
-				byte[] rest = new byte[remainingBytes];
-				in.get(rest);
-				in.clear();
-				in.put(rest);
-				offset -= remainingBytes;
-			}
-		}
-		out.flip();
-		return out;
-	}
+    @Override
+    public String toString() {
+        return getPath();
+    }
 
-	public boolean isFile() {
-		return !CharArrayUtils.equals(filename, NOFILE);
-	}
-
-	@Override
-	public String toString() {
-		return getPath();
-	}
-
-	public String getPath() {
-		return new String(filename);
-	}
+    public String getPath() {
+        return new String(filename);
+    }
 }

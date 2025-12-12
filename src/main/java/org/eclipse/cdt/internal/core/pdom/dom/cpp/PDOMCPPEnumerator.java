@@ -37,12 +37,12 @@ import org.eclipse.core.runtime.CoreException;
  */
 public class PDOMCPPEnumerator extends PDOMCPPBinding implements IPDOMCPPEnumerator {
 
-    private static final int VALUE = PDOMCPPBinding.RECORD_SIZE;
+    static final public int VALUE = PDOMCPPBinding.RECORD_SIZE;
 
-    private static final int INTERNAL_TYPE = VALUE + Database.VALUE_SIZE;
+    static final public int INTERNAL_TYPE = VALUE + Database.VALUE_SIZE;
 
     @SuppressWarnings("hiding")
-    protected static final int RECORD_SIZE = INTERNAL_TYPE + Database.TYPE_SIZE;
+    static final public int RECORD_SIZE = INTERNAL_TYPE + Database.TYPE_SIZE;
 
     public PDOMCPPEnumerator(PDOMLinkage linkage, PDOMNode parent, ICPPInternalEnumerator enumerator) throws CoreException {
         super(linkage, parent, enumerator.getNameCharArray());

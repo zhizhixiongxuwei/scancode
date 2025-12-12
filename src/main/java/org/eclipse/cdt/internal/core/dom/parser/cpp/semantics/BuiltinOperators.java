@@ -61,13 +61,13 @@ import org.eclipse.cdt.internal.core.dom.parser.cpp.OverloadableOperator;
  */
 public class BuiltinOperators {
 
-    private static final ICPPFunction[] EMPTY = {};
+    static final public ICPPFunction[] EMPTY = {};
 
-    private static final int FIRST = 0;
+    static final public int FIRST = 0;
 
-    private static final int SECOND = 1;
+    static final public int SECOND = 1;
 
-    private static final IType PTR_DIFF = new CPPBasicType(Kind.eInt, 0);
+    static final public IType PTR_DIFF = new CPPBasicType(Kind.eInt, 0);
 
     public static ICPPFunction[] create(OverloadableOperator operator, ICPPEvaluation[] args, Object[] globCandidates) {
         if (operator == null || args == null || args.length == 0)
@@ -75,7 +75,7 @@ public class BuiltinOperators {
         return new BuiltinOperators(operator, args, globCandidates).create();
     }
 
-    private final OverloadableOperator fOperator;
+    final public OverloadableOperator fOperator;
 
     private final boolean fUnary;
 

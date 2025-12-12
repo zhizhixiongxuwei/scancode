@@ -67,7 +67,7 @@ final public class OrderPreservingImportAdder implements ImportAdder {
         return matchingSegments;
     }
 
-    private final Comparator<ImportName> importComparator;
+    final public Comparator<ImportName> importComparator;
 
     OrderPreservingImportAdder(Comparator<ImportName> importComparator) {
         this.importComparator = importComparator;

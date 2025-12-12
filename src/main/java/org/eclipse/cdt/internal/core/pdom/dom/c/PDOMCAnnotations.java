@@ -28,15 +28,15 @@ import org.eclipse.cdt.internal.core.dom.parser.ASTInternal;
 public class PDOMCAnnotations {
 
     // Storage class specifiers and function annotations.
-    private static final int EXTERN_OFFSET = 0;
+    static final public int EXTERN_OFFSET = 0;
 
-    private static final int INLINE_OFFSET = 1;
+    static final public int INLINE_OFFSET = 1;
 
-    private static final int STATIC_OFFSET = 2;
+    static final public int STATIC_OFFSET = 2;
 
-    private static final int VARARGS_OFFSET = 3;
+    static final public int VARARGS_OFFSET = 3;
 
-    private static final int NO_RETURN_OFFSET = 4;
+    static final public int NO_RETURN_OFFSET = 4;
 
     private static final int REGISTER_OFFSET = 5;
 

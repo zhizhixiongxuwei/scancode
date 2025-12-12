@@ -36,13 +36,13 @@ abstract public class DOMMember extends DOMNode implements IDOMMember {
      * The modifier flags for this member that can be
      * analyzed with org.eclipse.jdt.core.Flags
      */
-    protected int fFlags = 0;
+    public int fFlags = 0;
 
     /**
      * The member's comments when it has been altered from
      * the contents in the document, otherwise <code>null</code>.
      */
-    protected String fComment = null;
+    public String fComment = null;
 
     /**
      * The original inclusive source range of the
@@ -50,14 +50,14 @@ abstract public class DOMMember extends DOMNode implements IDOMMember {
      * or -1's if the member did not originally have a
      * comment.
      */
-    protected int[] fCommentRange;
+    public int[] fCommentRange;
 
     /**
      * The member's modifiers textual representation when
      * the modifiers (flags) have been altered from
      * their original contents, otherwise <code>null</code>.
      */
-    protected char[] fModifiers = null;
+    public char[] fModifiers = null;
 
     /**
      * The original inclusive source range of the
@@ -65,7 +65,7 @@ abstract public class DOMMember extends DOMNode implements IDOMMember {
      * the member did not originally have modifiers in
      * the source code (that is, package default visibility).
      */
-    protected int[] fModifierRange;
+    public int[] fModifierRange;
 
     /**
      * Constructs an empty member node.

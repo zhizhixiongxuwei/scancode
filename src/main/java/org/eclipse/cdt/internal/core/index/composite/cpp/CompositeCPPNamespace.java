@@ -24,7 +24,7 @@ import org.eclipse.cdt.internal.core.index.composite.ICompositesFactory;
 
 public class CompositeCPPNamespace extends CompositeCPPBinding implements ICPPNamespace {
 
-    ICPPNamespace[] namespaces;
+    public ICPPNamespace[] namespaces;
 
     public CompositeCPPNamespace(ICompositesFactory cf, ICPPNamespace[] namespaces) {
         super(cf, namespaces[0]);

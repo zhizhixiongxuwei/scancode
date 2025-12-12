@@ -24,7 +24,7 @@ import org.eclipse.jdt.core.SourceRange;
 /* package */
 public class SourceRefElementInfo extends JavaElementInfo {
 
-    protected int sourceRangeStart, sourceRangeEnd;
+    public int sourceRangeStart, sourceRangeEnd;
 
     /**
      * @see org.eclipse.jdt.internal.compiler.env.ISourceType#getDeclarationSourceEnd()

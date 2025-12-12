@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2008, 2010 Wind River Systems Inc. and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2008, 2010 Wind River Systems Inc. and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *    Markus Schorn - Initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *     Markus Schorn - Initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.parser.c;
 
 import org.eclipse.cdt.core.dom.ast.IASTNode;
@@ -25,55 +27,58 @@ import org.eclipse.cdt.core.dom.ast.IType;
  * An example is the built-in variable __func__.
  */
 public class CBuiltinVariable extends CVariable {
-	private IType type = null;
-	private char[] name = null;
-	private IScope scope = null;
 
-	public CBuiltinVariable(IType type, char[] name, IScope scope) {
-		super(null);
-		this.type = type;
-		this.name = name;
-		this.scope = scope;
-	}
+    public IType type = null;
 
-	@Override
-	public IType getType() {
-		return type;
-	}
+    public char[] name = null;
 
-	@Override
-	public String getName() {
-		return String.valueOf(name);
-	}
+    public IScope scope = null;
 
-	@Override
-	public char[] getNameCharArray() {
-		return name;
-	}
+    public CBuiltinVariable(IType type, char[] name, IScope scope) {
+        super(null);
+        this.type = type;
+        this.name = name;
+        this.scope = scope;
+    }
 
-	@Override
-	public IScope getScope() {
-		return scope;
-	}
+    @Override
+    public IType getType() {
+        return type;
+    }
 
-	/**
-	 * returns null
-	 */
-	@Override
-	public IASTNode[] getDeclarations() {
-		return null;
-	}
+    @Override
+    public String getName() {
+        return String.valueOf(name);
+    }
 
-	/**
-	 * returns null
-	 */
-	@Override
-	public IASTNode getDefinition() {
-		return null;
-	}
+    @Override
+    public char[] getNameCharArray() {
+        return name;
+    }
 
-	@Override
-	public IBinding getOwner() {
-		return null;
-	}
+    @Override
+    public IScope getScope() {
+        return scope;
+    }
+
+    /**
+     * returns null
+     */
+    @Override
+    public IASTNode[] getDeclarations() {
+        return null;
+    }
+
+    /**
+     * returns null
+     */
+    @Override
+    public IASTNode getDefinition() {
+        return null;
+    }
+
+    @Override
+    public IBinding getOwner() {
+        return null;
+    }
 }

@@ -1,19 +1,21 @@
-/*******************************************************************************
- * Copyright (c) 2000, 2024 Space Codesign Systems and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2000, 2024 Space Codesign Systems and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Space Codesign Systems - Initial API and implementation
- *     QNX Software Systems - Initial PEBinaryObject class
- *     John Dallaway - Fix archive header processing (#630)
- *     John Dallaway - Support sections sizes and all external symbols (#652)
- *******************************************************************************/
+ *  Contributors:
+ *      Space Codesign Systems - Initial API and implementation
+ *      QNX Software Systems - Initial PEBinaryObject class
+ *      John Dallaway - Fix archive header processing (#630)
+ *      John Dallaway - Support sections sizes and all external symbols (#652)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.utils.coff.parser;
 
 import java.io.ByteArrayInputStream;
@@ -22,7 +24,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import org.eclipse.cdt.core.IAddressFactory;
 import org.eclipse.cdt.core.IBinaryParser;
 import org.eclipse.cdt.core.IBinaryParser.IBinaryFile;
@@ -44,149 +45,152 @@ import org.eclipse.core.runtime.IPath;
  */
 public class PEBinaryObject64 extends BinaryObjectAdapter {
 
-	BinaryObjectInfo info;
-	IAddressFactory addressFactory;
-	ISymbol[] symbols;
-	AR.ARHeader header;
+    public BinaryObjectInfo info;
 
-	public PEBinaryObject64(IBinaryParser parser, IPath path, AR.ARHeader header) {
-		super(parser, path, IBinaryFile.OBJECT);
-		this.header = header;
-	}
+    public IAddressFactory addressFactory;
 
-	public PEBinaryObject64(IBinaryParser parser, IPath p, int type) {
-		super(parser, p, type);
-	}
+    public ISymbol[] symbols;
 
-	@Override
-	public String getName() {
-		if (header != null) {
-			return header.getObjectName();
-		}
-		return super.getName();
-	}
+    public AR.ARHeader header;
 
-	@Override
-	public InputStream getContents() throws IOException {
-		if (getPath() != null && header != null) {
-			return new ByteArrayInputStream(header.getObjectData());
-		}
-		return super.getContents();
-	}
+    public PEBinaryObject64(IBinaryParser parser, IPath path, AR.ARHeader header) {
+        super(parser, path, IBinaryFile.OBJECT);
+        this.header = header;
+    }
 
-	/**
-	 * @see org.eclipse.cdt.core.IBinaryParser.IBinaryObject#getSymbols()
-	 */
-	@Override
-	public ISymbol[] getSymbols() {
-		if (hasChanged() || symbols == null) {
-			try {
-				loadAll();
-			} catch (IOException e) {
-				symbols = NO_SYMBOLS;
-			}
-		}
-		return symbols;
-	}
+    public PEBinaryObject64(IBinaryParser parser, IPath p, int type) {
+        super(parser, p, type);
+    }
 
-	@Override
-	protected BinaryObjectInfo getBinaryObjectInfo() {
-		if (hasChanged() || info == null) {
-			try {
-				loadInfo();
-			} catch (IOException e) {
-				info = new BinaryObjectInfo();
-			}
-		}
-		return info;
-	}
+    @Override
+    public String getName() {
+        if (header != null) {
+            return header.getObjectName();
+        }
+        return super.getName();
+    }
 
-	@Override
-	@SuppressWarnings("unchecked")
-	public <T> T getAdapter(Class<T> adapter) {
-		if (adapter.equals(PE64.class)) {
-			try {
-				if (header != null) {
-					return (T) new PE64(getPath().toOSString(), header.getObjectDataOffset());
-				}
-				return (T) new PE64(getPath().toOSString());
-			} catch (IOException e) {
-			}
-		}
-		if (adapter.equals(ISymbolReader.class)) {
-			try (PE64 pe = getAdapter(PE64.class)) {
-				if (pe != null) {
-					return (T) pe.getSymbolReader();
-				}
-			}
-		}
-		return super.getAdapter(adapter);
-	}
+    @Override
+    public InputStream getContents() throws IOException {
+        if (getPath() != null && header != null) {
+            return new ByteArrayInputStream(header.getObjectData());
+        }
+        return super.getContents();
+    }
 
-	protected PE64 getPE() throws IOException {
-		if (header != null) {
-			return new PE64(getPath().toOSString(), header.getObjectDataOffset());
-		}
-		return new PE64(getPath().toOSString());
-	}
+    /**
+     * @see org.eclipse.cdt.core.IBinaryParser.IBinaryObject#getSymbols()
+     */
+    @Override
+    public ISymbol[] getSymbols() {
+        if (hasChanged() || symbols == null) {
+            try {
+                loadAll();
+            } catch (IOException e) {
+                symbols = NO_SYMBOLS;
+            }
+        }
+        return symbols;
+    }
 
-	protected void loadAll() throws IOException {
-		try (PE64 pe = getPE()) {
-			loadInfo(pe);
-			loadSymbols(pe);
-		}
-	}
+    @Override
+    protected BinaryObjectInfo getBinaryObjectInfo() {
+        if (hasChanged() || info == null) {
+            try {
+                loadInfo();
+            } catch (IOException e) {
+                info = new BinaryObjectInfo();
+            }
+        }
+        return info;
+    }
 
-	protected void loadInfo() throws IOException {
-		try (PE64 pe = getPE()) {
-			loadInfo(pe);
-		}
-	}
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> T getAdapter(Class<T> adapter) {
+        if (adapter.equals(PE64.class)) {
+            try {
+                if (header != null) {
+                    return (T) new PE64(getPath().toOSString(), header.getObjectDataOffset());
+                }
+                return (T) new PE64(getPath().toOSString());
+            } catch (IOException e) {
+            }
+        }
+        if (adapter.equals(ISymbolReader.class)) {
+            try (PE64 pe = getAdapter(PE64.class)) {
+                if (pe != null) {
+                    return (T) pe.getSymbolReader();
+                }
+            }
+        }
+        return super.getAdapter(adapter);
+    }
 
-	protected void loadInfo(PE64 pe) throws IOException {
-		info = new BinaryObjectInfo();
-		PE64.Attribute attribute = pe.getAttribute();
-		info.isLittleEndian = attribute.isLittleEndian();
-		info.hasDebug = attribute.hasDebug();
-		info.cpu = attribute.getCPU();
-		Sizes sizes = new PEHelper64(pe).getSizes();
-		info.bss = sizes.bss();
-		info.data = sizes.data();
-		info.text = sizes.text();
-	}
+    protected PE64 getPE() throws IOException {
+        if (header != null) {
+            return new PE64(getPath().toOSString(), header.getObjectDataOffset());
+        }
+        return new PE64(getPath().toOSString());
+    }
 
-	protected void loadSymbols(PE64 pe) throws IOException {
-		ArrayList<Symbol> list = new ArrayList<>();
-		loadSymbols(pe, list);
-		symbols = list.toArray(NO_SYMBOLS);
-		Arrays.sort(symbols);
-		list.clear();
-	}
+    protected void loadAll() throws IOException {
+        try (PE64 pe = getPE()) {
+            loadInfo(pe);
+            loadSymbols(pe);
+        }
+    }
 
-	protected void loadSymbols(PE64 pe, List<Symbol> list) throws IOException {
-		Coff64.Symbol[] peSyms = pe.getSymbols();
-		byte[] table = pe.getStringTable();
-		addSymbols(peSyms, table, list);
-	}
+    protected void loadInfo() throws IOException {
+        try (PE64 pe = getPE()) {
+            loadInfo(pe);
+        }
+    }
 
-	protected void addSymbols(Coff64.Symbol[] peSyms, byte[] table, List<Symbol> list) {
-		for (Coff64.Symbol peSym : peSyms) {
-			if ((peSym.n_sclass == Coff64.Symbol.SC_EXTERNAL) && (peSym.n_scnum > 0)) {
-				String name = peSym.getName(table);
-				if (name == null || name.trim().length() == 0 || !Character.isJavaIdentifierStart(name.charAt(0))) {
-					continue;
-				}
-				int type = peSym.isFunction() ? ISymbol.FUNCTION : ISymbol.VARIABLE;
-				list.add(new Symbol(this, name, type, new Addr32(peSym.n_value), peSym.getSize()));
-			}
-		}
-	}
+    protected void loadInfo(PE64 pe) throws IOException {
+        info = new BinaryObjectInfo();
+        PE64.Attribute attribute = pe.getAttribute();
+        info.isLittleEndian = attribute.isLittleEndian();
+        info.hasDebug = attribute.hasDebug();
+        info.cpu = attribute.getCPU();
+        Sizes sizes = new PEHelper64(pe).getSizes();
+        info.bss = sizes.bss();
+        info.data = sizes.data();
+        info.text = sizes.text();
+    }
 
-	@Override
-	public IAddressFactory getAddressFactory() {
-		if (addressFactory == null) {
-			addressFactory = new Addr32Factory();
-		}
-		return addressFactory;
-	}
+    protected void loadSymbols(PE64 pe) throws IOException {
+        ArrayList<Symbol> list = new ArrayList<>();
+        loadSymbols(pe, list);
+        symbols = list.toArray(NO_SYMBOLS);
+        Arrays.sort(symbols);
+        list.clear();
+    }
+
+    protected void loadSymbols(PE64 pe, List<Symbol> list) throws IOException {
+        Coff64.Symbol[] peSyms = pe.getSymbols();
+        byte[] table = pe.getStringTable();
+        addSymbols(peSyms, table, list);
+    }
+
+    protected void addSymbols(Coff64.Symbol[] peSyms, byte[] table, List<Symbol> list) {
+        for (Coff64.Symbol peSym : peSyms) {
+            if ((peSym.n_sclass == Coff64.Symbol.SC_EXTERNAL) && (peSym.n_scnum > 0)) {
+                String name = peSym.getName(table);
+                if (name == null || name.trim().length() == 0 || !Character.isJavaIdentifierStart(name.charAt(0))) {
+                    continue;
+                }
+                int type = peSym.isFunction() ? ISymbol.FUNCTION : ISymbol.VARIABLE;
+                list.add(new Symbol(this, name, type, new Addr32(peSym.n_value), peSym.getSize()));
+            }
+        }
+    }
+
+    @Override
+    public IAddressFactory getAddressFactory() {
+        if (addressFactory == null) {
+            addressFactory = new Addr32Factory();
+        }
+        return addressFactory;
+    }
 }

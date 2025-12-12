@@ -32,7 +32,7 @@ import org.eclipse.jdt.internal.core.JavaProject;
  */
 final public class PackageImportComparator implements Comparator<ImportName> {
 
-    private final JavaProject javaProject;
+    final public JavaProject javaProject;
 
     PackageImportComparator(JavaProject javaProject) {
         this.javaProject = javaProject;

@@ -1,22 +1,23 @@
-/*******************************************************************************
- * Copyright (c) 2004, 2012 QNX Software Systems and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2004, 2012 QNX Software Systems and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     QNX Software Systems - initial API and implementation
- *     Andrew Ferguson (Symbian)
- *     Markus Schorn (Wind River Systems)
- *******************************************************************************/
+ *  Contributors:
+ *      QNX Software Systems - initial API and implementation
+ *      Andrew Ferguson (Symbian)
+ *      Markus Schorn (Wind River Systems)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.core.browser;
 
 import java.util.regex.Pattern;
-
 import org.eclipse.cdt.core.CCorePlugin;
 import org.eclipse.cdt.core.dom.ast.IBinding;
 import org.eclipse.cdt.core.index.IIndex;
@@ -48,121 +49,113 @@ import org.eclipse.core.runtime.NullProgressMonitor;
  * @noinstantiate This class is not intended to be instantiated by clients.
  */
 public class AllTypesCache {
-	private static final boolean DEBUG = false;
 
-	private static ITypeInfo[] getTypes(ICProject[] projects, final int[] kinds, IProgressMonitor monitor)
-			throws CoreException {
-		IIndex index = CCorePlugin.getIndexManager().getIndex(projects,
-				IIndexManager.ADD_EXTENSION_FRAGMENTS_NAVIGATION);
+    static final public boolean DEBUG = false;
 
-		try {
-			index.acquireReadLock();
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			return new ITypeInfo[0];
-		}
+    private static ITypeInfo[] getTypes(ICProject[] projects, final int[] kinds, IProgressMonitor monitor) throws CoreException {
+        IIndex index = CCorePlugin.getIndexManager().getIndex(projects, IIndexManager.ADD_EXTENSION_FRAGMENTS_NAVIGATION);
+        try {
+            index.acquireReadLock();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return new ITypeInfo[0];
+        }
+        try {
+            long start = System.currentTimeMillis();
+            IIndexBinding[] all = index.findBindings(Pattern.compile(".*"), false, new //$NON-NLS-1$
+            IndexFilter() {
 
-		try {
-			long start = System.currentTimeMillis();
+                @Override
+                public boolean acceptBinding(IBinding binding) throws CoreException {
+                    return IndexFilter.ALL_DECLARED_OR_IMPLICIT.acceptBinding(binding) && IndexModelUtil.bindingHasCElementType(binding, kinds);
+                }
+            }, monitor);
+            if (DEBUG) {
+                //$NON-NLS-1$
+                System.out.println("Index search took " + (System.currentTimeMillis() - start));
+                start = System.currentTimeMillis();
+            }
+            ITypeInfo[] result = new ITypeInfo[all.length];
+            for (int i = 0; i < all.length; i++) {
+                result[i] = IndexTypeInfo.create(index, all[i]);
+            }
+            if (DEBUG) {
+                //$NON-NLS-1$
+                System.out.println("Wrapping as ITypeInfo took " + (System.currentTimeMillis() - start));
+                start = System.currentTimeMillis();
+            }
+            return result;
+        } finally {
+            index.releaseReadLock();
+        }
+    }
 
-			IIndexBinding[] all = index.findBindings(Pattern.compile(".*"), false, new IndexFilter() { //$NON-NLS-1$
-				@Override
-				public boolean acceptBinding(IBinding binding) throws CoreException {
-					return IndexFilter.ALL_DECLARED_OR_IMPLICIT.acceptBinding(binding)
-							&& IndexModelUtil.bindingHasCElementType(binding, kinds);
-				}
-			}, monitor);
+    /**
+     * Returns all types in the workspace.
+     */
+    public static ITypeInfo[] getAllTypes() {
+        return getAllTypes(new NullProgressMonitor());
+    }
 
-			if (DEBUG) {
-				System.out.println("Index search took " + (System.currentTimeMillis() - start)); //$NON-NLS-1$
-				start = System.currentTimeMillis();
-			}
+    /**
+     * Returns all types in the workspace.
+     */
+    public static ITypeInfo[] getAllTypes(IProgressMonitor monitor) {
+        try {
+            ICProject[] projects = CoreModel.getDefault().getCModel().getCProjects();
+            return getTypes(projects, ITypeInfo.KNOWN_TYPES, monitor);
+        } catch (CoreException e) {
+            CCorePlugin.log(e);
+            return new ITypeInfo[0];
+        }
+    }
 
-			ITypeInfo[] result = new ITypeInfo[all.length];
-			for (int i = 0; i < all.length; i++) {
-				result[i] = IndexTypeInfo.create(index, all[i]);
-			}
+    /**
+     * Returns all types in the given scope.
+     *
+     * @param scope The search scope
+     * @param kinds Array containing CElement types: C_NAMESPACE, C_CLASS,
+     *              C_UNION, C_ENUMERATION, C_TYPEDEF
+     */
+    public static ITypeInfo[] getTypes(ITypeSearchScope scope, int[] kinds) {
+        try {
+            return getTypes(scope.getEnclosingProjects(), kinds, new NullProgressMonitor());
+        } catch (CoreException e) {
+            CCorePlugin.log(e);
+            return new ITypeInfo[0];
+        }
+    }
 
-			if (DEBUG) {
-				System.out.println("Wrapping as ITypeInfo took " + (System.currentTimeMillis() - start)); //$NON-NLS-1$
-				start = System.currentTimeMillis();
-			}
+    /**
+     * Returns all namespaces in the given scope.
+     *
+     * @param scope The search scope
+     * @param includeGlobalNamespace <code>true</code> if the global (default) namespace should be returned
+     */
+    public static ITypeInfo[] getNamespaces(ITypeSearchScope scope, boolean includeGlobalNamespace) {
+        try {
+            return getTypes(scope.getEnclosingProjects(), new int[] { ICElement.C_NAMESPACE }, new NullProgressMonitor());
+        } catch (CoreException e) {
+            CCorePlugin.log(e);
+            return new ITypeInfo[0];
+        }
+    }
 
-			return result;
-		} finally {
-			index.releaseReadLock();
-		}
-	}
+    /**
+     * @noreference This method is not intended to be referenced by clients.
+     * @deprecated never worked.
+     */
+    @Deprecated
+    public static ITypeInfo getType(ICProject project, int type, IQualifiedTypeName qualifiedName) {
+        return null;
+    }
 
-	/**
-	 * Returns all types in the workspace.
-	 */
-	public static ITypeInfo[] getAllTypes() {
-		return getAllTypes(new NullProgressMonitor());
-	}
-
-	/**
-	 * Returns all types in the workspace.
-	 */
-	public static ITypeInfo[] getAllTypes(IProgressMonitor monitor) {
-		try {
-			ICProject[] projects = CoreModel.getDefault().getCModel().getCProjects();
-			return getTypes(projects, ITypeInfo.KNOWN_TYPES, monitor);
-		} catch (CoreException e) {
-			CCorePlugin.log(e);
-			return new ITypeInfo[0];
-		}
-	}
-
-	/**
-	 * Returns all types in the given scope.
-	 *
-	 * @param scope The search scope
-	 * @param kinds Array containing CElement types: C_NAMESPACE, C_CLASS,
-	 *              C_UNION, C_ENUMERATION, C_TYPEDEF
-	 */
-	public static ITypeInfo[] getTypes(ITypeSearchScope scope, int[] kinds) {
-		try {
-			return getTypes(scope.getEnclosingProjects(), kinds, new NullProgressMonitor());
-		} catch (CoreException e) {
-			CCorePlugin.log(e);
-			return new ITypeInfo[0];
-		}
-	}
-
-	/**
-	 * Returns all namespaces in the given scope.
-	 *
-	 * @param scope The search scope
-	 * @param includeGlobalNamespace <code>true</code> if the global (default) namespace should be returned
-	 */
-	public static ITypeInfo[] getNamespaces(ITypeSearchScope scope, boolean includeGlobalNamespace) {
-		try {
-			return getTypes(scope.getEnclosingProjects(), new int[] { ICElement.C_NAMESPACE },
-					new NullProgressMonitor());
-		} catch (CoreException e) {
-			CCorePlugin.log(e);
-			return new ITypeInfo[0];
-		}
-	}
-
-	/**
-	 * @noreference This method is not intended to be referenced by clients.
-	 * @deprecated never worked.
-	 */
-	@Deprecated
-	public static ITypeInfo getType(ICProject project, int type, IQualifiedTypeName qualifiedName) {
-		return null;
-	}
-
-	/**
-	 * @noreference This method is not intended to be referenced by clients.
-	 * @deprecated never worked.
-	 */
-	@Deprecated
-	public static ITypeInfo[] getTypes(ICProject project, IQualifiedTypeName qualifiedName, boolean matchEnclosed,
-			boolean ignoreCase) {
-		return new ITypeInfo[0];
-	}
-
+    /**
+     * @noreference This method is not intended to be referenced by clients.
+     * @deprecated never worked.
+     */
+    @Deprecated
+    public static ITypeInfo[] getTypes(ICProject project, IQualifiedTypeName qualifiedName, boolean matchEnclosed, boolean ignoreCase) {
+        return new ITypeInfo[0];
+    }
 }

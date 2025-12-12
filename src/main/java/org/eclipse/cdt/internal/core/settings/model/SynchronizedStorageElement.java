@@ -1,17 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2008, 2011 Broadcom Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2008, 2011 Broadcom Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     James Blackburn (Broadcom Corp.)
- *******************************************************************************/
-
+ *  Contributors:
+ *      James Blackburn (Broadcom Corp.)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.settings.model;
 
 import org.eclipse.cdt.core.settings.model.ICStorageElement;
@@ -33,197 +34,196 @@ import org.eclipse.core.runtime.CoreException;
  */
 public class SynchronizedStorageElement implements ICStorageElement {
 
-	private final Object fLock;
-	private final ICStorageElement fEl;
+    final public Object fLock;
 
-	private SynchronizedStorageElement(ICStorageElement el, Object lock) {
-		this.fEl = el;
-		this.fLock = lock;
-	}
+    final public ICStorageElement fEl;
 
-	private SynchronizedStorageElement(ICStorageElement el) {
-		this.fEl = el;
-		this.fLock = this;
-	}
+    private SynchronizedStorageElement(ICStorageElement el, Object lock) {
+        this.fEl = el;
+        this.fLock = lock;
+    }
 
-	/**
-	 * Return the original ICStorageElement stored backing this Proxy
-	 * ICStorageElement
-	 * @return ICStorageElement original storage element
-	 */
-	public ICStorageElement getOriginalElement() {
-		synchronized (fLock) {
-			return fEl;
-		}
-	}
+    private SynchronizedStorageElement(ICStorageElement el) {
+        this.fEl = el;
+        this.fLock = this;
+    }
 
-	/**
-	 * Create a synchronized storage element from an existing storage element
-	 * All access to this ICStorageElement tree will be synchronized on the
-	 * returned ICStorageElement object.
-	 * @param el
-	 * @return SynchronizedStorageElement wrapping the original ICStorageElement
-	 */
-	public static SynchronizedStorageElement synchronizedElement(ICStorageElement el) {
-		return new SynchronizedStorageElement(el);
-	}
+    /**
+     * Return the original ICStorageElement stored backing this Proxy
+     * ICStorageElement
+     * @return ICStorageElement original storage element
+     */
+    public ICStorageElement getOriginalElement() {
+        synchronized (fLock) {
+            return fEl;
+        }
+    }
 
-	/**
-	 * Create a synchronized storage element from an existing storage element
-	 * All access to this ICStorageElement tree will be synchronized on the
-	 * returned ICStorageElement object.
-	 * @param el
-	 * @param lock
-	 * @return SynchronizedStorageElement wrapping the original ICStorageElement
-	 */
-	public static SynchronizedStorageElement synchronizedElement(ICStorageElement el, Object lock) {
-		return new SynchronizedStorageElement(el, lock);
-	}
+    /**
+     * Create a synchronized storage element from an existing storage element
+     * All access to this ICStorageElement tree will be synchronized on the
+     * returned ICStorageElement object.
+     * @param el
+     * @return SynchronizedStorageElement wrapping the original ICStorageElement
+     */
+    public static SynchronizedStorageElement synchronizedElement(ICStorageElement el) {
+        return new SynchronizedStorageElement(el);
+    }
 
-	/**
-	 * @return the lock used to synchronize this SynchronizedStorage and its children
-	 */
-	public Object lock() {
-		return fLock;
-	}
+    /**
+     * Create a synchronized storage element from an existing storage element
+     * All access to this ICStorageElement tree will be synchronized on the
+     * returned ICStorageElement object.
+     * @param el
+     * @param lock
+     * @return SynchronizedStorageElement wrapping the original ICStorageElement
+     */
+    public static SynchronizedStorageElement synchronizedElement(ICStorageElement el, Object lock) {
+        return new SynchronizedStorageElement(el, lock);
+    }
 
-	@Override
-	public void clear() {
-		synchronized (fLock) {
-			fEl.clear();
-		}
-	}
+    /**
+     * @return the lock used to synchronize this SynchronizedStorage and its children
+     */
+    public Object lock() {
+        return fLock;
+    }
 
-	@Override
-	public ICStorageElement createChild(String name) {
-		synchronized (fLock) {
-			return new SynchronizedStorageElement(fEl.createChild(name), fLock);
-		}
-	}
+    @Override
+    public void clear() {
+        synchronized (fLock) {
+            fEl.clear();
+        }
+    }
 
-	@Override
-	public ICStorageElement createCopy() throws UnsupportedOperationException, CoreException {
-		synchronized (fLock) {
-			return synchronizedElement(fEl.createCopy());
-		}
-	}
+    @Override
+    public ICStorageElement createChild(String name) {
+        synchronized (fLock) {
+            return new SynchronizedStorageElement(fEl.createChild(name), fLock);
+        }
+    }
 
-	@Override
-	public boolean equals(ICStorageElement other) {
-		synchronized (fLock) {
-			if (other instanceof SynchronizedStorageElement)
-				other = ((SynchronizedStorageElement) other).fEl;
-			return fEl.equals(other);
-		}
-	}
+    @Override
+    public ICStorageElement createCopy() throws UnsupportedOperationException, CoreException {
+        synchronized (fLock) {
+            return synchronizedElement(fEl.createCopy());
+        }
+    }
 
-	@Override
-	public String getAttribute(String name) {
-		synchronized (fLock) {
-			return fEl.getAttribute(name);
-		}
-	}
+    @Override
+    public boolean equals(ICStorageElement other) {
+        synchronized (fLock) {
+            if (other instanceof SynchronizedStorageElement)
+                other = ((SynchronizedStorageElement) other).fEl;
+            return fEl.equals(other);
+        }
+    }
 
-	@Override
-	public String[] getAttributeNames() {
-		synchronized (fLock) {
-			return fEl.getAttributeNames();
-		}
-	}
+    @Override
+    public String getAttribute(String name) {
+        synchronized (fLock) {
+            return fEl.getAttribute(name);
+        }
+    }
 
-	@Override
-	public ICStorageElement[] getChildren() {
-		synchronized (fLock) {
-			return createSynchronizedChildren(fEl.getChildren());
-		}
-	}
+    @Override
+    public String[] getAttributeNames() {
+        synchronized (fLock) {
+            return fEl.getAttributeNames();
+        }
+    }
 
-	@Override
-	public ICStorageElement[] getChildrenByName(String name) {
-		synchronized (fLock) {
-			return createSynchronizedChildren(fEl.getChildrenByName(name));
-		}
-	}
+    @Override
+    public ICStorageElement[] getChildren() {
+        synchronized (fLock) {
+            return createSynchronizedChildren(fEl.getChildren());
+        }
+    }
 
-	private ICStorageElement[] createSynchronizedChildren(ICStorageElement[] children) {
-		ICStorageElement[] synchChildren = new ICStorageElement[children.length];
-		for (int i = 0; i < children.length; i++)
-			synchChildren[i] = new SynchronizedStorageElement(children[i], fLock);
-		return synchChildren;
-	}
+    @Override
+    public ICStorageElement[] getChildrenByName(String name) {
+        synchronized (fLock) {
+            return createSynchronizedChildren(fEl.getChildrenByName(name));
+        }
+    }
 
-	@Override
-	public String getName() {
-		synchronized (fLock) {
-			return fEl.getName();
-		}
-	}
+    private ICStorageElement[] createSynchronizedChildren(ICStorageElement[] children) {
+        ICStorageElement[] synchChildren = new ICStorageElement[children.length];
+        for (int i = 0; i < children.length; i++) synchChildren[i] = new SynchronizedStorageElement(children[i], fLock);
+        return synchChildren;
+    }
 
-	@Override
-	public ICStorageElement getParent() {
-		synchronized (fLock) {
-			if (fEl.getParent() == null || fEl.getParent() instanceof SynchronizedStorageElement)
-				return fEl.getParent();
-			return new SynchronizedStorageElement(fEl.getParent(), fLock);
-		}
-	}
+    @Override
+    public String getName() {
+        synchronized (fLock) {
+            return fEl.getName();
+        }
+    }
 
-	@Override
-	public String getValue() {
-		synchronized (fLock) {
-			return fEl.getValue();
-		}
-	}
+    @Override
+    public ICStorageElement getParent() {
+        synchronized (fLock) {
+            if (fEl.getParent() == null || fEl.getParent() instanceof SynchronizedStorageElement)
+                return fEl.getParent();
+            return new SynchronizedStorageElement(fEl.getParent(), fLock);
+        }
+    }
 
-	@Override
-	public boolean hasAttribute(String name) {
-		synchronized (fLock) {
-			return fEl.hasAttribute(name);
-		}
-	}
+    @Override
+    public String getValue() {
+        synchronized (fLock) {
+            return fEl.getValue();
+        }
+    }
 
-	@Override
-	public boolean hasChildren() {
-		synchronized (fLock) {
-			return fEl.hasChildren();
-		}
-	}
+    @Override
+    public boolean hasAttribute(String name) {
+        synchronized (fLock) {
+            return fEl.hasAttribute(name);
+        }
+    }
 
-	@Override
-	public ICStorageElement importChild(ICStorageElement el) throws UnsupportedOperationException {
-		synchronized (fLock) {
-			return new SynchronizedStorageElement(el.importChild(el), fLock);
-		}
-	}
+    @Override
+    public boolean hasChildren() {
+        synchronized (fLock) {
+            return fEl.hasChildren();
+        }
+    }
 
-	@Override
-	public void removeAttribute(String name) {
-		synchronized (fLock) {
-			fEl.removeAttribute(name);
-		}
-	}
+    @Override
+    public ICStorageElement importChild(ICStorageElement el) throws UnsupportedOperationException {
+        synchronized (fLock) {
+            return new SynchronizedStorageElement(el.importChild(el), fLock);
+        }
+    }
 
-	@Override
-	public void removeChild(ICStorageElement el) {
-		synchronized (fLock) {
-			if (el instanceof SynchronizedStorageElement)
-				el = ((SynchronizedStorageElement) el).fEl;
-			fEl.removeChild(el);
-		}
-	}
+    @Override
+    public void removeAttribute(String name) {
+        synchronized (fLock) {
+            fEl.removeAttribute(name);
+        }
+    }
 
-	@Override
-	public void setAttribute(String name, String value) {
-		synchronized (fLock) {
-			fEl.setAttribute(name, value);
-		}
-	}
+    @Override
+    public void removeChild(ICStorageElement el) {
+        synchronized (fLock) {
+            if (el instanceof SynchronizedStorageElement)
+                el = ((SynchronizedStorageElement) el).fEl;
+            fEl.removeChild(el);
+        }
+    }
 
-	@Override
-	public void setValue(String value) {
-		synchronized (fLock) {
-			fEl.setValue(value);
-		}
-	}
+    @Override
+    public void setAttribute(String name, String value) {
+        synchronized (fLock) {
+            fEl.setAttribute(name, value);
+        }
+    }
 
+    @Override
+    public void setValue(String value) {
+        synchronized (fLock) {
+            fEl.setValue(value);
+        }
+    }
 }

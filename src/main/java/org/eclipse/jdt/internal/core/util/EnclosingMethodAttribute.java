@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2000, 2009 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *      IBM Corporation - initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.jdt.internal.core.util;
 
 import org.eclipse.jdt.core.util.ClassFormatException;
@@ -26,76 +28,82 @@ import org.eclipse.jdt.core.util.IEnclosingMethodAttribute;
  */
 public class EnclosingMethodAttribute extends ClassFileAttribute implements IEnclosingMethodAttribute {
 
-	private final int enclosingClassIndex;
-	private final char[] enclosingClassName;
-	private int methodDescriptorIndex;
-	private char[] methodDescriptor;
-	private int methodNameIndex;
-	private char[] methodName;
-	private final int methodNameAndTypeIndex;
+    final public int enclosingClassIndex;
 
-	EnclosingMethodAttribute(byte[] classFileBytes, IConstantPool constantPool, int offset) throws ClassFormatException {
-		super(classFileBytes, constantPool, offset);
-		int index = u2At(classFileBytes, 6, offset);
-		this.enclosingClassIndex = index;
-		IConstantPoolEntry constantPoolEntry = constantPool.decodeEntry(index);
-		if (constantPoolEntry.getKind() != IConstantPoolConstant.CONSTANT_Class) {
-			throw new ClassFormatException(ClassFormatException.INVALID_CONSTANT_POOL_ENTRY);
-		}
-		this.enclosingClassName = constantPoolEntry.getClassInfoName();
-		this.methodNameAndTypeIndex = u2At(classFileBytes, 8, offset);
-		if (this.methodNameAndTypeIndex != 0) {
-			constantPoolEntry = constantPool.decodeEntry(this.methodNameAndTypeIndex);
-			if (constantPoolEntry.getKind() != IConstantPoolConstant.CONSTANT_NameAndType) {
-				throw new ClassFormatException(ClassFormatException.INVALID_CONSTANT_POOL_ENTRY);
-			}
-			this.methodDescriptorIndex = constantPoolEntry.getNameAndTypeInfoDescriptorIndex();
-			this.methodNameIndex = constantPoolEntry.getNameAndTypeInfoNameIndex();
-			constantPoolEntry = constantPool.decodeEntry(this.methodDescriptorIndex);
-			if (constantPoolEntry.getKind() != IConstantPoolConstant.CONSTANT_Utf8) {
-				throw new ClassFormatException(ClassFormatException.INVALID_CONSTANT_POOL_ENTRY);
-			}
-			this.methodDescriptor = constantPoolEntry.getUtf8Value();
-			constantPoolEntry = constantPool.decodeEntry(this.methodNameIndex);
-			if (constantPoolEntry.getKind() != IConstantPoolConstant.CONSTANT_Utf8) {
-				throw new ClassFormatException(ClassFormatException.INVALID_CONSTANT_POOL_ENTRY);
-			}
-			this.methodName = constantPoolEntry.getUtf8Value();
-		}
-	}
+    final public char[] enclosingClassName;
 
-	@Override
-	public char[] getEnclosingClass() {
-		return this.enclosingClassName;
-	}
+    public int methodDescriptorIndex;
 
-	@Override
-	public int getEnclosingClassIndex() {
-		return this.enclosingClassIndex;
-	}
+    public char[] methodDescriptor;
 
-	@Override
-	public char[] getMethodDescriptor() {
-		return this.methodDescriptor;
-	}
+    public int methodNameIndex;
 
-	@Override
-	public int getMethodDescriptorIndex() {
-		return this.methodDescriptorIndex;
-	}
+    private char[] methodName;
 
-	@Override
-	public char[] getMethodName() {
-		return this.methodName;
-	}
+    private final int methodNameAndTypeIndex;
 
-	@Override
-	public int getMethodNameIndex() {
-		return this.methodNameIndex;
-	}
+    EnclosingMethodAttribute(byte[] classFileBytes, IConstantPool constantPool, int offset) throws ClassFormatException {
+        super(classFileBytes, constantPool, offset);
+        int index = u2At(classFileBytes, 6, offset);
+        this.enclosingClassIndex = index;
+        IConstantPoolEntry constantPoolEntry = constantPool.decodeEntry(index);
+        if (constantPoolEntry.getKind() != IConstantPoolConstant.CONSTANT_Class) {
+            throw new ClassFormatException(ClassFormatException.INVALID_CONSTANT_POOL_ENTRY);
+        }
+        this.enclosingClassName = constantPoolEntry.getClassInfoName();
+        this.methodNameAndTypeIndex = u2At(classFileBytes, 8, offset);
+        if (this.methodNameAndTypeIndex != 0) {
+            constantPoolEntry = constantPool.decodeEntry(this.methodNameAndTypeIndex);
+            if (constantPoolEntry.getKind() != IConstantPoolConstant.CONSTANT_NameAndType) {
+                throw new ClassFormatException(ClassFormatException.INVALID_CONSTANT_POOL_ENTRY);
+            }
+            this.methodDescriptorIndex = constantPoolEntry.getNameAndTypeInfoDescriptorIndex();
+            this.methodNameIndex = constantPoolEntry.getNameAndTypeInfoNameIndex();
+            constantPoolEntry = constantPool.decodeEntry(this.methodDescriptorIndex);
+            if (constantPoolEntry.getKind() != IConstantPoolConstant.CONSTANT_Utf8) {
+                throw new ClassFormatException(ClassFormatException.INVALID_CONSTANT_POOL_ENTRY);
+            }
+            this.methodDescriptor = constantPoolEntry.getUtf8Value();
+            constantPoolEntry = constantPool.decodeEntry(this.methodNameIndex);
+            if (constantPoolEntry.getKind() != IConstantPoolConstant.CONSTANT_Utf8) {
+                throw new ClassFormatException(ClassFormatException.INVALID_CONSTANT_POOL_ENTRY);
+            }
+            this.methodName = constantPoolEntry.getUtf8Value();
+        }
+    }
 
-	@Override
-	public int getMethodNameAndTypeIndex() {
-		return this.methodNameAndTypeIndex;
-	}
+    @Override
+    public char[] getEnclosingClass() {
+        return this.enclosingClassName;
+    }
+
+    @Override
+    public int getEnclosingClassIndex() {
+        return this.enclosingClassIndex;
+    }
+
+    @Override
+    public char[] getMethodDescriptor() {
+        return this.methodDescriptor;
+    }
+
+    @Override
+    public int getMethodDescriptorIndex() {
+        return this.methodDescriptorIndex;
+    }
+
+    @Override
+    public char[] getMethodName() {
+        return this.methodName;
+    }
+
+    @Override
+    public int getMethodNameIndex() {
+        return this.methodNameIndex;
+    }
+
+    @Override
+    public int getMethodNameAndTypeIndex() {
+        return this.methodNameAndTypeIndex;
+    }
 }

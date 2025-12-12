@@ -22,11 +22,11 @@ import org.eclipse.cdt.core.model.ISourceRange;
  */
 public class SourceRange implements ISourceRange {
 
-    protected int startPos, length;
+    public int startPos, length;
 
-    protected int idStartPos, idLength;
+    public int idStartPos, idLength;
 
-    protected int startLine, endLine;
+    public int startLine, endLine;
 
     protected SourceRange(int startPos, int length) {
         this.startPos = startPos;

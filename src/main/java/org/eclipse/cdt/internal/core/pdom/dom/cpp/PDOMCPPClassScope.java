@@ -95,7 +95,7 @@ public class PDOMCPPClassScope implements ICPPClassScope, IIndexScope {
         }
     }
 
-    private static final IndexFilter CONVERSION_FILTER = new DeclaredBindingsFilter(ILinkage.CPP_LINKAGE_ID, true, false) {
+    static final public IndexFilter CONVERSION_FILTER = new DeclaredBindingsFilter(ILinkage.CPP_LINKAGE_ID, true, false) {
 
         @Override
         public boolean acceptBinding(IBinding binding) throws CoreException {
@@ -103,7 +103,7 @@ public class PDOMCPPClassScope implements ICPPClassScope, IIndexScope {
         }
     };
 
-    private final IPDOMCPPClassType fBinding;
+    final public IPDOMCPPClassType fBinding;
 
     public PDOMCPPClassScope(IPDOMCPPClassType binding) {
         fBinding = binding;

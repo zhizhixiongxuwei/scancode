@@ -32,11 +32,11 @@ import org.eclipse.core.runtime.IPath;
 public class PDOMCache {
 
     // gives the PDOM for a particular path
-    private Map<File, PDOM> path2pdom;
+    public Map<File, PDOM> path2pdom;
 
-    private static PDOMCache singleton;
+    static public PDOMCache singleton;
 
-    private static Object singletonMutex = new Object();
+    static public Object singletonMutex = new Object();
 
     private PDOMCache() {
         this.path2pdom = new HashMap<>();

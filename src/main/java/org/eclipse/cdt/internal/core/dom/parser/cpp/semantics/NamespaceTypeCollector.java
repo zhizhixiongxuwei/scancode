@@ -39,7 +39,7 @@ import org.eclipse.cdt.internal.core.dom.parser.cpp.ICPPASTInternalScope;
  */
 public class NamespaceTypeCollector extends ASTVisitor {
 
-    private final ICPPASTInternalScope fScope;
+    final public ICPPASTInternalScope fScope;
 
     public NamespaceTypeCollector(ICPPASTInternalScope scope) {
         fScope = scope;

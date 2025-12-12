@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2007, 2014 Symbian Software Systems and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2007, 2014 Symbian Software Systems and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *    Andrew Ferguson (Symbian) - Initial implementation
- *******************************************************************************/
+ *  Contributors:
+ *     Andrew Ferguson (Symbian) - Initial implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.pdom.dom;
 
 import org.eclipse.cdt.core.dom.IPDOMNode;
@@ -23,41 +25,45 @@ import org.eclipse.core.runtime.CoreException;
  * any nodes which act as containers
  */
 public class ApplyVisitor implements IBTreeVisitor, IPDOMVisitor {
-	protected PDOMLinkage linkage;
-	protected IPDOMVisitor visitor;
 
-	public ApplyVisitor(PDOMLinkage linkage, IPDOMVisitor visitor) {
-		this.linkage = linkage;
-		this.visitor = visitor;
-	}
+    public PDOMLinkage linkage;
 
-	@Override
-	public int compare(long record) throws CoreException {
-		return 0; // visit all nodes in a b-tree
-	}
+    public IPDOMVisitor visitor;
 
-	@Override
-	public boolean visit(IPDOMNode node) throws CoreException {
-		if (node instanceof PDOMBinding) {
-			((PDOMBinding) node).accept(visitor);
-			((PDOMBinding) node).accept(this);
-		}
-		return false; // don't visit children of the node
-	}
+    public ApplyVisitor(PDOMLinkage linkage, IPDOMVisitor visitor) {
+        this.linkage = linkage;
+        this.visitor = visitor;
+    }
 
-	@Override
-	public boolean visit(long record) throws CoreException {
-		if (record == 0)
-			return true;
-		PDOMNode node = PDOMNode.load(linkage.getPDOM(), record);
-		if (node instanceof PDOMBinding) {
-			((PDOMBinding) node).accept(visitor);
-			((PDOMBinding) node).accept(this);
-		}
-		return true;
-	}
+    @Override
+    public int compare(long record) throws CoreException {
+        // visit all nodes in a b-tree
+        return 0;
+    }
 
-	@Override
-	public void leave(IPDOMNode node) throws CoreException {
-	}
+    @Override
+    public boolean visit(IPDOMNode node) throws CoreException {
+        if (node instanceof PDOMBinding) {
+            ((PDOMBinding) node).accept(visitor);
+            ((PDOMBinding) node).accept(this);
+        }
+        // don't visit children of the node
+        return false;
+    }
+
+    @Override
+    public boolean visit(long record) throws CoreException {
+        if (record == 0)
+            return true;
+        PDOMNode node = PDOMNode.load(linkage.getPDOM(), record);
+        if (node instanceof PDOMBinding) {
+            ((PDOMBinding) node).accept(visitor);
+            ((PDOMBinding) node).accept(this);
+        }
+        return true;
+    }
+
+    @Override
+    public void leave(IPDOMNode node) throws CoreException {
+    }
 }

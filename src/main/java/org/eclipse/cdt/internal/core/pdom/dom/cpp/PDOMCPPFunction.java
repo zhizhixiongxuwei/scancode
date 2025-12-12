@@ -48,29 +48,29 @@ public class PDOMCPPFunction extends PDOMCPPBinding implements ICPPFunction, IPD
     /**
      * Offset of total number of function parameters (relative to the beginning of the record).
      */
-    private static final int NUM_PARAMS = PDOMCPPBinding.RECORD_SIZE;
+    static final public int NUM_PARAMS = PDOMCPPBinding.RECORD_SIZE;
 
     /**
      * Offset of pointer to the first parameter of this function (relative to the beginning of the record).
      */
-    private static final int FIRST_PARAM = NUM_PARAMS + 4;
+    static final public int FIRST_PARAM = NUM_PARAMS + 4;
 
     /**
      * Offset of pointer to the function type record of this function (relative to the beginning of the
      * record).
      */
-    protected static final int FUNCTION_TYPE = FIRST_PARAM + Database.PTR_SIZE;
+    static final public int FUNCTION_TYPE = FIRST_PARAM + Database.PTR_SIZE;
 
     /**
      * Offset of hash of parameter information to allow fast comparison
      */
-    private static final int SIGNATURE_HASH = FUNCTION_TYPE + Database.TYPE_SIZE;
+    static final public int SIGNATURE_HASH = FUNCTION_TYPE + Database.TYPE_SIZE;
 
     /**
      * Offset of start of exception specifications
      */
     // int
-    protected static final int EXCEPTION_SPEC = SIGNATURE_HASH + 4;
+    static final public int EXCEPTION_SPEC = SIGNATURE_HASH + 4;
 
     /**
      * Offset of annotation information (relative to the beginning of the record).

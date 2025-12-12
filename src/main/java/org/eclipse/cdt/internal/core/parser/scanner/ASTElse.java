@@ -5,7 +5,7 @@ import org.eclipse.cdt.core.dom.ast.IASTTranslationUnit;
 
 public class ASTElse extends ASTPreprocessorNode implements IASTPreprocessorElseStatement {
 
-    private final boolean fTaken;
+    final public boolean fTaken;
 
     public ASTElse(IASTTranslationUnit parent, int startNumber, int endNumber, boolean taken) {
         super(parent, IASTTranslationUnit.PREPROCESSOR_STATEMENT, startNumber, endNumber);

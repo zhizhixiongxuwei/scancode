@@ -4,7 +4,7 @@ import org.eclipse.cdt.core.dom.ast.IASTImageLocation;
 
 public class ASTImageLocation extends ASTFileLocationForBuiltins implements IASTImageLocation {
 
-    private final int fKind;
+    final public int fKind;
 
     public ASTImageLocation(int kind, String file, int offset, int length) {
         super(file, offset, length);

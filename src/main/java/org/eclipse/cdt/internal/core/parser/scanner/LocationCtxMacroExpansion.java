@@ -27,13 +27,13 @@ import org.eclipse.cdt.core.dom.ast.IMacroBinding;
  */
 public class LocationCtxMacroExpansion extends LocationCtx {
 
-    private final LocationMap fLocationMap;
+    final public LocationMap fLocationMap;
 
-    private final int fLength;
+    final public int fLength;
 
-    private final ImageLocationInfo[] fLocationInfos;
+    final public ImageLocationInfo[] fLocationInfos;
 
-    private final ASTMacroReferenceName fExpansionName;
+    final public ASTMacroReferenceName fExpansionName;
 
     public LocationCtxMacroExpansion(LocationMap map, LocationCtxContainer parent, int parentOffset, int parentEndOffset, int sequenceNumber, int length, ImageLocationInfo[] imageLocations, ASTMacroReferenceName expansionName) {
         super(parent, parentOffset, parentEndOffset, sequenceNumber);

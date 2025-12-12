@@ -5,11 +5,11 @@ import org.eclipse.cdt.core.dom.ast.*;
 @SuppressWarnings("deprecation")
 public class ASTMacroExpansionLocation implements IASTMacroExpansionLocation, org.eclipse.cdt.core.dom.ast.IASTMacroExpansion {
 
-    private LocationCtxMacroExpansion fContext;
+    public LocationCtxMacroExpansion fContext;
 
-    private int fOffset;
+    public int fOffset;
 
-    private int fLength;
+    public int fLength;
 
     public ASTMacroExpansionLocation(LocationCtxMacroExpansion macroExpansionCtx, int offset, int length) {
         fContext = macroExpansionCtx;

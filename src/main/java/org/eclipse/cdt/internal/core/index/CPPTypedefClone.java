@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2007, 2015 QNX Software Systems and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2007, 2015 QNX Software Systems and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Bryan Wilkinson (QNX) - Initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *      Bryan Wilkinson (QNX) - Initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.index;
 
 import org.eclipse.cdt.core.dom.ILinkage;
@@ -26,90 +28,91 @@ import org.eclipse.cdt.internal.core.dom.parser.ITypeContainer;
  * Delegating clone implementation for index classes implementing {@link ITypedef} interface.
  */
 public class CPPTypedefClone implements ITypedef, ITypeContainer, IIndexType, ICPPBinding {
-	protected final ITypedef delegate;
-	private IType type;
 
-	public CPPTypedefClone(ITypedef typedef) {
-		this.delegate = typedef;
-	}
+    final public ITypedef delegate;
 
-	@Override
-	public IType getType() {
-		if (type == null) {
-			return delegate.getType();
-		}
-		return type;
-	}
+    public IType type;
 
-	@Override
-	public ILinkage getLinkage() {
-		return delegate.getLinkage();
-	}
+    public CPPTypedefClone(ITypedef typedef) {
+        this.delegate = typedef;
+    }
 
-	@Override
-	public String getName() {
-		return delegate.getName();
-	}
+    @Override
+    public IType getType() {
+        if (type == null) {
+            return delegate.getType();
+        }
+        return type;
+    }
 
-	@Override
-	public char[] getNameCharArray() {
-		return delegate.getNameCharArray();
-	}
+    @Override
+    public ILinkage getLinkage() {
+        return delegate.getLinkage();
+    }
 
-	@Override
-	public IScope getScope() throws DOMException {
-		return delegate.getScope();
-	}
+    @Override
+    public String getName() {
+        return delegate.getName();
+    }
 
-	@Override
-	public IBinding getOwner() {
-		return delegate.getOwner();
-	}
+    @Override
+    public char[] getNameCharArray() {
+        return delegate.getNameCharArray();
+    }
 
-	@Override
-	public <T> T getAdapter(Class<T> adapter) {
-		return delegate.getAdapter(adapter);
-	}
+    @Override
+    public IScope getScope() throws DOMException {
+        return delegate.getScope();
+    }
 
-	@Override
-	public boolean isSameType(IType type) {
-		IType myrtype = getType();
-		if (myrtype == null)
-			return false;
+    @Override
+    public IBinding getOwner() {
+        return delegate.getOwner();
+    }
 
-		if (type instanceof ITypedef) {
-			type = ((ITypedef) type).getType();
-		}
-		return myrtype.isSameType(type);
-	}
+    @Override
+    public <T> T getAdapter(Class<T> adapter) {
+        return delegate.getAdapter(adapter);
+    }
 
-	@Override
-	public void setType(IType type) {
-		this.type = type;
-	}
+    @Override
+    public boolean isSameType(IType type) {
+        IType myrtype = getType();
+        if (myrtype == null)
+            return false;
+        if (type instanceof ITypedef) {
+            type = ((ITypedef) type).getType();
+        }
+        return myrtype.isSameType(type);
+    }
 
-	@Override
-	public String[] getQualifiedName() throws DOMException {
-		return ((ICPPBinding) delegate).getQualifiedName();
-	}
+    @Override
+    public void setType(IType type) {
+        this.type = type;
+    }
 
-	@Override
-	public char[][] getQualifiedNameCharArray() throws DOMException {
-		return ((ICPPBinding) delegate).getQualifiedNameCharArray();
-	}
+    @Override
+    public String[] getQualifiedName() throws DOMException {
+        return ((ICPPBinding) delegate).getQualifiedName();
+    }
 
-	@Override
-	public boolean isGloballyQualified() throws DOMException {
-		return ((ICPPBinding) delegate).isGloballyQualified();
-	}
+    @Override
+    public char[][] getQualifiedNameCharArray() throws DOMException {
+        return ((ICPPBinding) delegate).getQualifiedNameCharArray();
+    }
 
-	@Override
-	public Object clone() {
-		return new CPPTypedefClone(this);
-	}
+    @Override
+    public boolean isGloballyQualified() throws DOMException {
+        return ((ICPPBinding) delegate).isGloballyQualified();
+    }
 
-	@Override
-	public String toString() {
-		return delegate.toString();
-	}
+    @Override
+    public Object clone() {
+        return new CPPTypedefClone(this);
+    }
+
+    @Override
+    public String toString() {
+        return delegate.toString();
+    }
 }

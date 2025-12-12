@@ -37,9 +37,9 @@ import org.eclipse.core.runtime.CoreException;
  */
 final public class PDOMCParameter extends PDOMNamedNode implements IParameter, IPDOMBinding {
 
-    private static final int NEXT_PARAM = PDOMNamedNode.RECORD_SIZE;
+    static final public int NEXT_PARAM = PDOMNamedNode.RECORD_SIZE;
 
-    private static final int FLAG_OFFSET = NEXT_PARAM + Database.PTR_SIZE;
+    static final public int FLAG_OFFSET = NEXT_PARAM + Database.PTR_SIZE;
 
     @SuppressWarnings("hiding")
     public static final int RECORD_SIZE = FLAG_OFFSET + 1;
@@ -49,7 +49,7 @@ final public class PDOMCParameter extends PDOMNamedNode implements IParameter, I
         assert RECORD_SIZE <= 22;
     }
 
-    private final IType fType;
+    final public IType fType;
 
     public PDOMCParameter(PDOMLinkage linkage, long record, IType type) {
         super(linkage, record);

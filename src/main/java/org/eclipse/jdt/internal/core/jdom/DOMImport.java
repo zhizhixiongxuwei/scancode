@@ -39,13 +39,13 @@ public class DOMImport extends DOMNode implements IDOMImport {
     /**
      * Indicates if this import is an on demand type import
      */
-    protected boolean fOnDemand;
+    public boolean fOnDemand;
 
     /**
      * Modifiers for this import.
      * @since 3.0
      */
-    protected int fFlags = Flags.AccDefault;
+    public int fFlags = Flags.AccDefault;
 
     /**
      * Creates a new empty IMPORT node.
@@ -107,8 +107,9 @@ public class DOMImport extends DOMNode implements IDOMImport {
     @Override
     protected void appendFragmentedContents(CharArrayBuffer buffer) {
         if (this.fNameRange[0] < 0) {
-            buffer.append(//$NON-NLS-1$
-            "import ").append(this.fName).append(';').append(Util.getLineSeparator(buffer.toString(), null));
+            //$NON-NLS-1$
+            buffer.//$NON-NLS-1$
+            append("import ").append(this.fName).append(';').append(Util.getLineSeparator(buffer.toString(), null));
         } else {
             buffer.append(this.fDocument, this.fSourceRange[0], this.fNameRange[0] - this.fSourceRange[0]);
             //buffer.append(fDocument, fNameRange[0], fNameRange[1] - fNameRange[0] + 1);

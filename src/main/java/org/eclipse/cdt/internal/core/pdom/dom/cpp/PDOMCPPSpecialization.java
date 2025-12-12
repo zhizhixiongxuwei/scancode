@@ -36,19 +36,19 @@ import org.eclipse.core.runtime.CoreException;
  */
 abstract public class PDOMCPPSpecialization extends PDOMCPPBinding implements ICPPSpecialization, IPDOMOverloader {
 
-    private static final int ARGMAP = PDOMCPPBinding.RECORD_SIZE + 0;
+    static final public int ARGMAP = PDOMCPPBinding.RECORD_SIZE + 0;
 
-    private static final int SIGNATURE_HASH = PDOMCPPBinding.RECORD_SIZE + 4;
+    static final public int SIGNATURE_HASH = PDOMCPPBinding.RECORD_SIZE + 4;
 
-    private static final int SPECIALIZED = PDOMCPPBinding.RECORD_SIZE + 8;
+    static final public int SPECIALIZED = PDOMCPPBinding.RECORD_SIZE + 8;
 
     /**
      * The size in bytes of a PDOMCPPSpecialization record in the database.
      */
     @SuppressWarnings("hiding")
-    protected static final int RECORD_SIZE = PDOMCPPBinding.RECORD_SIZE + 12;
+    static final public int RECORD_SIZE = PDOMCPPBinding.RECORD_SIZE + 12;
 
-    private volatile IBinding fSpecializedCache;
+    volatile public IBinding fSpecializedCache;
 
     private volatile ICPPTemplateParameterMap fArgMap;
 

@@ -17,11 +17,11 @@ package org.eclipse.cdt.internal.core.model;
 
 public class FunctionInfo extends SourceManipulationInfo {
 
-    protected boolean isStatic;
+    public boolean isStatic;
 
-    protected boolean isVolatile;
+    public boolean isVolatile;
 
-    protected boolean isConst;
+    public boolean isConst;
 
     protected FunctionInfo(CElement element) {
         super(element);

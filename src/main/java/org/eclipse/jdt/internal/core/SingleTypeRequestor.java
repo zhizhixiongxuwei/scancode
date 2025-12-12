@@ -32,7 +32,7 @@ public class SingleTypeRequestor implements IJavaElementRequestor {
     /**
      * The single accepted element
      */
-    protected IType element = null;
+    public IType element = null;
 
     /**
      * @see IJavaElementRequestor

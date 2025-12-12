@@ -30,7 +30,7 @@ public class OriginalImportEntry extends ImportEntry {
      * The comments associated with (either preceding, embedded within, or following) this import
      * declaration.
      */
-    final List<ImportComment> comments;
+    final public List<ImportComment> comments;
 
     /**
      * The difference between the line number of the start of the import declaration (or the start
@@ -38,20 +38,20 @@ public class OriginalImportEntry extends ImportEntry {
      * declaration (or the end of that import's trailing comment, if any). Zero for the first import
      * in the compilation unit.
      */
-    final int precedingLineDelimiters;
+    final public int precedingLineDelimiters;
 
     /**
      * The region of the compilation unit occupied by the whitespace (e.g. line delimiters) between
      * the previous import (or its last trailing comment, if any) and this import declaration (or
      * its first leading comment, if any).
      */
-    final IRegion leadingDelimiter;
+    final public IRegion leadingDelimiter;
 
     /**
      * The region of the compilation unit occupied by the import declaration itself, its associated
      * comments, and any whitespace between the import declaration and its comments.
      */
-    final IRegion declarationAndComments;
+    final public IRegion declarationAndComments;
 
     OriginalImportEntry(ImportName importName, Collection<ImportComment> comments, int precedingLeadingDelimiters, IRegion leadingWhitespace, IRegion declarationAndComments) {
         super(importName);

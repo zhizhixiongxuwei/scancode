@@ -42,21 +42,21 @@ import org.eclipse.core.runtime.CoreException;
  */
 public class PDOMCPPParameter extends PDOMNamedNode implements ICPPParameter, IPDOMBinding {
 
-    private static final int NEXT_PARAM = PDOMNamedNode.RECORD_SIZE;
+    static final public int NEXT_PARAM = PDOMNamedNode.RECORD_SIZE;
 
-    private static final int ANNOTATIONS = NEXT_PARAM + Database.PTR_SIZE;
+    static final public int ANNOTATIONS = NEXT_PARAM + Database.PTR_SIZE;
 
-    private static final int DEFAULT_VALUE = ANNOTATIONS + 1;
+    static final public int DEFAULT_VALUE = ANNOTATIONS + 1;
 
     @SuppressWarnings("hiding")
-    protected static final int RECORD_SIZE = DEFAULT_VALUE + Database.VALUE_SIZE;
+    static final public int RECORD_SIZE = DEFAULT_VALUE + Database.VALUE_SIZE;
 
     static {
         // 23 would yield a 32-byte block
         assert RECORD_SIZE <= 22;
     }
 
-    private final IType fType;
+    final public IType fType;
 
     private volatile IValue fDefaultValue = IntegralValue.NOT_INITIALIZED;
 

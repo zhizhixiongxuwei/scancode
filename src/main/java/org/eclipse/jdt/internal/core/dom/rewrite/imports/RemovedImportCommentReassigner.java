@@ -58,7 +58,7 @@ final public class RemovedImportCommentReassigner {
         return false;
     }
 
-    private final Collection<OriginalImportEntry> originalImportsWithComments;
+    final public Collection<OriginalImportEntry> originalImportsWithComments;
 
     RemovedImportCommentReassigner(List<OriginalImportEntry> originalImports) {
         this.originalImportsWithComments = retainImportsWithComments(originalImports);

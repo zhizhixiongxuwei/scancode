@@ -26,7 +26,7 @@ import org.eclipse.cdt.internal.core.dom.parser.ASTNode;
  */
 abstract public class CASTProblemOwner extends ASTNode implements IASTProblemHolder {
 
-    private IASTProblem problem;
+    public IASTProblem problem;
 
     public CASTProblemOwner() {
     }

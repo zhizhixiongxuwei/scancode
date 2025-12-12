@@ -36,15 +36,15 @@ import org.eclipse.core.runtime.CoreException;
  */
 public class CProjectInfo extends OpenableInfo {
 
-    BinaryContainer vBin;
+    public BinaryContainer vBin;
 
-    ArchiveContainer vLib;
+    public ArchiveContainer vLib;
 
-    ILibraryReference[] libReferences;
+    public ILibraryReference[] libReferences;
 
-    IIncludeReference[] incReferences;
+    public IIncludeReference[] incReferences;
 
-    ISourceRoot[] sourceRoots;
+    public ISourceRoot[] sourceRoots;
 
     IOutputEntry[] outputEntries;
 

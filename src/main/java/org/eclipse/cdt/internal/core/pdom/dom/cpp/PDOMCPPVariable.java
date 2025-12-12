@@ -40,15 +40,15 @@ import org.eclipse.core.runtime.CoreException;
  */
 public class PDOMCPPVariable extends PDOMCPPBinding implements ICPPVariable {
 
-    private static final int TYPE_OFFSET = PDOMCPPBinding.RECORD_SIZE;
+    static final public int TYPE_OFFSET = PDOMCPPBinding.RECORD_SIZE;
 
-    private static final int VALUE_OFFSET = TYPE_OFFSET + Database.TYPE_SIZE;
+    static final public int VALUE_OFFSET = TYPE_OFFSET + Database.TYPE_SIZE;
 
     // byte
-    private static final int ANNOTATIONS = VALUE_OFFSET + Database.VALUE_SIZE;
+    static final public int ANNOTATIONS = VALUE_OFFSET + Database.VALUE_SIZE;
 
     @SuppressWarnings("hiding")
-    protected static final int RECORD_SIZE = ANNOTATIONS + 1;
+    static final public int RECORD_SIZE = ANNOTATIONS + 1;
 
     public PDOMCPPVariable(PDOMCPPLinkage linkage, PDOMNode parent, ICPPVariable variable, boolean setTypeAndValue) throws CoreException {
         super(linkage, parent, variable.getNameCharArray());

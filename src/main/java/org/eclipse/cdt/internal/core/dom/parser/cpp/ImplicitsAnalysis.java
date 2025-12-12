@@ -49,15 +49,15 @@ import org.eclipse.cdt.internal.core.dom.parser.cpp.semantics.SemanticUtil;
  */
 final public class ImplicitsAnalysis {
 
-    private final ICPPClassType classType;
+    final public ICPPClassType classType;
 
-    private boolean hasConstructor;
+    public boolean hasConstructor;
 
-    private boolean hasCopyConstructor;
+    public boolean hasCopyConstructor;
 
-    private boolean hasCopyAssignmentOperator;
+    public boolean hasCopyAssignmentOperator;
 
-    private boolean hasDestructor;
+    public boolean hasDestructor;
 
     private boolean hasNonStaticFields;
 

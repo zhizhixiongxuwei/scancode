@@ -30,15 +30,15 @@ import org.eclipse.jdt.internal.compiler.lookup.TypeIds;
  */
 public class MemberValuePairBinding implements IMemberValuePairBinding {
 
-    static final MemberValuePairBinding[] NoPair = new MemberValuePairBinding[0];
+    static final public MemberValuePairBinding[] NoPair = new MemberValuePairBinding[0];
 
-    private static final Object NoValue = new Object();
+    static final public Object NoValue = new Object();
 
-    private static final Object[] EmptyArray = new Object[0];
+    static final public Object[] EmptyArray = new Object[0];
 
-    private final ElementValuePair internalPair;
+    final public ElementValuePair internalPair;
 
-    protected Object value = null;
+    public Object value = null;
 
     protected BindingResolver bindingResolver;
 

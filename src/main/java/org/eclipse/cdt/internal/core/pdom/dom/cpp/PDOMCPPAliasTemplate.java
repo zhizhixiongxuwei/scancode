@@ -37,16 +37,16 @@ import org.eclipse.core.runtime.CoreException;
  */
 public class PDOMCPPAliasTemplate extends PDOMCPPBinding implements ICPPAliasTemplate, IPDOMCPPTemplateParameterOwner {
 
-    private static final int ALIASED_TYPE_SIZE = Database.TYPE_SIZE;
+    static final public int ALIASED_TYPE_SIZE = Database.TYPE_SIZE;
 
-    private static final int TEMPLATE_PARAMS_SIZE = Database.PTR_SIZE;
+    static final public int TEMPLATE_PARAMS_SIZE = Database.PTR_SIZE;
 
     @SuppressWarnings("hiding")
-    protected static final int RECORD_SIZE = PDOMCPPBinding.RECORD_SIZE + ALIASED_TYPE_SIZE + TEMPLATE_PARAMS_SIZE;
+    static final public int RECORD_SIZE = PDOMCPPBinding.RECORD_SIZE + ALIASED_TYPE_SIZE + TEMPLATE_PARAMS_SIZE;
 
-    private static final int ALIASED_TYPE = PDOMCPPBinding.RECORD_SIZE + 0;
+    static final public int ALIASED_TYPE = PDOMCPPBinding.RECORD_SIZE + 0;
 
-    private static final int TEMPLATE_PARAMS = ALIASED_TYPE + ALIASED_TYPE_SIZE;
+    static final public int TEMPLATE_PARAMS = ALIASED_TYPE + ALIASED_TYPE_SIZE;
 
     private volatile IPDOMCPPTemplateParameter[] parameters;
 

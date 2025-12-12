@@ -39,12 +39,12 @@ import org.eclipse.core.runtime.CoreException;
  */
 public class PDOMCPPFieldSpecialization extends PDOMCPPSpecialization implements ICPPField {
 
-    private static final int TYPE_OFFSET = PDOMCPPSpecialization.RECORD_SIZE;
+    static final public int TYPE_OFFSET = PDOMCPPSpecialization.RECORD_SIZE;
 
-    private static final int VALUE_OFFSET = TYPE_OFFSET + Database.TYPE_SIZE;
+    static final public int VALUE_OFFSET = TYPE_OFFSET + Database.TYPE_SIZE;
 
     @SuppressWarnings("hiding")
-    protected static final int RECORD_SIZE = VALUE_OFFSET + Database.VALUE_SIZE;
+    static final public int RECORD_SIZE = VALUE_OFFSET + Database.VALUE_SIZE;
 
     public PDOMCPPFieldSpecialization(PDOMCPPLinkage linkage, PDOMNode parent, ICPPField field, PDOMBinding specialized) throws CoreException {
         super(linkage, parent, (ICPPSpecialization) field, specialized);

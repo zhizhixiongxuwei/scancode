@@ -23,7 +23,7 @@ import org.eclipse.cdt.core.settings.model.util.KindBasedStore;
 public class EntriesNamesContainer {
 
     //	private String fLanguageSettingsId;
-    private KindBasedStore<Set<String>> fRemovedEntryNamesStore = new KindBasedStore<>();
+    public KindBasedStore<Set<String>> fRemovedEntryNamesStore = new KindBasedStore<>();
 
     //	EntriesNamesContainer(ICLanguageSetting setting) {
     //		fLanguageSettingsId = setting.getId();

@@ -38,16 +38,16 @@ import org.eclipse.jdt.internal.core.PackageFragment;
  */
 public class TypeBinding implements ITypeBinding {
 
-    private static final StringLiteral EXPRESSION = new org.eclipse.jdt.internal.compiler.ast.StringLiteral(0, 0);
+    static final public StringLiteral EXPRESSION = new org.eclipse.jdt.internal.compiler.ast.StringLiteral(0, 0);
 
-    protected static final IMethodBinding[] NO_METHOD_BINDINGS = new IMethodBinding[0];
+    static final public IMethodBinding[] NO_METHOD_BINDINGS = new IMethodBinding[0];
 
     //$NON-NLS-1$
-    private static final String NO_NAME = "";
+    static final public String NO_NAME = "";
 
-    protected static final ITypeBinding[] NO_TYPE_BINDINGS = new ITypeBinding[0];
+    static final public ITypeBinding[] NO_TYPE_BINDINGS = new ITypeBinding[0];
 
-    protected static final IVariableBinding[] NO_VARIABLE_BINDINGS = new IVariableBinding[0];
+    static final public IVariableBinding[] NO_VARIABLE_BINDINGS = new IVariableBinding[0];
 
     private static final int VALID_MODIFIERS = Modifier.PUBLIC | Modifier.PROTECTED | Modifier.PRIVATE | Modifier.ABSTRACT | Modifier.STATIC | Modifier.FINAL | Modifier.STRICTFP | Modifier.SEALED | Modifier.NON_SEALED;
 

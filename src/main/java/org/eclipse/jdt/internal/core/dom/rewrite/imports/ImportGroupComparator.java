@@ -71,16 +71,16 @@ final public class ImportGroupComparator implements Comparator<ImportName> {
     }
 
     //$NON-NLS-1$
-    private static final String MATCH_ALL = "";
+    static final public String MATCH_ALL = "";
 
     //$NON-NLS-1$
-    private static final String STATIC_PREFIX = "#";
+    static final public String STATIC_PREFIX = "#";
 
-    private static final String STATIC_MATCH_ALL = STATIC_PREFIX + MATCH_ALL;
+    static final public String STATIC_MATCH_ALL = STATIC_PREFIX + MATCH_ALL;
 
-    private static List<String> memoizedImportOrder = null;
+    static public List<String> memoizedImportOrder = null;
 
-    private static IndexedImportGroups memoizedIndexedImportGroups = null;
+    static public IndexedImportGroups memoizedIndexedImportGroups = null;
 
     private static List<String> includeMatchAllImportGroups(List<String> importOrder) {
         boolean needsTypeMatchAll = !importOrder.contains(MATCH_ALL);

@@ -37,12 +37,12 @@ import org.eclipse.core.runtime.CoreException;
  */
 public class PDOMCPPMethodTemplateSpecialization extends PDOMCPPFunctionTemplateSpecialization implements ICPPMethod {
 
-    private static final int TEMPLATE_PARAMS = PDOMCPPFunctionTemplateSpecialization.RECORD_SIZE;
+    static final public int TEMPLATE_PARAMS = PDOMCPPFunctionTemplateSpecialization.RECORD_SIZE;
 
     @SuppressWarnings("hiding")
-    protected static final int RECORD_SIZE = TEMPLATE_PARAMS + Database.PTR_SIZE;
+    static final public int RECORD_SIZE = TEMPLATE_PARAMS + Database.PTR_SIZE;
 
-    private volatile IPDOMCPPTemplateParameter[] fTemplateParameters;
+    volatile public IPDOMCPPTemplateParameter[] fTemplateParameters;
 
     public PDOMCPPMethodTemplateSpecialization(PDOMCPPLinkage linkage, PDOMNode parent, ICPPMethod method, PDOMBinding specialized) throws CoreException {
         super(linkage, parent, (ICPPFunctionTemplate) method, specialized);

@@ -1,17 +1,19 @@
-/*******************************************************************************
- * Copyright (c) 2004, 2012 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2004, 2012 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Andrew Niefer (IBM Corporation) - initial API and implementation
- *     Markus Schorn (Wind River Systems)
- *******************************************************************************/
+ *  Contributors:
+ *      Andrew Niefer (IBM Corporation) - initial API and implementation
+ *      Markus Schorn (Wind River Systems)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.parser.c;
 
 import org.eclipse.cdt.core.dom.ILinkage;
@@ -34,71 +36,72 @@ import org.eclipse.core.runtime.PlatformObject;
  * C-specific binding for enumerators.
  */
 public class CEnumerator extends PlatformObject implements IEnumerator {
-	public static class CEnumeratorProblem extends ProblemBinding implements IEnumerator {
-		public CEnumeratorProblem(IASTNode node, int id, char[] arg) {
-			super(node, id, arg);
-		}
 
-		@Override
-		public IValue getValue() {
-			return IntegralValue.UNKNOWN;
-		}
-	}
+    public static class CEnumeratorProblem extends ProblemBinding implements IEnumerator {
 
-	private final IASTName enumeratorName;
+        public CEnumeratorProblem(IASTNode node, int id, char[] arg) {
+            super(node, id, arg);
+        }
 
-	public CEnumerator(IASTEnumerator enumtor) {
-		this.enumeratorName = enumtor.getName();
-		enumeratorName.setBinding(this);
-	}
+        @Override
+        public IValue getValue() {
+            return IntegralValue.UNKNOWN;
+        }
+    }
 
-	public IASTNode getPhysicalNode() {
-		return enumeratorName;
-	}
+    final public IASTName enumeratorName;
 
-	@Override
-	public String getName() {
-		return enumeratorName.toString();
-	}
+    public CEnumerator(IASTEnumerator enumtor) {
+        this.enumeratorName = enumtor.getName();
+        enumeratorName.setBinding(this);
+    }
 
-	@Override
-	public char[] getNameCharArray() {
-		return enumeratorName.toCharArray();
-	}
+    public IASTNode getPhysicalNode() {
+        return enumeratorName;
+    }
 
-	@Override
-	public IScope getScope() {
-		return CVisitor.getContainingScope(enumeratorName.getParent());
-	}
+    @Override
+    public String getName() {
+        return enumeratorName.toString();
+    }
 
-	@Override
-	public IType getType() {
-		return (IType) getOwner();
-	}
+    @Override
+    public char[] getNameCharArray() {
+        return enumeratorName.toCharArray();
+    }
 
-	@Override
-	public ILinkage getLinkage() {
-		return Linkage.C_LINKAGE;
-	}
+    @Override
+    public IScope getScope() {
+        return CVisitor.getContainingScope(enumeratorName.getParent());
+    }
 
-	@Override
-	public IBinding getOwner() {
-		IASTEnumerator etor = (IASTEnumerator) enumeratorName.getParent();
-		IASTEnumerationSpecifier enumSpec = (IASTEnumerationSpecifier) etor.getParent();
-		return enumSpec.getName().resolveBinding();
-	}
+    @Override
+    public IType getType() {
+        return (IType) getOwner();
+    }
 
-	@Override
-	public IValue getValue() {
-		IASTNode parent = enumeratorName.getParent();
-		if (parent instanceof ASTEnumerator)
-			return ((ASTEnumerator) parent).getIntegralValue();
+    @Override
+    public ILinkage getLinkage() {
+        return Linkage.C_LINKAGE;
+    }
 
-		return IntegralValue.UNKNOWN;
-	}
+    @Override
+    public IBinding getOwner() {
+        IASTEnumerator etor = (IASTEnumerator) enumeratorName.getParent();
+        IASTEnumerationSpecifier enumSpec = (IASTEnumerationSpecifier) etor.getParent();
+        return enumSpec.getName().resolveBinding();
+    }
 
-	@Override
-	public String toString() {
-		return getName();
-	}
+    @Override
+    public IValue getValue() {
+        IASTNode parent = enumeratorName.getParent();
+        if (parent instanceof ASTEnumerator)
+            return ((ASTEnumerator) parent).getIntegralValue();
+        return IntegralValue.UNKNOWN;
+    }
+
+    @Override
+    public String toString() {
+        return getName();
+    }
 }

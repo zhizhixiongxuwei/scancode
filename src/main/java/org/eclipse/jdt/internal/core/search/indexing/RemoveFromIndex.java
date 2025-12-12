@@ -22,7 +22,7 @@ import org.eclipse.jdt.internal.core.index.Index;
 
 public class RemoveFromIndex extends IndexRequest {
 
-    String resourceName;
+    public String resourceName;
 
     public RemoveFromIndex(String resourceName, IPath containerPath, IndexManager manager) {
         super(containerPath, manager);

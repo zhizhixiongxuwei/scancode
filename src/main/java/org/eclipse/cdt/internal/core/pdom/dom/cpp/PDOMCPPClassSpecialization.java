@@ -61,20 +61,20 @@ import org.eclipse.core.runtime.CoreException;
  */
 public class PDOMCPPClassSpecialization extends PDOMCPPSpecialization implements ICPPClassSpecialization, IPDOMMemberOwner, IPDOMCPPClassType {
 
-    private static final int FIRST_BASE = PDOMCPPSpecialization.RECORD_SIZE + 0;
+    static final public int FIRST_BASE = PDOMCPPSpecialization.RECORD_SIZE + 0;
 
-    private static final int MEMBERLIST = FIRST_BASE + 4;
+    static final public int MEMBERLIST = FIRST_BASE + 4;
 
     // byte
-    private static final int FLAGS = MEMBERLIST + PDOMCPPMemberBlock.RECORD_SIZE;
+    static final public int FLAGS = MEMBERLIST + PDOMCPPMemberBlock.RECORD_SIZE;
 
     /**
      * The size in bytes of a PDOMCPPClassSpecialization record in the database.
      */
     @SuppressWarnings("hiding")
-    protected static final int RECORD_SIZE = FLAGS + 1;
+    static final public int RECORD_SIZE = FLAGS + 1;
 
-    private static final byte FLAGS_FINAL = 0x01;
+    static final public byte FLAGS_FINAL = 0x01;
 
     private static final byte FLAGS_HAS_OWN_SCOPE = 0x02;
 

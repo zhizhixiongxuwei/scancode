@@ -29,7 +29,7 @@ import java.util.Set;
  */
 final public class ReorderingImportAdder implements ImportAdder {
 
-    private final Comparator<ImportName> importComparator;
+    final public Comparator<ImportName> importComparator;
 
     ReorderingImportAdder(Comparator<ImportName> importComparator) {
         this.importComparator = importComparator;

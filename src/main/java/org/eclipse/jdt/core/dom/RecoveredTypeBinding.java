@@ -35,15 +35,15 @@ import org.eclipse.jdt.internal.core.PackageFragment;
 @SuppressWarnings("rawtypes")
 public class RecoveredTypeBinding implements ITypeBinding {
 
-    private VariableDeclaration variableDeclaration;
+    public VariableDeclaration variableDeclaration;
 
-    private Type currentType;
+    public Type currentType;
 
-    private final BindingResolver resolver;
+    final public BindingResolver resolver;
 
-    private int dimensions;
+    public int dimensions;
 
-    private RecoveredTypeBinding innerTypeBinding;
+    public RecoveredTypeBinding innerTypeBinding;
 
     private ITypeBinding[] typeArguments;
 
@@ -541,8 +541,9 @@ public class RecoveredTypeBinding implements ITypeBinding {
             //$NON-NLS-1$
             buffer.append("typeBinding").append(this.binding.computeUniqueKey());
         } else if (this.variableDeclaration != null) {
-            buffer.append(//$NON-NLS-1$
-            "variableDeclaration").append(this.variableDeclaration.getClass()).append(this.variableDeclaration.getName().getIdentifier()).append(this.variableDeclaration.getExtraDimensions());
+            //$NON-NLS-1$
+            buffer.//$NON-NLS-1$
+            append("variableDeclaration").append(this.variableDeclaration.getClass()).append(this.variableDeclaration.getName().getIdentifier()).append(this.variableDeclaration.getExtraDimensions());
         }
         buffer.append(getDimensions());
         if (this.typeArguments != null) {

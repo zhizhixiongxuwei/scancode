@@ -51,15 +51,15 @@ public class PDOMCPPMethod extends PDOMCPPFunction implements ICPPMethod {
      * Offset of remaining annotation information (relative to the beginning of the record).
      */
     // byte
-    private static final int METHOD_ANNOTATION = PDOMCPPFunction.RECORD_SIZE;
+    static final public int METHOD_ANNOTATION = PDOMCPPFunction.RECORD_SIZE;
 
     /**
      * The size in bytes of a PDOMCPPMethod record in the database.
      */
     @SuppressWarnings("hiding")
-    protected static final int RECORD_SIZE = PDOMCPPFunction.RECORD_SIZE + 1;
+    static final public int RECORD_SIZE = PDOMCPPFunction.RECORD_SIZE + 1;
 
-    private byte methodAnnotation = -1;
+    public byte methodAnnotation = -1;
 
     public PDOMCPPMethod(PDOMCPPLinkage linkage, PDOMNode parent, ICPPMethod method) throws CoreException, DOMException {
         super(linkage, parent, method, true);

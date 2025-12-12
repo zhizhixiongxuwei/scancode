@@ -4,7 +4,7 @@ import org.eclipse.cdt.core.dom.ast.*;
 
 public class ASTMacroReferenceName extends ASTPreprocessorName {
 
-    private ImageLocationInfo fImageLocationInfo;
+    public ImageLocationInfo fImageLocationInfo;
 
     public ASTMacroReferenceName(IASTNode parent, ASTNodeProperty property, int offset, int endOffset, IMacroBinding macro, ImageLocationInfo imgLocationInfo) {
         super(parent, property, offset, endOffset, macro.getNameCharArray(), macro);

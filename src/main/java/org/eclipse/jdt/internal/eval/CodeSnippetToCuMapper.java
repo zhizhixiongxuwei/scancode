@@ -54,9 +54,9 @@ public class CodeSnippetToCuMapper implements EvaluationConstants {
     public int startPosOffset = 0;
 
     // Internal fields
-    char[] codeSnippet;
+    public char[] codeSnippet;
 
-    char[] snippetPackageName;
+    public char[] snippetPackageName;
 
     char[][] snippetImports;
 

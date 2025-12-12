@@ -34,10 +34,10 @@ import org.eclipse.core.runtime.CoreException;
  */
 public class PDOMCPPNamespaceAlias extends PDOMCPPBinding implements ICPPNamespaceAlias {
 
-    private static final int NAMESPACE_BINDING = PDOMCPPBinding.RECORD_SIZE;
+    static final public int NAMESPACE_BINDING = PDOMCPPBinding.RECORD_SIZE;
 
     @SuppressWarnings("hiding")
-    protected static final int RECORD_SIZE = PDOMCPPBinding.RECORD_SIZE + Database.PTR_SIZE;
+    static final public int RECORD_SIZE = PDOMCPPBinding.RECORD_SIZE + Database.PTR_SIZE;
 
     public PDOMCPPNamespaceAlias(PDOMLinkage linkage, PDOMNode parent, ICPPNamespaceAlias alias) throws CoreException {
         super(linkage, parent, alias.getNameCharArray());

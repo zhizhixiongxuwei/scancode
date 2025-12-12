@@ -1,19 +1,21 @@
-/*******************************************************************************
- * Copyright (c) 2004, 2015 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2004, 2015 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     IBM - Initial API and implementation
- *     Markus Schorn (Wind River Systems)
- *     Sergey Prigogin (Google)
- *     Thomas Corbat (IFS)
- *******************************************************************************/
+ *  Contributors:
+ *      IBM - Initial API and implementation
+ *      Markus Schorn (Wind River Systems)
+ *      Sergey Prigogin (Google)
+ *      Thomas Corbat (IFS)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.parser.cpp;
 
 import org.eclipse.cdt.core.dom.ast.ASTVisitor;
@@ -39,386 +41,385 @@ import org.eclipse.cdt.internal.core.dom.parser.cpp.semantics.EvalFixed;
  * Represents a function declarator.
  */
 public class CPPASTFunctionDeclarator extends CPPASTDeclarator implements ICPPASTFunctionDeclarator {
-	public static final ICPPEvaluation NOEXCEPT_TRUE = new EvalFixed(CPPBasicType.BOOLEAN, ValueCategory.PRVALUE,
-			IntegralValue.create(true));
 
-	private ICPPASTParameterDeclaration[] parameters;
-	private IASTTypeId[] typeIds = NO_EXCEPTION_SPECIFICATION;
-	private ICPPASTExpression noexceptExpression;
-	private IASTTypeId trailingReturnType;
-	private ICPPASTVirtSpecifier[] virtSpecifiers = NO_VIRT_SPECIFIERS;
+    public static final ICPPEvaluation NOEXCEPT_TRUE = new EvalFixed(CPPBasicType.BOOLEAN, ValueCategory.PRVALUE, IntegralValue.create(true));
 
-	private boolean varArgs;
-	private boolean pureVirtual;
-	private boolean isVolatile;
-	private boolean isConst;
-	private boolean isMutable;
-	private RefQualifier refQualifier;
-	private boolean isConstexpr;
+    public ICPPASTParameterDeclaration[] parameters;
 
-	private ICPPFunctionScope scope;
+    public IASTTypeId[] typeIds = NO_EXCEPTION_SPECIFICATION;
 
-	public CPPASTFunctionDeclarator() {
-	}
+    public ICPPASTExpression noexceptExpression;
 
-	public CPPASTFunctionDeclarator(IASTName name) {
-		super(name);
-	}
+    public IASTTypeId trailingReturnType;
 
-	@Override
-	public CPPASTFunctionDeclarator copy() {
-		return copy(CopyStyle.withoutLocations);
-	}
+    private ICPPASTVirtSpecifier[] virtSpecifiers = NO_VIRT_SPECIFIERS;
 
-	@Override
-	public CPPASTFunctionDeclarator copy(CopyStyle style) {
-		CPPASTFunctionDeclarator copy = new CPPASTFunctionDeclarator();
-		return copy(copy, style);
-	}
+    private boolean varArgs;
 
-	protected <T extends CPPASTFunctionDeclarator> T copy(T copy, CopyStyle style) {
-		copy.setVarArgs(varArgs);
-		copy.setPureVirtual(pureVirtual);
-		copy.setVolatile(isVolatile);
-		copy.setConst(isConst);
-		copy.setMutable(isMutable);
-		copy.setRefQualifier(refQualifier);
-		copy.setConstexpr(isConstexpr);
+    private boolean pureVirtual;
 
-		for (IASTParameterDeclaration param : getParameters()) {
-			copy.addParameterDeclaration(param == null ? null : param.copy(style));
-		}
-		for (IASTTypeId typeId : getExceptionSpecification()) {
-			copy.addExceptionSpecificationTypeId(typeId == null ? null : typeId.copy(style));
-		}
-		if (noexceptExpression != null) {
-			copy.setNoexceptExpression(noexceptExpression == NOEXCEPT_DEFAULT ? noexceptExpression
-					: (ICPPASTExpression) noexceptExpression.copy(style));
-		}
-		if (trailingReturnType != null) {
-			copy.setTrailingReturnType(trailingReturnType.copy(style));
-		}
-		for (ICPPASTVirtSpecifier virtSpecifier : getVirtSpecifiers()) {
-			copy.addVirtSpecifier(virtSpecifier.copy(style));
-		}
-		return super.copy(copy, style);
-	}
+    private boolean isVolatile;
 
-	@Override
-	public ICPPASTParameterDeclaration[] getParameters() {
-		if (parameters == null)
-			return ICPPASTParameterDeclaration.EMPTY_CPPPARAMETERDECLARATION_ARRAY;
+    private boolean isConst;
 
-		return parameters = ArrayUtil.trim(parameters);
-	}
+    private boolean isMutable;
 
-	@Override
-	public void addParameterDeclaration(IASTParameterDeclaration parameter) {
-		assertNotFrozen();
-		if (parameter != null) {
-			parameter.setParent(this);
-			parameter.setPropertyInParent(FUNCTION_PARAMETER);
-			parameters = ArrayUtil.append(ICPPASTParameterDeclaration.class, parameters,
-					(ICPPASTParameterDeclaration) parameter);
-		}
-	}
+    private RefQualifier refQualifier;
 
-	@Override
-	public boolean takesVarArgs() {
-		return varArgs;
-	}
+    private boolean isConstexpr;
 
-	@Override
-	public void setVarArgs(boolean value) {
-		assertNotFrozen();
-		varArgs = value;
-	}
+    private ICPPFunctionScope scope;
 
-	@Override
-	public boolean isConst() {
-		return isConst;
-	}
+    public CPPASTFunctionDeclarator() {
+    }
 
-	@Override
-	public void setConst(boolean value) {
-		assertNotFrozen();
-		this.isConst = value;
-	}
+    public CPPASTFunctionDeclarator(IASTName name) {
+        super(name);
+    }
 
-	@Override
-	public boolean isVolatile() {
-		return isVolatile;
-	}
+    @Override
+    public CPPASTFunctionDeclarator copy() {
+        return copy(CopyStyle.withoutLocations);
+    }
 
-	@Override
-	public void setVolatile(boolean value) {
-		assertNotFrozen();
-		this.isVolatile = value;
-	}
+    @Override
+    public CPPASTFunctionDeclarator copy(CopyStyle style) {
+        CPPASTFunctionDeclarator copy = new CPPASTFunctionDeclarator();
+        return copy(copy, style);
+    }
 
-	@Override
-	public boolean isMutable() {
-		return isMutable;
-	}
+    protected <T extends CPPASTFunctionDeclarator> T copy(T copy, CopyStyle style) {
+        copy.setVarArgs(varArgs);
+        copy.setPureVirtual(pureVirtual);
+        copy.setVolatile(isVolatile);
+        copy.setConst(isConst);
+        copy.setMutable(isMutable);
+        copy.setRefQualifier(refQualifier);
+        copy.setConstexpr(isConstexpr);
+        for (IASTParameterDeclaration param : getParameters()) {
+            copy.addParameterDeclaration(param == null ? null : param.copy(style));
+        }
+        for (IASTTypeId typeId : getExceptionSpecification()) {
+            copy.addExceptionSpecificationTypeId(typeId == null ? null : typeId.copy(style));
+        }
+        if (noexceptExpression != null) {
+            copy.setNoexceptExpression(noexceptExpression == NOEXCEPT_DEFAULT ? noexceptExpression : (ICPPASTExpression) noexceptExpression.copy(style));
+        }
+        if (trailingReturnType != null) {
+            copy.setTrailingReturnType(trailingReturnType.copy(style));
+        }
+        for (ICPPASTVirtSpecifier virtSpecifier : getVirtSpecifiers()) {
+            copy.addVirtSpecifier(virtSpecifier.copy(style));
+        }
+        return super.copy(copy, style);
+    }
 
-	@Override
-	public void setMutable(boolean value) {
-		assertNotFrozen();
-		this.isMutable = value;
-	}
+    @Override
+    public ICPPASTParameterDeclaration[] getParameters() {
+        if (parameters == null)
+            return ICPPASTParameterDeclaration.EMPTY_CPPPARAMETERDECLARATION_ARRAY;
+        return parameters = ArrayUtil.trim(parameters);
+    }
 
-	@Override
-	public IASTTypeId[] getExceptionSpecification() {
-		return typeIds = ArrayUtil.trim(typeIds);
-	}
+    @Override
+    public void addParameterDeclaration(IASTParameterDeclaration parameter) {
+        assertNotFrozen();
+        if (parameter != null) {
+            parameter.setParent(this);
+            parameter.setPropertyInParent(FUNCTION_PARAMETER);
+            parameters = ArrayUtil.append(ICPPASTParameterDeclaration.class, parameters, (ICPPASTParameterDeclaration) parameter);
+        }
+    }
 
-	@Override
-	public void setEmptyExceptionSpecification() {
-		assertNotFrozen();
-		typeIds = IASTTypeId.EMPTY_TYPEID_ARRAY;
-	}
+    @Override
+    public boolean takesVarArgs() {
+        return varArgs;
+    }
 
-	@Override
-	public void addExceptionSpecificationTypeId(IASTTypeId typeId) {
-		assertNotFrozen();
-		if (typeId != null) {
-			assert typeIds != null;
-			typeIds = ArrayUtil.append(typeIds, typeId);
-			typeId.setParent(this);
-			typeId.setPropertyInParent(EXCEPTION_TYPEID);
-		}
-	}
+    @Override
+    public void setVarArgs(boolean value) {
+        assertNotFrozen();
+        varArgs = value;
+    }
 
-	@Override
-	public ICPPASTExpression getNoexceptExpression() {
-		return noexceptExpression;
-	}
+    @Override
+    public boolean isConst() {
+        return isConst;
+    }
 
-	@Override
-	public void setNoexceptExpression(ICPPASTExpression expression) {
-		assertNotFrozen();
-		noexceptExpression = expression;
-		if (expression != null && expression != NOEXCEPT_DEFAULT) {
-			expression.setParent(this);
-			expression.setPropertyInParent(NOEXCEPT_EXPRESSION);
-		}
-	}
+    @Override
+    public void setConst(boolean value) {
+        assertNotFrozen();
+        this.isConst = value;
+    }
 
-	@Override
-	public IASTTypeId getTrailingReturnType() {
-		return trailingReturnType;
-	}
+    @Override
+    public boolean isVolatile() {
+        return isVolatile;
+    }
 
-	@Override
-	public void setTrailingReturnType(IASTTypeId typeId) {
-		assertNotFrozen();
-		trailingReturnType = typeId;
-		if (typeId != null) {
-			typeId.setParent(this);
-			typeId.setPropertyInParent(TRAILING_RETURN_TYPE);
-		}
-	}
+    @Override
+    public void setVolatile(boolean value) {
+        assertNotFrozen();
+        this.isVolatile = value;
+    }
 
-	@Override
-	public boolean isPureVirtual() {
-		return pureVirtual;
-	}
+    @Override
+    public boolean isMutable() {
+        return isMutable;
+    }
 
-	@Override
-	public void setPureVirtual(boolean isPureVirtual) {
-		assertNotFrozen();
-		this.pureVirtual = isPureVirtual;
-	}
+    @Override
+    public void setMutable(boolean value) {
+        assertNotFrozen();
+        this.isMutable = value;
+    }
 
-	@Override
-	public RefQualifier getRefQualifier() {
-		return refQualifier;
-	}
+    @Override
+    public IASTTypeId[] getExceptionSpecification() {
+        return typeIds = ArrayUtil.trim(typeIds);
+    }
 
-	@Override
-	public void setRefQualifier(RefQualifier value) {
-		assertNotFrozen();
-		refQualifier = value;
-	}
+    @Override
+    public void setEmptyExceptionSpecification() {
+        assertNotFrozen();
+        typeIds = IASTTypeId.EMPTY_TYPEID_ARRAY;
+    }
 
-	@Override
-	@Deprecated
-	public org.eclipse.cdt.core.dom.ast.cpp.ICPPASTConstructorChainInitializer[] getConstructorChain() {
-		if (ASTQueries.findTypeRelevantDeclarator(this) == this) {
-			IASTNode parent = getParent();
-			while (!(parent instanceof IASTDeclaration)) {
-				if (parent == null)
-					break;
-				parent = parent.getParent();
-			}
-			if (parent instanceof ICPPASTFunctionDefinition) {
-				return ((ICPPASTFunctionDefinition) parent).getMemberInitializers();
-			}
-		}
-		return org.eclipse.cdt.core.dom.ast.cpp.ICPPASTConstructorChainInitializer.EMPTY_CONSTRUCTORCHAININITIALIZER_ARRAY;
-	}
+    @Override
+    public void addExceptionSpecificationTypeId(IASTTypeId typeId) {
+        assertNotFrozen();
+        if (typeId != null) {
+            assert typeIds != null;
+            typeIds = ArrayUtil.append(typeIds, typeId);
+            typeId.setParent(this);
+            typeId.setPropertyInParent(EXCEPTION_TYPEID);
+        }
+    }
 
-	@Override
-	@Deprecated
-	public void addConstructorToChain(org.eclipse.cdt.core.dom.ast.cpp.ICPPASTConstructorChainInitializer initializer) {
-		assertNotFrozen();
-	}
+    @Override
+    public ICPPASTExpression getNoexceptExpression() {
+        return noexceptExpression;
+    }
 
-	@Override
-	public ICPPFunctionScope getFunctionScope() {
-		if (scope != null)
-			return scope;
+    @Override
+    public void setNoexceptExpression(ICPPASTExpression expression) {
+        assertNotFrozen();
+        noexceptExpression = expression;
+        if (expression != null && expression != NOEXCEPT_DEFAULT) {
+            expression.setParent(this);
+            expression.setPropertyInParent(NOEXCEPT_EXPRESSION);
+        }
+    }
 
-		// introduce a scope for function declarations and definitions, only.
-		IASTNode node = getParent();
-		while (!(node instanceof IASTDeclaration)) {
-			if (node == null)
-				return null;
-			node = node.getParent();
-		}
-		if (node instanceof IASTParameterDeclaration)
-			return null;
+    @Override
+    public IASTTypeId getTrailingReturnType() {
+        return trailingReturnType;
+    }
 
-		if (ASTQueries.findTypeRelevantDeclarator(this) == this) {
-			scope = new CPPFunctionScope(this);
-		}
-		return scope;
-	}
+    @Override
+    public void setTrailingReturnType(IASTTypeId typeId) {
+        assertNotFrozen();
+        trailingReturnType = typeId;
+        if (typeId != null) {
+            typeId.setParent(this);
+            typeId.setPropertyInParent(TRAILING_RETURN_TYPE);
+        }
+    }
 
-	@Override
-	protected boolean postAccept(ASTVisitor action) {
-		IASTParameterDeclaration[] params = getParameters();
-		for (int i = 0; i < params.length; i++) {
-			if (!params[i].accept(action))
-				return false;
-		}
+    @Override
+    public boolean isPureVirtual() {
+        return pureVirtual;
+    }
 
-		IASTTypeId[] ids = getExceptionSpecification();
-		for (IASTTypeId id : ids) {
-			if (!id.accept(action)) {
-				return false;
-			}
-		}
+    @Override
+    public void setPureVirtual(boolean isPureVirtual) {
+        assertNotFrozen();
+        this.pureVirtual = isPureVirtual;
+    }
 
-		if (noexceptExpression != null && noexceptExpression != NOEXCEPT_DEFAULT) {
-			if (!noexceptExpression.accept(action))
-				return false;
-		}
+    @Override
+    public RefQualifier getRefQualifier() {
+        return refQualifier;
+    }
 
-		if (trailingReturnType != null && !trailingReturnType.accept(action))
-			return false;
+    @Override
+    public void setRefQualifier(RefQualifier value) {
+        assertNotFrozen();
+        refQualifier = value;
+    }
 
-		ICPPASTVirtSpecifier[] virtSpecifiers = getVirtSpecifiers();
-		for (ICPPASTVirtSpecifier virtSpecifier : virtSpecifiers) {
-			if (!virtSpecifier.accept(action)) {
-				return false;
-			}
-		}
+    @Override
+    @Deprecated
+    public org.eclipse.cdt.core.dom.ast.cpp.ICPPASTConstructorChainInitializer[] getConstructorChain() {
+        if (ASTQueries.findTypeRelevantDeclarator(this) == this) {
+            IASTNode parent = getParent();
+            while (!(parent instanceof IASTDeclaration)) {
+                if (parent == null)
+                    break;
+                parent = parent.getParent();
+            }
+            if (parent instanceof ICPPASTFunctionDefinition) {
+                return ((ICPPASTFunctionDefinition) parent).getMemberInitializers();
+            }
+        }
+        return org.eclipse.cdt.core.dom.ast.cpp.ICPPASTConstructorChainInitializer.EMPTY_CONSTRUCTORCHAININITIALIZER_ARRAY;
+    }
 
-		return super.postAccept(action);
-	}
+    @Override
+    @Deprecated
+    public void addConstructorToChain(org.eclipse.cdt.core.dom.ast.cpp.ICPPASTConstructorChainInitializer initializer) {
+        assertNotFrozen();
+    }
 
-	@Override
-	public void replace(IASTNode child, IASTNode other) {
-		if (parameters != null) {
-			for (int i = 0; i < parameters.length; ++i) {
-				if (child == parameters[i]) {
-					other.setPropertyInParent(child.getPropertyInParent());
-					other.setParent(child.getParent());
-					parameters[i] = (ICPPASTParameterDeclaration) other;
-					return;
-				}
-			}
-		}
-		if (child == noexceptExpression) {
-			other.setPropertyInParent(child.getPropertyInParent());
-			other.setParent(child.getParent());
-			noexceptExpression = (ICPPASTExpression) other;
-			return;
-		}
-		assert false;
-	}
+    @Override
+    public ICPPFunctionScope getFunctionScope() {
+        if (scope != null)
+            return scope;
+        // introduce a scope for function declarations and definitions, only.
+        IASTNode node = getParent();
+        while (!(node instanceof IASTDeclaration)) {
+            if (node == null)
+                return null;
+            node = node.getParent();
+        }
+        if (node instanceof IASTParameterDeclaration)
+            return null;
+        if (ASTQueries.findTypeRelevantDeclarator(this) == this) {
+            scope = new CPPFunctionScope(this);
+        }
+        return scope;
+    }
 
-	@Override
-	public boolean isOverride() {
-		for (ICPPASTVirtSpecifier virtSpecifier : getVirtSpecifiers()) {
-			if (virtSpecifier.getKind() == SpecifierKind.Override) {
-				return true;
-			}
-		}
-		return false;
-	}
+    @Override
+    protected boolean postAccept(ASTVisitor action) {
+        IASTParameterDeclaration[] params = getParameters();
+        for (int i = 0; i < params.length; i++) {
+            if (!params[i].accept(action))
+                return false;
+        }
+        IASTTypeId[] ids = getExceptionSpecification();
+        for (IASTTypeId id : ids) {
+            if (!id.accept(action)) {
+                return false;
+            }
+        }
+        if (noexceptExpression != null && noexceptExpression != NOEXCEPT_DEFAULT) {
+            if (!noexceptExpression.accept(action))
+                return false;
+        }
+        if (trailingReturnType != null && !trailingReturnType.accept(action))
+            return false;
+        ICPPASTVirtSpecifier[] virtSpecifiers = getVirtSpecifiers();
+        for (ICPPASTVirtSpecifier virtSpecifier : virtSpecifiers) {
+            if (!virtSpecifier.accept(action)) {
+                return false;
+            }
+        }
+        return super.postAccept(action);
+    }
 
-	@Override
-	public void setOverride(boolean value) {
-		assertNotFrozen();
-		// Do nothing here. Use addVirtSpecifier() instead.
-	}
+    @Override
+    public void replace(IASTNode child, IASTNode other) {
+        if (parameters != null) {
+            for (int i = 0; i < parameters.length; ++i) {
+                if (child == parameters[i]) {
+                    other.setPropertyInParent(child.getPropertyInParent());
+                    other.setParent(child.getParent());
+                    parameters[i] = (ICPPASTParameterDeclaration) other;
+                    return;
+                }
+            }
+        }
+        if (child == noexceptExpression) {
+            other.setPropertyInParent(child.getPropertyInParent());
+            other.setParent(child.getParent());
+            noexceptExpression = (ICPPASTExpression) other;
+            return;
+        }
+        assert false;
+    }
 
-	@Override
-	public boolean isFinal() {
-		for (ICPPASTVirtSpecifier virtSpecifier : getVirtSpecifiers()) {
-			if (virtSpecifier.getKind() == SpecifierKind.Final) {
-				return true;
-			}
-		}
-		return false;
-	}
+    @Override
+    public boolean isOverride() {
+        for (ICPPASTVirtSpecifier virtSpecifier : getVirtSpecifiers()) {
+            if (virtSpecifier.getKind() == SpecifierKind.Override) {
+                return true;
+            }
+        }
+        return false;
+    }
 
-	@Override
-	public void setFinal(boolean value) {
-		assertNotFrozen();
-		// Do nothing here. Use addVirtSpecifier() instead.
-	}
+    @Override
+    public void setOverride(boolean value) {
+        assertNotFrozen();
+        // Do nothing here. Use addVirtSpecifier() instead.
+    }
 
-	@Override
-	public ICPPASTVirtSpecifier[] getVirtSpecifiers() {
-		return virtSpecifiers = ArrayUtil.trim(virtSpecifiers);
-	}
+    @Override
+    public boolean isFinal() {
+        for (ICPPASTVirtSpecifier virtSpecifier : getVirtSpecifiers()) {
+            if (virtSpecifier.getKind() == SpecifierKind.Final) {
+                return true;
+            }
+        }
+        return false;
+    }
 
-	@Override
-	public void addVirtSpecifier(ICPPASTVirtSpecifier virtSpecifier) {
-		assertNotFrozen();
-		if (virtSpecifier != null) {
-			assert virtSpecifiers != null;
-			virtSpecifiers = ArrayUtil.append(virtSpecifiers, virtSpecifier);
-			virtSpecifier.setParent(this);
-			virtSpecifier.setPropertyInParent(VIRT_SPECIFIER);
-		}
-	}
+    @Override
+    public void setFinal(boolean value) {
+        assertNotFrozen();
+        // Do nothing here. Use addVirtSpecifier() instead.
+    }
 
-	@Override
-	public void setVirtSpecifiers(ICPPASTVirtSpecifier[] newVirtSpecifiers) {
-		assertNotFrozen();
-		if (newVirtSpecifiers == null) {
-			virtSpecifiers = NO_VIRT_SPECIFIERS;
-		} else {
-			virtSpecifiers = newVirtSpecifiers;
-			for (ICPPASTVirtSpecifier virtSpecifier : newVirtSpecifiers) {
-				virtSpecifier.setParent(this);
-				virtSpecifier.setPropertyInParent(VIRT_SPECIFIER);
-			}
-		}
-	}
+    @Override
+    public ICPPASTVirtSpecifier[] getVirtSpecifiers() {
+        return virtSpecifiers = ArrayUtil.trim(virtSpecifiers);
+    }
 
-	@Override
-	public ICPPEvaluation getNoexceptEvaluation() {
-		if (getNoexceptExpression() != null) {
-			return getNoexceptExpression().getEvaluation();
-		} else if (getExceptionSpecification() == IASTTypeId.EMPTY_TYPEID_ARRAY) {
-			return NOEXCEPT_TRUE;
-		}
-		return null;
-	}
+    @Override
+    public void addVirtSpecifier(ICPPASTVirtSpecifier virtSpecifier) {
+        assertNotFrozen();
+        if (virtSpecifier != null) {
+            assert virtSpecifiers != null;
+            virtSpecifiers = ArrayUtil.append(virtSpecifiers, virtSpecifier);
+            virtSpecifier.setParent(this);
+            virtSpecifier.setPropertyInParent(VIRT_SPECIFIER);
+        }
+    }
 
-	@Override
-	public boolean isConstexpr() {
-		return isConstexpr;
-	}
+    @Override
+    public void setVirtSpecifiers(ICPPASTVirtSpecifier[] newVirtSpecifiers) {
+        assertNotFrozen();
+        if (newVirtSpecifiers == null) {
+            virtSpecifiers = NO_VIRT_SPECIFIERS;
+        } else {
+            virtSpecifiers = newVirtSpecifiers;
+            for (ICPPASTVirtSpecifier virtSpecifier : newVirtSpecifiers) {
+                virtSpecifier.setParent(this);
+                virtSpecifier.setPropertyInParent(VIRT_SPECIFIER);
+            }
+        }
+    }
 
-	@Override
-	public void setConstexpr(boolean value) {
-		assertNotFrozen();
-		this.isConstexpr = value;
-	}
+    @Override
+    public ICPPEvaluation getNoexceptEvaluation() {
+        if (getNoexceptExpression() != null) {
+            return getNoexceptExpression().getEvaluation();
+        } else if (getExceptionSpecification() == IASTTypeId.EMPTY_TYPEID_ARRAY) {
+            return NOEXCEPT_TRUE;
+        }
+        return null;
+    }
+
+    @Override
+    public boolean isConstexpr() {
+        return isConstexpr;
+    }
+
+    @Override
+    public void setConstexpr(boolean value) {
+        assertNotFrozen();
+        this.isConstexpr = value;
+    }
 }

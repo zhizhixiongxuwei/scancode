@@ -34,7 +34,7 @@ import org.eclipse.jdt.internal.core.NameLookup;
  */
 public class NameEnvironmentWithProgress extends FileSystem implements INameEnvironmentWithProgress {
 
-    IProgressMonitor monitor;
+    public IProgressMonitor monitor;
 
     public NameEnvironmentWithProgress(Classpath[] paths, String[] initialFileNames, IProgressMonitor monitor) {
         super(paths, initialFileNames, false);

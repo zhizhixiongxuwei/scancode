@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2012, 2013 Andrew Gvozdev and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2012, 2013 Andrew Gvozdev and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Andrew Gvozdev - Initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *      Andrew Gvozdev - Initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core;
 
 import java.io.BufferedReader;
@@ -20,7 +22,6 @@ import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
-
 import org.eclipse.cdt.core.CCorePlugin;
 import org.eclipse.cdt.core.envvar.IEnvironmentVariable;
 import org.eclipse.cdt.core.settings.model.ICConfigurationDescription;
@@ -34,311 +35,320 @@ import org.eclipse.core.runtime.Platform;
  * A collection of cygwin-related utilities.
  */
 public class Cygwin {
-	public static final String ENV_CYGWIN_HOME = "CYGWIN_HOME"; //$NON-NLS-1$
-	private static final String ENV_PATH = "PATH"; //$NON-NLS-1$
 
-	private static final String CYGPATH = "cygpath"; //$NON-NLS-1$
-	private static final String DEFAULT_ROOT = "C:\\cygwin"; //$NON-NLS-1$
-	private static final String CYGWIN_DLL = "cygwin1.dll"; //$NON-NLS-1$
-	private static final String REGISTRY_KEY_SETUP = "SOFTWARE\\Cygwin\\setup"; //$NON-NLS-1$
-	private static final String REGISTRY_KEY_SETUP_WIN64 = "SOFTWARE\\Wow6432Node\\Cygwin\\setup"; //$NON-NLS-1$
-	// note that in Cygwin 1.7 the mount point storage has been moved out of the registry
-	private static final String REGISTRY_KEY_MOUNTS = "SOFTWARE\\Cygnus Solutions\\Cygwin\\mounts v2\\"; //$NON-NLS-1$
-	private static final String PATH_NAME = "native"; //$NON-NLS-1$
-	private static final String ROOTPATTERN = "/"; //$NON-NLS-1$
-	private static final char SLASH = '/';
-	private static final char BACKSLASH = '\\';
+    //$NON-NLS-1$
+    public static final String ENV_CYGWIN_HOME = "CYGWIN_HOME";
 
-	private static final boolean isWindowsPlatform = Platform.getOS().equals(Platform.OS_WIN32);
+    //$NON-NLS-1$
+    static final public String ENV_PATH = "PATH";
 
-	private static String envPathValueCached = null;
-	private static String envCygwinHomeValueCached = null;
-	private static String cygwinLocation = null;
-	private static boolean isCygwinLocationCached = false;
+    //$NON-NLS-1$
+    static final public String CYGPATH = "cygpath";
 
-	private final static Map<String/*envPath*/, String /*cygpathLocation*/> cygpathLocationCache = Collections
-			.synchronizedMap(new LRUCache<String, String>(1, 20));
-	private final static Map<String/*command*/, String /*translatedPath*/> translatedPathsCache = Collections
-			.synchronizedMap(new LRUCache<String, String>(10, 500));
+    //$NON-NLS-1$
+    static final public String DEFAULT_ROOT = "C:\\cygwin";
 
-	/**
-	 * Find location of "cygpath" utility on the file system.
-	 */
-	private static String findCygpathLocation(String envPath) {
-		if (envPath == null) {
-			// $PATH from user preferences
-			IEnvironmentVariable varPath = CCorePlugin.getDefault().getBuildEnvironmentManager().getVariable(ENV_PATH,
-					(ICConfigurationDescription) null, true);
-			if (varPath != null) {
-				envPath = varPath.getValue();
-			}
-		}
+    //$NON-NLS-1$
+    static final public String CYGWIN_DLL = "cygwin1.dll";
 
-		String cygpathLocation = cygpathLocationCache.get(envPath);
-		if (cygpathLocation == null) {
-			IPath loc = PathUtil.findProgramLocation(CYGPATH, envPath);
-			cygpathLocation = loc != null ? loc.toOSString() : null;
-			cygpathLocationCache.put(envPath, cygpathLocation);
-		}
-		return cygpathLocation;
-	}
+    //$NON-NLS-1$
+    private static final String REGISTRY_KEY_SETUP = "SOFTWARE\\Cygwin\\setup";
 
-	/**
-	 * Check if cygwin path conversion utilities are available in the path.
-	 * Tells whether cygwin is installed in the path.
-	 *
-	 * @param envPath - list of directories to search for cygwin utilities separated
-	 *    by path separator (format of environment variable $PATH)
-	 *    or {@code null} to use current $PATH.
-	 * @return {@code true} if cygwin is available, {@code false} otherwise.
-	 */
-	public static boolean isAvailable(String envPath) {
-		return isWindowsPlatform && findCygpathLocation(envPath) != null;
-	}
+    //$NON-NLS-1$
+    private static final String REGISTRY_KEY_SETUP_WIN64 = "SOFTWARE\\Wow6432Node\\Cygwin\\setup";
 
-	/**
-	 * Check if cygwin path conversion utilities are available in $PATH.
-	 * Tells whether cygwin is installed in the path.
-	 *
-	 * @return {@code true} if cygwin is available, {@code false} otherwise.
-	 */
-	public static boolean isAvailable() {
-		return isWindowsPlatform && findCygpathLocation(null) != null;
-	}
+    // note that in Cygwin 1.7 the mount point storage has been moved out of the registry
+    //$NON-NLS-1$
+    private static final String REGISTRY_KEY_MOUNTS = "SOFTWARE\\Cygnus Solutions\\Cygwin\\mounts v2\\";
 
-	/**
-	 * Run program (assuming cygpath) and return the translated path which is the first line of output.
-	 */
-	private static String runCygpath(String[] args) throws IOException {
-		String command = getCommand(args);
-		String translatedPath = translatedPathsCache.get(command);
-		if (translatedPath == null) {
-			Process cygpathProcess = Runtime.getRuntime().exec(args);
-			BufferedReader stdout = new BufferedReader(new InputStreamReader(cygpathProcess.getInputStream()));
-			String firstLine = null;
-			try {
-				firstLine = stdout.readLine();
-			} finally {
-				stdout.close();
-			}
-			if (firstLine == null) {
-				throw new IOException("Unable read output from command=[" + command + "]"); //$NON-NLS-1$ //$NON-NLS-2$
-			}
-			translatedPath = firstLine.trim();
-			translatedPathsCache.put(command, translatedPath);
-		}
+    //$NON-NLS-1$
+    private static final String PATH_NAME = "native";
 
-		return translatedPath;
-	}
+    //$NON-NLS-1$
+    private static final String ROOTPATTERN = "/";
 
-	/**
-	 * Construct a command from arguments array.
-	 */
-	private static String getCommand(String[] args) {
-		String command = ""; //$NON-NLS-1$
-		for (String arg : args) {
-			command = command + arg + ' ';
-		}
-		return command.trim();
-	}
+    private static final char SLASH = '/';
 
-	/**
-	 * Conversion from Cygwin path to Windows path.
-	 * Note that there is no need to cache results, they are already cached internally.
-	 *
-	 * @param cygwinPath - cygwin path.
-	 * @param envPath - list of directories to search for cygwin utilities separated
-	 *    by path separator (format of environment variable $PATH).
-	 * @return Windows style converted path. Note that that also converts cygwin links to their targets.
-	 *
-	 * @throws UnsupportedOperationException if Cygwin is unavailable.
-	 * @throws IOException on IO problem.
-	 */
-	public static String cygwinToWindowsPath(String cygwinPath, String envPath)
-			throws IOException, UnsupportedOperationException {
-		if (cygwinPath == null || cygwinPath.trim().length() == 0)
-			return cygwinPath;
+    private static final char BACKSLASH = '\\';
 
-		if (!isWindowsPlatform) {
-			throw new UnsupportedOperationException("Not a Windows system, Cygwin is unavailable."); //$NON-NLS-1$
-		}
+    private static final boolean isWindowsPlatform = Platform.getOS().equals(Platform.OS_WIN32);
 
-		String cygpathLocation = findCygpathLocation(envPath);
-		if (cygpathLocation == null) {
-			throw new UnsupportedOperationException(CYGPATH + " is not in the system search path."); //$NON-NLS-1$
-		}
+    private static String envPathValueCached = null;
 
-		String windowsPath = runCygpath(new String[] { cygpathLocation, "-w", cygwinPath }); //$NON-NLS-1$
-		return windowsPath;
-	}
+    private static String envCygwinHomeValueCached = null;
 
-	/**
-	 * Conversion from Cygwin path to Windows path.
-	 * Note that there is no need to cache results, they are already cached internally.
-	 *
-	 * @param cygwinPath - cygwin path.
-	 * @return Windows style converted path. Note that that also converts cygwin links to their targets.
-	 *
-	 * @throws UnsupportedOperationException if Cygwin is unavailable.
-	 * @throws IOException on IO problem.
-	 */
-	public static String cygwinToWindowsPath(String cygwinPath) throws IOException, UnsupportedOperationException {
-		return cygwinToWindowsPath(cygwinPath, null);
-	}
+    private static String cygwinLocation = null;
 
-	/**
-	 * Conversion from Windows path to Cygwin path.
-	 * Note that there is no need to cache results, they are already cached internally.
-	 *
-	 * @param windowsPath - Windows path.
-	 * @param envPath - list of directories to search for cygwin utilities (value of environment variable $PATH).
-	 * @return Cygwin style converted path.
-	 *
-	 * @throws UnsupportedOperationException if Cygwin is unavailable.
-	 * @throws IOException on IO problem.
-	 */
-	public static String windowsToCygwinPath(String windowsPath, String envPath)
-			throws IOException, UnsupportedOperationException {
-		if (windowsPath == null || windowsPath.trim().length() == 0)
-			return windowsPath;
+    private static boolean isCygwinLocationCached = false;
 
-		if (!isWindowsPlatform) {
-			throw new UnsupportedOperationException("Not a Windows system, Cygwin is unavailable."); //$NON-NLS-1$
-		}
+    private final static Map<String, String> /*envPath*/
+    /*cygpathLocation*/
+    cygpathLocationCache = Collections.synchronizedMap(new LRUCache<String, String>(1, 20));
 
-		String cygpathLocation = findCygpathLocation(envPath);
-		if (cygpathLocation == null) {
-			throw new UnsupportedOperationException(CYGPATH + " is not in the system search path."); //$NON-NLS-1$
-		}
+    private final static Map<String, String> /*command*/
+    /*translatedPath*/
+    translatedPathsCache = Collections.synchronizedMap(new LRUCache<String, String>(10, 500));
 
-		String cygwinPath = runCygpath(new String[] { cygpathLocation, "-u", windowsPath }); //$NON-NLS-1$
-		return cygwinPath;
-	}
+    /**
+     * Find location of "cygpath" utility on the file system.
+     */
+    private static String findCygpathLocation(String envPath) {
+        if (envPath == null) {
+            // $PATH from user preferences
+            IEnvironmentVariable varPath = CCorePlugin.getDefault().getBuildEnvironmentManager().getVariable(ENV_PATH, (ICConfigurationDescription) null, true);
+            if (varPath != null) {
+                envPath = varPath.getValue();
+            }
+        }
+        String cygpathLocation = cygpathLocationCache.get(envPath);
+        if (cygpathLocation == null) {
+            IPath loc = PathUtil.findProgramLocation(CYGPATH, envPath);
+            cygpathLocation = loc != null ? loc.toOSString() : null;
+            cygpathLocationCache.put(envPath, cygpathLocation);
+        }
+        return cygpathLocation;
+    }
 
-	/**
-	 * Conversion from Windows path to Cygwin path.
-	 * Note that there is no need to cache results, they are already cached internally.
-	 *
-	 * @param windowsPath - Windows path.
-	 * @return Cygwin style converted path.
-	 *
-	 * @throws UnsupportedOperationException if Cygwin is unavailable.
-	 * @throws IOException on IO problem.
-	 */
-	public static String windowsToCygwinPath(String windowsPath) throws IOException, UnsupportedOperationException {
-		return windowsToCygwinPath(windowsPath, null);
-	}
+    /**
+     * Check if cygwin path conversion utilities are available in the path.
+     * Tells whether cygwin is installed in the path.
+     *
+     * @param envPath - list of directories to search for cygwin utilities separated
+     *    by path separator (format of environment variable $PATH)
+     *    or {@code null} to use current $PATH.
+     * @return {@code true} if cygwin is available, {@code false} otherwise.
+     */
+    public static boolean isAvailable(String envPath) {
+        return isWindowsPlatform && findCygpathLocation(envPath) != null;
+    }
 
-	/**
-	 * Find location where Cygwin is installed. A number of locations is being checked,
-	 * such as environment variable $CYGWIN_HOME, $PATH, Windows registry et al.
-	 * <br><br>
-	 * If you use this do not cache results to ensure user preferences are accounted for.
-	 * Please rely on internal caching.
-	 *
-	 * @return Location of Cygwin root folder "/" on file system in Windows format.
-	 */
-	public static String getCygwinHome() {
-		if (!isWindowsPlatform) {
-			return null;
-		}
+    /**
+     * Check if cygwin path conversion utilities are available in $PATH.
+     * Tells whether cygwin is installed in the path.
+     *
+     * @return {@code true} if cygwin is available, {@code false} otherwise.
+     */
+    public static boolean isAvailable() {
+        return isWindowsPlatform && findCygpathLocation(null) != null;
+    }
 
-		IEnvironmentVariable varPath = CCorePlugin.getDefault().getBuildEnvironmentManager().getVariable(ENV_PATH,
-				(ICConfigurationDescription) null, true);
-		String envPathValue = varPath != null ? varPath.getValue() : null;
-		IEnvironmentVariable varCygwinHome = CCorePlugin.getDefault().getBuildEnvironmentManager()
-				.getVariable(ENV_CYGWIN_HOME, (ICConfigurationDescription) null, true);
-		String envCygwinHomeValue = varCygwinHome != null ? varCygwinHome.getValue() : null;
+    /**
+     * Run program (assuming cygpath) and return the translated path which is the first line of output.
+     */
+    private static String runCygpath(String[] args) throws IOException {
+        String command = getCommand(args);
+        String translatedPath = translatedPathsCache.get(command);
+        if (translatedPath == null) {
+            Process cygpathProcess = Runtime.getRuntime().exec(args);
+            BufferedReader stdout = new BufferedReader(new InputStreamReader(cygpathProcess.getInputStream()));
+            String firstLine = null;
+            try {
+                firstLine = stdout.readLine();
+            } finally {
+                stdout.close();
+            }
+            if (firstLine == null) {
+                //$NON-NLS-1$ //$NON-NLS-2$
+                throw new IOException("Unable read output from command=[" + command + "]");
+            }
+            translatedPath = firstLine.trim();
+            translatedPathsCache.put(command, translatedPath);
+        }
+        return translatedPath;
+    }
 
-		// isCygwinLocationCached is used to figure fact of caching when all cached objects are null
-		if (isCygwinLocationCached && Objects.equals(envPathValue, envPathValueCached)
-				&& Objects.equals(envCygwinHomeValue, envCygwinHomeValueCached)) {
-			return cygwinLocation;
-		}
+    /**
+     * Construct a command from arguments array.
+     */
+    private static String getCommand(String[] args) {
+        //$NON-NLS-1$
+        String command = "";
+        for (String arg : args) {
+            command = command + arg + ' ';
+        }
+        return command.trim();
+    }
 
-		cygwinLocation = findCygwinRoot(envPathValue, envCygwinHomeValue);
+    /**
+     * Conversion from Cygwin path to Windows path.
+     * Note that there is no need to cache results, they are already cached internally.
+     *
+     * @param cygwinPath - cygwin path.
+     * @param envPath - list of directories to search for cygwin utilities separated
+     *    by path separator (format of environment variable $PATH).
+     * @return Windows style converted path. Note that that also converts cygwin links to their targets.
+     *
+     * @throws UnsupportedOperationException if Cygwin is unavailable.
+     * @throws IOException on IO problem.
+     */
+    public static String cygwinToWindowsPath(String cygwinPath, String envPath) throws IOException, UnsupportedOperationException {
+        if (cygwinPath == null || cygwinPath.trim().length() == 0)
+            return cygwinPath;
+        if (!isWindowsPlatform) {
+            //$NON-NLS-1$
+            throw new UnsupportedOperationException("Not a Windows system, Cygwin is unavailable.");
+        }
+        String cygpathLocation = findCygpathLocation(envPath);
+        if (cygpathLocation == null) {
+            //$NON-NLS-1$
+            throw new UnsupportedOperationException(CYGPATH + " is not in the system search path.");
+        }
+        //$NON-NLS-1$
+        String windowsPath = runCygpath(new String[] { cygpathLocation, "-w", cygwinPath });
+        return windowsPath;
+    }
 
-		envPathValueCached = envPathValue;
-		envCygwinHomeValueCached = envCygwinHomeValue;
-		isCygwinLocationCached = true;
+    /**
+     * Conversion from Cygwin path to Windows path.
+     * Note that there is no need to cache results, they are already cached internally.
+     *
+     * @param cygwinPath - cygwin path.
+     * @return Windows style converted path. Note that that also converts cygwin links to their targets.
+     *
+     * @throws UnsupportedOperationException if Cygwin is unavailable.
+     * @throws IOException on IO problem.
+     */
+    public static String cygwinToWindowsPath(String cygwinPath) throws IOException, UnsupportedOperationException {
+        return cygwinToWindowsPath(cygwinPath, null);
+    }
 
-		return cygwinLocation;
-	}
+    /**
+     * Conversion from Windows path to Cygwin path.
+     * Note that there is no need to cache results, they are already cached internally.
+     *
+     * @param windowsPath - Windows path.
+     * @param envPath - list of directories to search for cygwin utilities (value of environment variable $PATH).
+     * @return Cygwin style converted path.
+     *
+     * @throws UnsupportedOperationException if Cygwin is unavailable.
+     * @throws IOException on IO problem.
+     */
+    public static String windowsToCygwinPath(String windowsPath, String envPath) throws IOException, UnsupportedOperationException {
+        if (windowsPath == null || windowsPath.trim().length() == 0)
+            return windowsPath;
+        if (!isWindowsPlatform) {
+            //$NON-NLS-1$
+            throw new UnsupportedOperationException("Not a Windows system, Cygwin is unavailable.");
+        }
+        String cygpathLocation = findCygpathLocation(envPath);
+        if (cygpathLocation == null) {
+            //$NON-NLS-1$
+            throw new UnsupportedOperationException(CYGPATH + " is not in the system search path.");
+        }
+        //$NON-NLS-1$
+        String cygwinPath = runCygpath(new String[] { cygpathLocation, "-u", windowsPath });
+        return cygwinPath;
+    }
 
-	/**
-	 * Reads required value from registry. Looks in both
-	 * HKEY_CURRENT_USER and HKEY_LOCAL_MACHINE
-	 *
-	 * @param key Registry key
-	 * @param name Registry value to read
-	 * @return corresponding string value or null if nothing found
-	 */
-	private static String readValueFromRegistry(String key, String name) {
-		WindowsRegistry registry = WindowsRegistry.getRegistry();
-		if (registry != null) {
-			String s = registry.getCurrentUserValue(key, name);
-			if (s == null) {
-				s = registry.getLocalMachineValue(key, name);
-			}
+    /**
+     * Conversion from Windows path to Cygwin path.
+     * Note that there is no need to cache results, they are already cached internally.
+     *
+     * @param windowsPath - Windows path.
+     * @return Cygwin style converted path.
+     *
+     * @throws UnsupportedOperationException if Cygwin is unavailable.
+     * @throws IOException on IO problem.
+     */
+    public static String windowsToCygwinPath(String windowsPath) throws IOException, UnsupportedOperationException {
+        return windowsToCygwinPath(windowsPath, null);
+    }
 
-			if (s != null) {
-				return (s.replace(BACKSLASH, SLASH));
-			}
-		}
-		return null;
-	}
+    /**
+     * Find location where Cygwin is installed. A number of locations is being checked,
+     * such as environment variable $CYGWIN_HOME, $PATH, Windows registry et al.
+     * <br><br>
+     * If you use this do not cache results to ensure user preferences are accounted for.
+     * Please rely on internal caching.
+     *
+     * @return Location of Cygwin root folder "/" on file system in Windows format.
+     */
+    public static String getCygwinHome() {
+        if (!isWindowsPlatform) {
+            return null;
+        }
+        IEnvironmentVariable varPath = CCorePlugin.getDefault().getBuildEnvironmentManager().getVariable(ENV_PATH, (ICConfigurationDescription) null, true);
+        String envPathValue = varPath != null ? varPath.getValue() : null;
+        IEnvironmentVariable varCygwinHome = CCorePlugin.getDefault().getBuildEnvironmentManager().getVariable(ENV_CYGWIN_HOME, (ICConfigurationDescription) null, true);
+        String envCygwinHomeValue = varCygwinHome != null ? varCygwinHome.getValue() : null;
+        // isCygwinLocationCached is used to figure fact of caching when all cached objects are null
+        if (isCygwinLocationCached && Objects.equals(envPathValue, envPathValueCached) && Objects.equals(envCygwinHomeValue, envCygwinHomeValueCached)) {
+            return cygwinLocation;
+        }
+        cygwinLocation = findCygwinRoot(envPathValue, envCygwinHomeValue);
+        envPathValueCached = envPathValue;
+        envCygwinHomeValueCached = envCygwinHomeValue;
+        isCygwinLocationCached = true;
+        return cygwinLocation;
+    }
 
-	/**
-	 * @return The absolute path to cygwin's root or null if not found
-	 */
-	private static String findCygwinRoot(String envPathValue, String envCygwinHomeValue) {
-		String rootValue = null;
+    /**
+     * Reads required value from registry. Looks in both
+     * HKEY_CURRENT_USER and HKEY_LOCAL_MACHINE
+     *
+     * @param key Registry key
+     * @param name Registry value to read
+     * @return corresponding string value or null if nothing found
+     */
+    private static String readValueFromRegistry(String key, String name) {
+        WindowsRegistry registry = WindowsRegistry.getRegistry();
+        if (registry != null) {
+            String s = registry.getCurrentUserValue(key, name);
+            if (s == null) {
+                s = registry.getLocalMachineValue(key, name);
+            }
+            if (s != null) {
+                return (s.replace(BACKSLASH, SLASH));
+            }
+        }
+        return null;
+    }
 
-		// Check $CYGWIN_HOME
-		if (envCygwinHomeValue != null && !envCygwinHomeValue.isEmpty()) {
-			IPath location = new Path(envCygwinHomeValue + "/bin/" + CYGWIN_DLL); //$NON-NLS-1$
-			if (location.toFile().exists()) {
-				// get rootValue from "rootValue\bin\cygwin1.dll"
-				rootValue = location.removeLastSegments(2).toOSString();
-			}
-		}
-
-		// Look in PATH values. Look for cygwin1.dll
-		if (rootValue == null) {
-			IPath location = PathUtil.findProgramLocation(CYGWIN_DLL, envPathValue);
-			if (location != null) {
-				// get rootValue from "rootValue\bin\cygwin1.dll"
-				rootValue = location.removeLastSegments(2).toOSString();
-			}
-		}
-
-		// Try to find the root dir in SOFTWARE\Cygwin\setup
-		if (rootValue == null) {
-			rootValue = readValueFromRegistry(REGISTRY_KEY_SETUP, "rootdir"); //$NON-NLS-1$
-		}
-
-		// Try to find the root dir in SOFTWARE\Wow6432Node\Cygwin\setup
-		if (rootValue == null) {
-			rootValue = readValueFromRegistry(REGISTRY_KEY_SETUP_WIN64, "rootdir"); //$NON-NLS-1$
-		}
-
-		// Try to find the root dir in SOFTWARE\Cygnus Solutions
-		if (rootValue == null) {
-			rootValue = readValueFromRegistry(REGISTRY_KEY_MOUNTS + ROOTPATTERN, PATH_NAME);
-		}
-
-		// Try the default Cygwin install dir
-		if (rootValue == null) {
-			File file = new File(DEFAULT_ROOT);
-			if (file.exists() && file.isDirectory())
-				rootValue = DEFAULT_ROOT;
-		}
-
-		if (rootValue != null) {
-			rootValue = rootValue.replace(BACKSLASH, SLASH);
-		}
-
-		return rootValue;
-	}
-
+    /**
+     * @return The absolute path to cygwin's root or null if not found
+     */
+    private static String findCygwinRoot(String envPathValue, String envCygwinHomeValue) {
+        String rootValue = null;
+        // Check $CYGWIN_HOME
+        if (envCygwinHomeValue != null && !envCygwinHomeValue.isEmpty()) {
+            //$NON-NLS-1$
+            IPath location = new Path(envCygwinHomeValue + "/bin/" + CYGWIN_DLL);
+            if (location.toFile().exists()) {
+                // get rootValue from "rootValue\bin\cygwin1.dll"
+                rootValue = location.removeLastSegments(2).toOSString();
+            }
+        }
+        // Look in PATH values. Look for cygwin1.dll
+        if (rootValue == null) {
+            IPath location = PathUtil.findProgramLocation(CYGWIN_DLL, envPathValue);
+            if (location != null) {
+                // get rootValue from "rootValue\bin\cygwin1.dll"
+                rootValue = location.removeLastSegments(2).toOSString();
+            }
+        }
+        // Try to find the root dir in SOFTWARE\Cygwin\setup
+        if (rootValue == null) {
+            //$NON-NLS-1$
+            rootValue = readValueFromRegistry(REGISTRY_KEY_SETUP, "rootdir");
+        }
+        // Try to find the root dir in SOFTWARE\Wow6432Node\Cygwin\setup
+        if (rootValue == null) {
+            //$NON-NLS-1$
+            rootValue = readValueFromRegistry(REGISTRY_KEY_SETUP_WIN64, "rootdir");
+        }
+        // Try to find the root dir in SOFTWARE\Cygnus Solutions
+        if (rootValue == null) {
+            rootValue = readValueFromRegistry(REGISTRY_KEY_MOUNTS + ROOTPATTERN, PATH_NAME);
+        }
+        // Try the default Cygwin install dir
+        if (rootValue == null) {
+            File file = new File(DEFAULT_ROOT);
+            if (file.exists() && file.isDirectory())
+                rootValue = DEFAULT_ROOT;
+        }
+        if (rootValue != null) {
+            rootValue = rootValue.replace(BACKSLASH, SLASH);
+        }
+        return rootValue;
+    }
 }

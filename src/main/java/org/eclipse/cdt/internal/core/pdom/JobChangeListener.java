@@ -25,7 +25,7 @@ import org.eclipse.core.runtime.jobs.Job;
  */
 public class JobChangeListener implements IJobChangeListener {
 
-    private final PDOMManager fPDomManager;
+    final public PDOMManager fPDomManager;
 
     JobChangeListener(PDOMManager pdomManager) {
         fPDomManager = pdomManager;

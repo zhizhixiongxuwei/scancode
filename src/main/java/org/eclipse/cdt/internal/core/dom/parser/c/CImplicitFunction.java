@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2005, 2008 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2005, 2008 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- * IBM - Initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *  IBM - Initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.parser.c;
 
 import org.eclipse.cdt.core.dom.ast.IFunctionType;
@@ -27,48 +29,50 @@ import org.eclipse.cdt.core.dom.ast.IScope;
  */
 public class CImplicitFunction extends CExternalFunction {
 
-	private IParameter[] parms = null;
-	private IScope scope = null;
-	private boolean takesVarArgs = false;
-	private char[] name = null;
+    public IParameter[] parms = null;
 
-	public CImplicitFunction(char[] name, IScope scope, IFunctionType type, IParameter[] parms, boolean takesVarArgs) {
-		super(null, null);
-		this.name = name;
-		this.scope = scope;
-		this.type = type;
-		this.parms = parms;
-		this.takesVarArgs = takesVarArgs;
-	}
+    public IScope scope = null;
 
-	@Override
-	public IParameter[] getParameters() {
-		return parms;
-	}
+    public boolean takesVarArgs = false;
 
-	@Override
-	public IFunctionType getType() {
-		return type;
-	}
+    public char[] name = null;
 
-	@Override
-	public boolean takesVarArgs() {
-		return takesVarArgs;
-	}
+    public CImplicitFunction(char[] name, IScope scope, IFunctionType type, IParameter[] parms, boolean takesVarArgs) {
+        super(null, null);
+        this.name = name;
+        this.scope = scope;
+        this.type = type;
+        this.parms = parms;
+        this.takesVarArgs = takesVarArgs;
+    }
 
-	@Override
-	public String getName() {
-		return String.valueOf(name);
-	}
+    @Override
+    public IParameter[] getParameters() {
+        return parms;
+    }
 
-	@Override
-	public char[] getNameCharArray() {
-		return name;
-	}
+    @Override
+    public IFunctionType getType() {
+        return type;
+    }
 
-	@Override
-	public IScope getScope() {
-		return scope;
-	}
+    @Override
+    public boolean takesVarArgs() {
+        return takesVarArgs;
+    }
 
+    @Override
+    public String getName() {
+        return String.valueOf(name);
+    }
+
+    @Override
+    public char[] getNameCharArray() {
+        return name;
+    }
+
+    @Override
+    public IScope getScope() {
+        return scope;
+    }
 }

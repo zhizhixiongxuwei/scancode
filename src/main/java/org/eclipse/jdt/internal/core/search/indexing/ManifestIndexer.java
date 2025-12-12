@@ -5,21 +5,23 @@ import org.eclipse.jdt.core.search.SearchDocument;
 
 public class ManifestIndexer extends AbstractIndexer {
 
-	private static final String AUTOMATIC_MODULE_NAME = "Automatic-Module-Name"; //$NON-NLS-1$
+    //$NON-NLS-1$
+    static final public String AUTOMATIC_MODULE_NAME = "Automatic-Module-Name";
 
-	public ManifestIndexer(SearchDocument document) {
-		super(document);
-	}
+    public ManifestIndexer(SearchDocument document) {
+        super(document);
+    }
 
-	@Override
-	public void indexDocument() {
-		byte[] entry = this.document.getByteContents();
-		String text = new String(entry, Charset.defaultCharset());
-		String[] kv = text.split(":"); //$NON-NLS-1$
-		if (kv != null && kv.length > 1 && kv[0] != null && kv[1] != null) {
-			if (kv[0].equals(AUTOMATIC_MODULE_NAME)) {
-				addModuleDeclaration(kv[1].toCharArray());
-			}
-		}
-	}
+    @Override
+    public void indexDocument() {
+        byte[] entry = this.document.getByteContents();
+        String text = new String(entry, Charset.defaultCharset());
+        //$NON-NLS-1$
+        String[] kv = text.split(":");
+        if (kv != null && kv.length > 1 && kv[0] != null && kv[1] != null) {
+            if (kv[0].equals(AUTOMATIC_MODULE_NAME)) {
+                addModuleDeclaration(kv[1].toCharArray());
+            }
+        }
+    }
 }

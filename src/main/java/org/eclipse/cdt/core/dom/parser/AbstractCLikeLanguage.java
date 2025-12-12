@@ -1,25 +1,26 @@
-/*******************************************************************************
- * Copyright (c) 2007, 2015 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2007, 2015 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Anton Leherbauer (Wind River Systems) - initial API and implementation
- *     Markus Schorn (Wind River Systems)
- *     Mike Kucera (IBM)
- *     Sergey Prigogin (Google)
- *     Thomas Corbat (IFS)
- *******************************************************************************/
+ *  Contributors:
+ *      Anton Leherbauer (Wind River Systems) - initial API and implementation
+ *      Markus Schorn (Wind River Systems)
+ *      Mike Kucera (IBM)
+ *      Sergey Prigogin (Google)
+ *      Thomas Corbat (IFS)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.core.dom.parser;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.eclipse.cdt.core.dom.ast.ASTVisitor;
 import org.eclipse.cdt.core.dom.ast.IASTCompletionNode;
 import org.eclipse.cdt.core.dom.ast.IASTName;
@@ -62,282 +63,254 @@ import org.eclipse.core.runtime.CoreException;
  * @since 5.0
  */
 public abstract class AbstractCLikeLanguage extends AbstractLanguage implements ICLanguageKeywords {
-	private static final AbstractScannerExtensionConfiguration DUMMY_SCANNER_EXTENSION_CONFIGURATION = new AbstractScannerExtensionConfiguration() {
-	};
 
-	static class NameCollector extends ASTVisitor {
-		{
-			shouldVisitNames = true;
-		}
+    static final public AbstractScannerExtensionConfiguration DUMMY_SCANNER_EXTENSION_CONFIGURATION = new AbstractScannerExtensionConfiguration() {
+    };
 
-		private List<IASTName> nameList = new ArrayList<>();
+    static class NameCollector extends ASTVisitor {
 
-		@Override
-		public int visit(IASTName name) {
-			nameList.add(name);
-			return PROCESS_CONTINUE;
-		}
+        {
+            shouldVisitNames = true;
+        }
 
-		public IASTName[] getNames() {
-			return nameList.toArray(new IASTName[nameList.size()]);
-		}
-	}
+        private List<IASTName> nameList = new ArrayList<>();
 
-	/**
-	 * @nooverride This method is not intended to be re-implemented or extended by clients.
-	 * @deprecated Do not override this method.
-	 *     Override {@link #getScannerExtensionConfiguration(IScannerInfo)} instead.
-	 */
-	@Deprecated
-	protected IScannerExtensionConfiguration getScannerExtensionConfiguration() {
-		return DUMMY_SCANNER_EXTENSION_CONFIGURATION;
-	}
+        @Override
+        public int visit(IASTName name) {
+            nameList.add(name);
+            return PROCESS_CONTINUE;
+        }
 
-	/**
-	 * @return the scanner extension configuration for this language. May not return {@code null}.
-	 * @since 5.4
-	 */
-	protected IScannerExtensionConfiguration getScannerExtensionConfiguration(IScannerInfo info) {
-		return getScannerExtensionConfiguration();
-	}
+        public IASTName[] getNames() {
+            return nameList.toArray(new IASTName[nameList.size()]);
+        }
+    }
 
-	/**
-	 * @return the actual parser object.
-	 */
-	protected abstract ISourceCodeParser createParser(IScanner scanner, ParserMode parserMode,
-			IParserLogService logService, IIndex index);
+    /**
+     * @nooverride This method is not intended to be re-implemented or extended by clients.
+     * @deprecated Do not override this method.
+     *     Override {@link #getScannerExtensionConfiguration(IScannerInfo)} instead.
+     */
+    @Deprecated
+    protected IScannerExtensionConfiguration getScannerExtensionConfiguration() {
+        return DUMMY_SCANNER_EXTENSION_CONFIGURATION;
+    }
 
-	/**
-	 * @return the actual parser object, configured with additional settings.
-	 * @since 5.6
-	 */
-	protected ISourceCodeParser createParser(IScanner scanner, ParserMode parserMode, IParserLogService logService,
-			IIndex index, int options, IParserSettings settings) {
-		return createParser(scanner, parserMode, logService, index);
-	}
+    /**
+     * @return the scanner extension configuration for this language. May not return {@code null}.
+     * @since 5.4
+     */
+    protected IScannerExtensionConfiguration getScannerExtensionConfiguration(IScannerInfo info) {
+        return getScannerExtensionConfiguration();
+    }
 
-	/**
-	 * @return The ParserLanguage value corresponding to the language supported.
-	 */
-	protected abstract ParserLanguage getParserLanguage();
+    /**
+     * @return the actual parser object.
+     */
+    protected abstract ISourceCodeParser createParser(IScanner scanner, ParserMode parserMode, IParserLogService logService, IIndex index);
 
-	@Deprecated
-	@Override
-	public IASTTranslationUnit getASTTranslationUnit(org.eclipse.cdt.core.parser.CodeReader reader,
-			IScannerInfo scanInfo, org.eclipse.cdt.core.dom.ICodeReaderFactory fileCreator, IIndex index,
-			IParserLogService log) throws CoreException {
-		return getASTTranslationUnit(reader, scanInfo, fileCreator, index, 0, log);
-	}
+    /**
+     * @return the actual parser object, configured with additional settings.
+     * @since 5.6
+     */
+    protected ISourceCodeParser createParser(IScanner scanner, ParserMode parserMode, IParserLogService logService, IIndex index, int options, IParserSettings settings) {
+        return createParser(scanner, parserMode, logService, index);
+    }
 
-	@Deprecated
-	@Override
-	public IASTTranslationUnit getASTTranslationUnit(org.eclipse.cdt.core.parser.CodeReader reader,
-			IScannerInfo scanInfo, org.eclipse.cdt.core.dom.ICodeReaderFactory codeReaderFactory, IIndex index,
-			int options, IParserLogService log) throws CoreException {
-		return getASTTranslationUnit(FileContent.adapt(reader), scanInfo,
-				IncludeFileContentProvider.adapt(codeReaderFactory), index, options, log);
-	}
+    /**
+     * @return The ParserLanguage value corresponding to the language supported.
+     */
+    protected abstract ParserLanguage getParserLanguage();
 
-	@Override
-	public IASTTranslationUnit getASTTranslationUnit(FileContent reader, IScannerInfo scanInfo,
-			IncludeFileContentProvider fileCreator, IIndex index, int options, IParserLogService log)
-			throws CoreException {
-		final IScanner scanner = createScanner(reader, scanInfo, fileCreator, log);
-		scanner.setComputeImageLocations((options & OPTION_NO_IMAGE_LOCATIONS) == 0);
-		scanner.setProcessInactiveCode((options & OPTION_PARSE_INACTIVE_CODE) != 0);
+    @Deprecated
+    @Override
+    public IASTTranslationUnit getASTTranslationUnit(org.eclipse.cdt.core.parser.CodeReader reader, IScannerInfo scanInfo, org.eclipse.cdt.core.dom.ICodeReaderFactory fileCreator, IIndex index, IParserLogService log) throws CoreException {
+        return getASTTranslationUnit(reader, scanInfo, fileCreator, index, 0, log);
+    }
 
-		IParserSettings parserSettings = null;
-		if (scanInfo instanceof ExtendedScannerInfo) {
-			ExtendedScannerInfo extendedScannerInfo = (ExtendedScannerInfo) scanInfo;
-			parserSettings = extendedScannerInfo.getParserSettings();
-		}
-		final ISourceCodeParser parser = createParser(scanner, log, index, false, options, parserSettings);
+    @Deprecated
+    @Override
+    public IASTTranslationUnit getASTTranslationUnit(org.eclipse.cdt.core.parser.CodeReader reader, IScannerInfo scanInfo, org.eclipse.cdt.core.dom.ICodeReaderFactory codeReaderFactory, IIndex index, int options, IParserLogService log) throws CoreException {
+        return getASTTranslationUnit(FileContent.adapt(reader), scanInfo, IncludeFileContentProvider.adapt(codeReaderFactory), index, options, log);
+    }
 
-		// Make it possible to cancel parser by reconciler - http://bugs.eclipse.org/226682
-		ICanceler canceler = null;
-		if (log instanceof ICanceler) {
-			canceler = (ICanceler) log;
-			canceler.setCancelable(new ICancelable() {
-				@Override
-				public void cancel() {
-					scanner.cancel();
-					parser.cancel();
-				}
-			});
-		}
+    @Override
+    public IASTTranslationUnit getASTTranslationUnit(FileContent reader, IScannerInfo scanInfo, IncludeFileContentProvider fileCreator, IIndex index, int options, IParserLogService log) throws CoreException {
+        final IScanner scanner = createScanner(reader, scanInfo, fileCreator, log);
+        scanner.setComputeImageLocations((options & OPTION_NO_IMAGE_LOCATIONS) == 0);
+        scanner.setProcessInactiveCode((options & OPTION_PARSE_INACTIVE_CODE) != 0);
+        IParserSettings parserSettings = null;
+        if (scanInfo instanceof ExtendedScannerInfo) {
+            ExtendedScannerInfo extendedScannerInfo = (ExtendedScannerInfo) scanInfo;
+            parserSettings = extendedScannerInfo.getParserSettings();
+        }
+        final ISourceCodeParser parser = createParser(scanner, log, index, false, options, parserSettings);
+        // Make it possible to cancel parser by reconciler - http://bugs.eclipse.org/226682
+        ICanceler canceler = null;
+        if (log instanceof ICanceler) {
+            canceler = (ICanceler) log;
+            canceler.setCancelable(new ICancelable() {
 
-		try {
-			// Parse
-			return parser.parse();
-		} catch (ParseError e) {
-			// Only the TOO_MANY_TOKENS error can be handled here.
-			if (e.getErrorKind() != ParseErrorKind.TOO_MANY_TOKENS)
-				throw e;
+                @Override
+                public void cancel() {
+                    scanner.cancel();
+                    parser.cancel();
+                }
+            });
+        }
+        try {
+            // Parse
+            return parser.parse();
+        } catch (ParseError e) {
+            // Only the TOO_MANY_TOKENS error can be handled here.
+            if (e.getErrorKind() != ParseErrorKind.TOO_MANY_TOKENS)
+                throw e;
+            // Otherwise generate a log because parsing was stopped because of a user preference.
+            if (log != null) {
+                String tuName = null;
+                if (scanner.getLocationResolver() != null)
+                    tuName = scanner.getLocationResolver().getTranslationUnitPath();
+                //$NON-NLS-1$ //$NON-NLS-2$
+                log.traceLog(e.getMessage() + (tuName == null ? "" : (" while parsing " + tuName)));
+            }
+            return null;
+        } finally {
+            if (canceler != null) {
+                canceler.setCancelable(null);
+            }
+        }
+    }
 
-			// Otherwise generate a log because parsing was stopped because of a user preference.
-			if (log != null) {
-				String tuName = null;
-				if (scanner.getLocationResolver() != null)
-					tuName = scanner.getLocationResolver().getTranslationUnitPath();
+    @Deprecated
+    @Override
+    public IASTCompletionNode getCompletionNode(org.eclipse.cdt.core.parser.CodeReader reader, IScannerInfo scanInfo, org.eclipse.cdt.core.dom.ICodeReaderFactory fileCreator, IIndex index, IParserLogService log, int offset) throws CoreException {
+        return getCompletionNode(FileContent.adapt(reader), scanInfo, IncludeFileContentProvider.adapt(fileCreator), index, log, offset);
+    }
 
-				log.traceLog(e.getMessage() + (tuName == null ? "" : (" while parsing " + tuName))); //$NON-NLS-1$ //$NON-NLS-2$
-			}
-			return null;
-		} finally {
-			if (canceler != null) {
-				canceler.setCancelable(null);
-			}
-		}
-	}
+    @Override
+    public IASTCompletionNode getCompletionNode(FileContent reader, IScannerInfo scanInfo, IncludeFileContentProvider fileCreator, IIndex index, IParserLogService log, int offset) throws CoreException {
+        IScanner scanner = createScanner(reader, scanInfo, fileCreator, log);
+        scanner.setContentAssistMode(offset);
+        ISourceCodeParser parser = createParser(scanner, log, index, true, 0);
+        // Run the parse and return the completion node
+        parser.parse();
+        IASTCompletionNode node = parser.getCompletionNode();
+        return node;
+    }
 
-	@Deprecated
-	@Override
-	public IASTCompletionNode getCompletionNode(org.eclipse.cdt.core.parser.CodeReader reader, IScannerInfo scanInfo,
-			org.eclipse.cdt.core.dom.ICodeReaderFactory fileCreator, IIndex index, IParserLogService log, int offset)
-			throws CoreException {
-		return getCompletionNode(FileContent.adapt(reader), scanInfo, IncludeFileContentProvider.adapt(fileCreator),
-				index, log, offset);
-	}
+    /**
+     * Creates the parser.
+     *
+     * @param scanner  the IScanner to get tokens from
+     * @param log  the parser log service
+     * @param index  the index to help resolve bindings
+     * @param forCompletion  whether the parser is used for code completion
+     * @param options for valid options see
+     *     {@link AbstractLanguage#getASTTranslationUnit(FileContent, IScannerInfo, IncludeFileContentProvider, IIndex, int, IParserLogService)}
+     * @return  an instance of ISourceCodeParser
+     */
+    protected ISourceCodeParser createParser(IScanner scanner, IParserLogService log, IIndex index, boolean forCompletion, int options) {
+        ParserMode mode = createParserMode(forCompletion, options);
+        return createParser(scanner, mode, log, index);
+    }
 
-	@Override
-	public IASTCompletionNode getCompletionNode(FileContent reader, IScannerInfo scanInfo,
-			IncludeFileContentProvider fileCreator, IIndex index, IParserLogService log, int offset)
-			throws CoreException {
-		IScanner scanner = createScanner(reader, scanInfo, fileCreator, log);
-		scanner.setContentAssistMode(offset);
+    /**
+     * Create the parser with additional settings.
+     *
+     * @param scanner  the IScanner to get tokens from
+     * @param log  the parser log service
+     * @param index  the index to help resolve bindings
+     * @param forCompletion  whether the parser is used for code completion
+     * @param options for valid options see
+     *     {@link AbstractLanguage#getASTTranslationUnit(FileContent, IScannerInfo, IncludeFileContentProvider, IIndex, int, IParserLogService)}
+     * @param settings for the parser
+     * @return  an instance of ISourceCodeParser
+     * @since 5.6
+     */
+    protected ISourceCodeParser createParser(IScanner scanner, IParserLogService log, IIndex index, boolean forCompletion, int options, IParserSettings settings) {
+        ParserMode mode = createParserMode(forCompletion, options);
+        return createParser(scanner, mode, log, index, options, settings);
+    }
 
-		ISourceCodeParser parser = createParser(scanner, log, index, true, 0);
+    private ParserMode createParserMode(boolean forCompletion, int options) {
+        if (forCompletion) {
+            return ParserMode.COMPLETION_PARSE;
+        } else if ((options & OPTION_SKIP_FUNCTION_BODIES) != 0) {
+            return ParserMode.STRUCTURAL_PARSE;
+        } else {
+            return ParserMode.COMPLETE_PARSE;
+        }
+    }
 
-		// Run the parse and return the completion node
-		parser.parse();
-		IASTCompletionNode node = parser.getCompletionNode();
-		return node;
-	}
+    /**
+     * @deprecated Replaced by
+     *             {@link #createScanner(FileContent, IScannerInfo, IncludeFileContentProvider, IParserLogService)}
+     */
+    @Deprecated
+    protected IScanner createScanner(org.eclipse.cdt.core.parser.CodeReader reader, IScannerInfo scanInfo, org.eclipse.cdt.core.dom.ICodeReaderFactory fileCreator, IParserLogService log) {
+        return createScanner(FileContent.adapt(reader), scanInfo, IncludeFileContentProvider.adapt(fileCreator), log);
+    }
 
-	/**
-	 * Creates the parser.
-	 *
-	 * @param scanner  the IScanner to get tokens from
-	 * @param log  the parser log service
-	 * @param index  the index to help resolve bindings
-	 * @param forCompletion  whether the parser is used for code completion
-	 * @param options for valid options see
-	 *     {@link AbstractLanguage#getASTTranslationUnit(FileContent, IScannerInfo, IncludeFileContentProvider, IIndex, int, IParserLogService)}
-	 * @return  an instance of ISourceCodeParser
-	 */
-	protected ISourceCodeParser createParser(IScanner scanner, IParserLogService log, IIndex index,
-			boolean forCompletion, int options) {
-		ParserMode mode = createParserMode(forCompletion, options);
-		return createParser(scanner, mode, log, index);
-	}
+    /**
+     * Create the scanner to be used with the parser.
+     * @since 5.2
+     */
+    protected IScanner createScanner(FileContent content, IScannerInfo scanInfo, IncludeFileContentProvider fcp, IParserLogService log) {
+        return new CPreprocessor(content, scanInfo, getParserLanguage(), log, getScannerExtensionConfiguration(scanInfo), fcp);
+    }
 
-	/**
-	 * Create the parser with additional settings.
-	 *
-	 * @param scanner  the IScanner to get tokens from
-	 * @param log  the parser log service
-	 * @param index  the index to help resolve bindings
-	 * @param forCompletion  whether the parser is used for code completion
-	 * @param options for valid options see
-	 *     {@link AbstractLanguage#getASTTranslationUnit(FileContent, IScannerInfo, IncludeFileContentProvider, IIndex, int, IParserLogService)}
-	 * @param settings for the parser
-	 * @return  an instance of ISourceCodeParser
-	 * @since 5.6
-	 */
-	protected ISourceCodeParser createParser(IScanner scanner, IParserLogService log, IIndex index,
-			boolean forCompletion, int options, IParserSettings settings) {
-		ParserMode mode = createParserMode(forCompletion, options);
-		return createParser(scanner, mode, log, index, options, settings);
-	}
+    @Override
+    @Deprecated
+    public IASTName[] getSelectedNames(IASTTranslationUnit ast, int start, int length) {
+        IASTNode selectedNode = ast.getNodeSelector(null).findNode(start, length);
+        if (selectedNode == null)
+            return new IASTName[0];
+        if (selectedNode instanceof IASTName)
+            return new IASTName[] { (IASTName) selectedNode };
+        if (selectedNode instanceof IASTPreprocessorMacroExpansion) {
+            return new IASTName[] { ((IASTPreprocessorMacroExpansion) selectedNode).getMacroReference() };
+        }
+        NameCollector collector = new NameCollector();
+        selectedNode.accept(collector);
+        return collector.getNames();
+    }
 
-	private ParserMode createParserMode(boolean forCompletion, int options) {
-		if (forCompletion) {
-			return ParserMode.COMPLETION_PARSE;
-		} else if ((options & OPTION_SKIP_FUNCTION_BODIES) != 0) {
-			return ParserMode.STRUCTURAL_PARSE;
-		} else {
-			return ParserMode.COMPLETE_PARSE;
-		}
-	}
+    @Override
+    public IContributedModelBuilder createModelBuilder(ITranslationUnit tu) {
+        // Use default model builder.
+        return null;
+    }
 
-	/**
-	 * @deprecated Replaced by
-	 *             {@link #createScanner(FileContent, IScannerInfo, IncludeFileContentProvider, IParserLogService)}
-	 */
-	@Deprecated
-	protected IScanner createScanner(org.eclipse.cdt.core.parser.CodeReader reader, IScannerInfo scanInfo,
-			org.eclipse.cdt.core.dom.ICodeReaderFactory fileCreator, IParserLogService log) {
-		return createScanner(FileContent.adapt(reader), scanInfo, IncludeFileContentProvider.adapt(fileCreator), log);
-	}
+    public ICLanguageKeywords cLanguageKeywords;
 
-	/**
-	 * Create the scanner to be used with the parser.
-	 * @since 5.2
-	 */
-	protected IScanner createScanner(FileContent content, IScannerInfo scanInfo, IncludeFileContentProvider fcp,
-			IParserLogService log) {
-		return new CPreprocessor(content, scanInfo, getParserLanguage(), log,
-				getScannerExtensionConfiguration(scanInfo), fcp);
-	}
+    private synchronized ICLanguageKeywords getCLanguageKeywords() {
+        if (cLanguageKeywords == null) {
+            cLanguageKeywords = new CLanguageKeywords(getParserLanguage(), getScannerExtensionConfiguration(new ExtendedScannerInfo()));
+        }
+        return cLanguageKeywords;
+    }
 
-	@Override
-	@Deprecated
-	public IASTName[] getSelectedNames(IASTTranslationUnit ast, int start, int length) {
-		IASTNode selectedNode = ast.getNodeSelector(null).findNode(start, length);
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> T getAdapter(Class<T> adapter) {
+        if (adapter.isAssignableFrom(ICLanguageKeywords.class))
+            return (T) getCLanguageKeywords();
+        return super.getAdapter(adapter);
+    }
 
-		if (selectedNode == null)
-			return new IASTName[0];
+    // For backwards compatibility
+    @Override
+    public String[] getBuiltinTypes() {
+        return getCLanguageKeywords().getBuiltinTypes();
+    }
 
-		if (selectedNode instanceof IASTName)
-			return new IASTName[] { (IASTName) selectedNode };
+    @Override
+    public String[] getKeywords() {
+        return getCLanguageKeywords().getKeywords();
+    }
 
-		if (selectedNode instanceof IASTPreprocessorMacroExpansion) {
-			return new IASTName[] { ((IASTPreprocessorMacroExpansion) selectedNode).getMacroReference() };
-		}
-
-		NameCollector collector = new NameCollector();
-		selectedNode.accept(collector);
-		return collector.getNames();
-	}
-
-	@Override
-	public IContributedModelBuilder createModelBuilder(ITranslationUnit tu) {
-		// Use default model builder.
-		return null;
-	}
-
-	private ICLanguageKeywords cLanguageKeywords;
-
-	private synchronized ICLanguageKeywords getCLanguageKeywords() {
-		if (cLanguageKeywords == null) {
-			cLanguageKeywords = new CLanguageKeywords(getParserLanguage(),
-					getScannerExtensionConfiguration(new ExtendedScannerInfo()));
-		}
-		return cLanguageKeywords;
-	}
-
-	@Override
-	@SuppressWarnings("unchecked")
-	public <T> T getAdapter(Class<T> adapter) {
-		if (adapter.isAssignableFrom(ICLanguageKeywords.class))
-			return (T) getCLanguageKeywords();
-
-		return super.getAdapter(adapter);
-	}
-
-	// For backwards compatibility
-	@Override
-	public String[] getBuiltinTypes() {
-		return getCLanguageKeywords().getBuiltinTypes();
-	}
-
-	@Override
-	public String[] getKeywords() {
-		return getCLanguageKeywords().getKeywords();
-	}
-
-	@Override
-	public String[] getPreprocessorKeywords() {
-		return getCLanguageKeywords().getPreprocessorKeywords();
-	}
+    @Override
+    public String[] getPreprocessorKeywords() {
+        return getCLanguageKeywords().getPreprocessorKeywords();
+    }
 }

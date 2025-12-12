@@ -1,17 +1,19 @@
-/*******************************************************************************
- * Copyright (c) 2008, 2011 Institute for Software, HSR Hochschule fuer Technik
- * Rapperswil, University of applied sciences and others
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2008, 2011 Institute for Software, HSR Hochschule fuer Technik
+ *  Rapperswil, University of applied sciences and others
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Institute for Software - initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *      Institute for Software - initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.rewrite.astwriter;
 
 import org.eclipse.cdt.core.dom.ast.IASTProblem;
@@ -25,14 +27,16 @@ import org.eclipse.cdt.core.dom.ast.IASTProblemHolder;
  * @author Emanuel Graf IFS
  */
 public class ProblemRuntimeException extends RuntimeException {
-	private static final long serialVersionUID = -3661425564246498786L;
-	private IASTProblemHolder problem;
 
-	public ProblemRuntimeException(IASTProblemHolder statement) {
-		problem = statement;
-	}
+    static final public long serialVersionUID = -3661425564246498786L;
 
-	public IASTProblemHolder getProblem() {
-		return problem;
-	}
+    public IASTProblemHolder problem;
+
+    public ProblemRuntimeException(IASTProblemHolder statement) {
+        problem = statement;
+    }
+
+    public IASTProblemHolder getProblem() {
+        return problem;
+    }
 }

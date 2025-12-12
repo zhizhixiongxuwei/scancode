@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2005, 2011 Intel Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2005, 2011 Intel Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- * Intel Corporation - Initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *  Intel Corporation - Initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.envvar;
 
 import org.eclipse.cdt.core.envvar.IEnvironmentVariable;
@@ -22,68 +24,70 @@ import org.eclipse.cdt.core.envvar.IEnvironmentVariable;
  *
  */
 public class EnvVarDescriptor implements IEnvironmentVariable {
-	private IEnvironmentVariable fVariable;
-	private IEnvironmentContextInfo fContextInfo;
-	private int fSupplierNum;
-	private ICoreEnvironmentVariableSupplier fSupplier;
 
-	public EnvVarDescriptor(IEnvironmentVariable variable, IEnvironmentContextInfo contextInfo, int supplierNum,
-			ICoreEnvironmentVariableSupplier supplier) {
-		fVariable = variable;
-		fContextInfo = contextInfo;
-		fSupplierNum = supplierNum;
-		fSupplier = supplier;
-	}
+    public IEnvironmentVariable fVariable;
 
-	public IEnvironmentContextInfo getContextInfo() {
-		return fContextInfo;
-	}
+    public IEnvironmentContextInfo fContextInfo;
 
-	public int getSupplierNum() {
-		return fSupplierNum;
-	}
+    public int fSupplierNum;
 
-	public IEnvironmentVariable getOriginalVariable() {
-		return fVariable;
-	}
+    public ICoreEnvironmentVariableSupplier fSupplier;
 
-	@Override
-	public String getName() {
-		return fVariable.getName();
-	}
+    public EnvVarDescriptor(IEnvironmentVariable variable, IEnvironmentContextInfo contextInfo, int supplierNum, ICoreEnvironmentVariableSupplier supplier) {
+        fVariable = variable;
+        fContextInfo = contextInfo;
+        fSupplierNum = supplierNum;
+        fSupplier = supplier;
+    }
 
-	@Override
-	public String getValue() {
-		return fVariable.getValue();
-	}
+    public IEnvironmentContextInfo getContextInfo() {
+        return fContextInfo;
+    }
 
-	@Override
-	public int getOperation() {
-		return fVariable.getOperation();
-	}
+    public int getSupplierNum() {
+        return fSupplierNum;
+    }
 
-	@Override
-	public String getDelimiter() {
-		return fVariable.getDelimiter();
-	}
+    public IEnvironmentVariable getOriginalVariable() {
+        return fVariable;
+    }
 
-	public void setContextInfo(IEnvironmentContextInfo contextInfo) {
-		fContextInfo = contextInfo;
-	}
+    @Override
+    public String getName() {
+        return fVariable.getName();
+    }
 
-	public void setSupplierNum(int supplierNum) {
-		fSupplierNum = supplierNum;
-	}
+    @Override
+    public String getValue() {
+        return fVariable.getValue();
+    }
 
-	public void setVariable(IEnvironmentVariable variable) {
-		fVariable = variable;
-	}
+    @Override
+    public int getOperation() {
+        return fVariable.getOperation();
+    }
 
-	public ICoreEnvironmentVariableSupplier getSupplier() {
-		return fSupplier;
-	}
+    @Override
+    public String getDelimiter() {
+        return fVariable.getDelimiter();
+    }
 
-	/*	public String getResolvedValue(int contextType, Object contextData){
+    public void setContextInfo(IEnvironmentContextInfo contextInfo) {
+        fContextInfo = contextInfo;
+    }
+
+    public void setSupplierNum(int supplierNum) {
+        fSupplierNum = supplierNum;
+    }
+
+    public void setVariable(IEnvironmentVariable variable) {
+        fVariable = variable;
+    }
+
+    public ICoreEnvironmentVariableSupplier getSupplier() {
+        return fSupplier;
+    }
+    /*	public String getResolvedValue(int contextType, Object contextData){
 			String value = null;
 			if(getOperation() != IBuildEnvironmentVariable.ENVVAR_REMOVE){
 				String name = getName();

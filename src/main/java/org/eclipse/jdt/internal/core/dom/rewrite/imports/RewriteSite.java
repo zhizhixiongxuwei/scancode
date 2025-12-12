@@ -31,7 +31,7 @@ public class RewriteSite {
      * succeeding import declarations and their comments (or the end of the compilation unit, if no
      * such node exists).
      */
-    final IRegion surroundingRegion;
+    final public IRegion surroundingRegion;
 
     /**
      * The region occupied by import declarations and their associated comments prior to the
@@ -39,19 +39,19 @@ public class RewriteSite {
      * <p>
      * If not null, this region is contained within surroundingRegion.
      */
-    final IRegion importsRegion;
+    final public IRegion importsRegion;
 
     /**
      * True if the compilation unit prior to the rewrite contains any top-level AST nodes (package
      * declaration and/or comments) preceding the start of surroundingRegion.
      */
-    final boolean hasPrecedingElements;
+    final public boolean hasPrecedingElements;
 
     /**
      * True if the compilation unit prior to the rewrite contains any top-level AST nodes (type
      * declarations and/or comments) following the end of surroundingRegion.
      */
-    final boolean hasSucceedingElements;
+    final public boolean hasSucceedingElements;
 
     RewriteSite(IRegion surroundingRegion, IRegion importsRegion, boolean hasPrecedingElements, boolean hasSucceedingElements) {
         this.surroundingRegion = surroundingRegion;

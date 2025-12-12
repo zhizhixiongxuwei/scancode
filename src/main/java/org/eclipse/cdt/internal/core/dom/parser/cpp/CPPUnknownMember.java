@@ -1,18 +1,20 @@
-/*******************************************************************************
- * Copyright (c) 2004, 2013 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2004, 2013 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     IBM Corporation - initial API and implementation
- *     Markus Schorn (Wind River Systems)
- *     Sergey Prigogin (Google)
- *******************************************************************************/
+ *  Contributors:
+ *      IBM Corporation - initial API and implementation
+ *      Markus Schorn (Wind River Systems)
+ *      Sergey Prigogin (Google)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.parser.cpp;
 
 import org.eclipse.cdt.core.dom.ast.IBinding;
@@ -33,51 +35,50 @@ import org.eclipse.core.runtime.CoreException;
  * Represents a binding that is unknown because it depends on template arguments.
  */
 public class CPPUnknownMember extends CPPUnknownBinding implements ICPPUnknownMember, ISerializableType {
-	protected final IType fOwner;
 
-	protected CPPUnknownMember(IType owner, char[] name) {
-		super(name);
-		if (owner instanceof ICPPClassTemplate) {
-			owner = CPPTemplates.createDeferredInstance((ICPPClassTemplate) owner);
-		}
-		fOwner = owner;
-	}
+    final public IType fOwner;
 
-	@Override
-	public IBinding getOwner() {
-		if (fOwner instanceof IBinding)
-			return (IBinding) fOwner;
-		return null;
-	}
+    protected CPPUnknownMember(IType owner, char[] name) {
+        super(name);
+        if (owner instanceof ICPPClassTemplate) {
+            owner = CPPTemplates.createDeferredInstance((ICPPClassTemplate) owner);
+        }
+        fOwner = owner;
+    }
 
-	@Override
-	public IType getOwnerType() {
-		return fOwner;
-	}
+    @Override
+    public IBinding getOwner() {
+        if (fOwner instanceof IBinding)
+            return (IBinding) fOwner;
+        return null;
+    }
 
-	@Override
-	public void marshal(ITypeMarshalBuffer buffer) throws CoreException {
-		short firstBytes = ITypeMarshalBuffer.UNKNOWN_MEMBER;
-		if (this instanceof ICPPField) {
-			firstBytes |= ITypeMarshalBuffer.FLAG1;
-		} else if (this instanceof ICPPMethod) {
-			firstBytes |= ITypeMarshalBuffer.FLAG2;
-		}
+    @Override
+    public IType getOwnerType() {
+        return fOwner;
+    }
 
-		buffer.putShort(firstBytes);
-		buffer.marshalType(getOwnerType());
-		buffer.putCharArray(getNameCharArray());
-	}
+    @Override
+    public void marshal(ITypeMarshalBuffer buffer) throws CoreException {
+        short firstBytes = ITypeMarshalBuffer.UNKNOWN_MEMBER;
+        if (this instanceof ICPPField) {
+            firstBytes |= ITypeMarshalBuffer.FLAG1;
+        } else if (this instanceof ICPPMethod) {
+            firstBytes |= ITypeMarshalBuffer.FLAG2;
+        }
+        buffer.putShort(firstBytes);
+        buffer.marshalType(getOwnerType());
+        buffer.putCharArray(getNameCharArray());
+    }
 
-	public static IBinding unmarshal(IIndexFragment fragment, short firstBytes, ITypeMarshalBuffer buffer)
-			throws CoreException {
-		IType owner = buffer.unmarshalType();
-		char[] name = buffer.getCharArray();
-		if ((firstBytes & ITypeMarshalBuffer.FLAG1) != 0) {
-			return new PDOMCPPUnknownField(fragment, owner, name);
-		} else if ((firstBytes & ITypeMarshalBuffer.FLAG2) != 0) {
-			return new PDOMCPPUnknownMethod(fragment, owner, name);
-		}
-		return new PDOMCPPUnknownMemberClass(fragment, owner, name);
-	}
+    public static IBinding unmarshal(IIndexFragment fragment, short firstBytes, ITypeMarshalBuffer buffer) throws CoreException {
+        IType owner = buffer.unmarshalType();
+        char[] name = buffer.getCharArray();
+        if ((firstBytes & ITypeMarshalBuffer.FLAG1) != 0) {
+            return new PDOMCPPUnknownField(fragment, owner, name);
+        } else if ((firstBytes & ITypeMarshalBuffer.FLAG2) != 0) {
+            return new PDOMCPPUnknownMethod(fragment, owner, name);
+        }
+        return new PDOMCPPUnknownMemberClass(fragment, owner, name);
+    }
 }

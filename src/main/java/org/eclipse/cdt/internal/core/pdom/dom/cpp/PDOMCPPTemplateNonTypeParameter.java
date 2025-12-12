@@ -43,16 +43,16 @@ import org.eclipse.core.runtime.CoreException;
  */
 public class PDOMCPPTemplateNonTypeParameter extends PDOMCPPBinding implements IPDOMMemberOwner, ICPPTemplateNonTypeParameter, IPDOMCPPTemplateParameter {
 
-    private static final int TYPE_OFFSET = PDOMCPPBinding.RECORD_SIZE;
+    static final public int TYPE_OFFSET = PDOMCPPBinding.RECORD_SIZE;
 
-    private static final int PARAMETERID = TYPE_OFFSET + Database.TYPE_SIZE;
+    static final public int PARAMETERID = TYPE_OFFSET + Database.TYPE_SIZE;
 
-    private static final int DEFAULTVAL = PARAMETERID + 4;
+    static final public int DEFAULTVAL = PARAMETERID + 4;
 
     @SuppressWarnings("hiding")
-    protected static final int RECORD_SIZE = DEFAULTVAL + Database.VALUE_SIZE;
+    static final public int RECORD_SIZE = DEFAULTVAL + Database.VALUE_SIZE;
 
-    private int fCachedParamID = -1;
+    public int fCachedParamID = -1;
 
     private volatile IType fType;
 

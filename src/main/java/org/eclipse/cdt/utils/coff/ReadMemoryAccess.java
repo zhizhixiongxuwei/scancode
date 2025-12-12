@@ -1,279 +1,278 @@
-/*******************************************************************************
- * Copyright (c) 2000, 2006 QNX Software Systems and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2000, 2006 QNX Software Systems and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     QNX Software Systems - Initial API and implementation
- *******************************************************************************/
-
+ *  Contributors:
+ *      QNX Software Systems - Initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.utils.coff;
 
 public class ReadMemoryAccess {
 
-	byte[] bytes;
-	int memOffset;
-	byte[] val = new byte[8];
-	boolean isle;
+    public byte[] bytes;
 
-	public ReadMemoryAccess(byte[] octets) {
-		this(octets, true);
-	}
+    public int memOffset;
 
-	public ReadMemoryAccess(byte[] octets, boolean le) {
-		bytes = octets;
-		memOffset = 0;
-		isle = le;
-	}
+    public byte[] val = new byte[8];
 
-	public int getSize() {
-		return bytes.length - memOffset;
-	}
+    public boolean isle;
 
-	public void getBytes(byte[] octets) {
-		getBytes(octets, memOffset);
-		memOffset += octets.length;
-	}
+    public ReadMemoryAccess(byte[] octets) {
+        this(octets, true);
+    }
 
-	public void getBytes(byte[] octets, int offset) {
-		getBytes(octets, offset, octets.length);
-	}
+    public ReadMemoryAccess(byte[] octets, boolean le) {
+        bytes = octets;
+        memOffset = 0;
+        isle = le;
+    }
 
-	public void getBytes(byte[] octets, int offset, int length) {
-		System.arraycopy(bytes, offset, octets, 0, length);
-	}
+    public int getSize() {
+        return bytes.length - memOffset;
+    }
 
-	public byte getByte() {
-		return getByte(memOffset++);
-	}
+    public void getBytes(byte[] octets) {
+        getBytes(octets, memOffset);
+        memOffset += octets.length;
+    }
 
-	public short getUnsignedByte() {
-		return getUnsignedByte(memOffset++);
-	}
+    public void getBytes(byte[] octets, int offset) {
+        getBytes(octets, offset, octets.length);
+    }
 
-	public byte getByte(int offset) {
-		return bytes[offset];
-	}
+    public void getBytes(byte[] octets, int offset, int length) {
+        System.arraycopy(bytes, offset, octets, 0, length);
+    }
 
-	public short getUnsignedByte(int offset) {
-		return bytes[offset];
-	}
+    public byte getByte() {
+        return getByte(memOffset++);
+    }
 
-	public short getShort() {
-		if (isle) {
-			return getShortLE();
-		}
-		return getShortBE();
-	}
+    public short getUnsignedByte() {
+        return getUnsignedByte(memOffset++);
+    }
 
-	public int getUnsignedShort() {
-		if (isle) {
-			return getUnsignedShortLE();
-		}
-		return getUnsignedShortBE();
-	}
+    public byte getByte(int offset) {
+        return bytes[offset];
+    }
 
-	public short getShortLE() {
-		short s = getShortLE(memOffset);
-		memOffset += 2;
-		return s;
-	}
+    public short getUnsignedByte(int offset) {
+        return bytes[offset];
+    }
 
-	public int getUnsignedShortLE() {
-		int i = getUnsignedShortLE(memOffset);
-		memOffset += 2;
-		return i;
-	}
+    public short getShort() {
+        if (isle) {
+            return getShortLE();
+        }
+        return getShortBE();
+    }
 
-	public short getShortLE(int offset) {
-		val[0] = getByte(offset);
-		val[1] = getByte(offset + 1);
-		return getShortLE(val);
-	}
+    public int getUnsignedShort() {
+        if (isle) {
+            return getUnsignedShortLE();
+        }
+        return getUnsignedShortBE();
+    }
 
-	public static short getShortLE(byte[] b) {
-		return (short) (((b[1] & 0xff) << 8) | (b[0] & 0xff));
-	}
+    public short getShortLE() {
+        short s = getShortLE(memOffset);
+        memOffset += 2;
+        return s;
+    }
 
-	public int getUnsignedShortLE(int offset) {
-		val[0] = getByte(offset);
-		val[1] = getByte(offset + 1);
-		return getUnsignedShortLE(val);
-	}
+    public int getUnsignedShortLE() {
+        int i = getUnsignedShortLE(memOffset);
+        memOffset += 2;
+        return i;
+    }
 
-	public static int getUnsignedShortLE(byte[] b) {
-		return (((b[1] & 0xff) << 8) | (b[0] & 0xff));
-	}
+    public short getShortLE(int offset) {
+        val[0] = getByte(offset);
+        val[1] = getByte(offset + 1);
+        return getShortLE(val);
+    }
 
-	public short getShortBE() {
-		short s = getShortBE(memOffset);
-		memOffset += 2;
-		return s;
-	}
+    public static short getShortLE(byte[] b) {
+        return (short) (((b[1] & 0xff) << 8) | (b[0] & 0xff));
+    }
 
-	public int getUnsignedShortBE() {
-		int i = getUnsignedShortBE(memOffset);
-		memOffset += 2;
-		return i;
-	}
+    public int getUnsignedShortLE(int offset) {
+        val[0] = getByte(offset);
+        val[1] = getByte(offset + 1);
+        return getUnsignedShortLE(val);
+    }
 
-	public short getShortBE(int offset) {
-		val[0] = getByte(offset);
-		val[1] = getByte(offset + 1);
-		return getShortBE(val);
-	}
+    public static int getUnsignedShortLE(byte[] b) {
+        return (((b[1] & 0xff) << 8) | (b[0] & 0xff));
+    }
 
-	public static short getShortBE(byte[] b) {
-		return (short) (((b[0] & 0xff) << 8) | (b[1] & 0xff));
-	}
+    public short getShortBE() {
+        short s = getShortBE(memOffset);
+        memOffset += 2;
+        return s;
+    }
 
-	public int getUnsignedShortBE(int offset) {
-		val[0] = getByte(offset);
-		val[1] = getByte(offset + 1);
-		return getUnsignedShortBE(val);
-	}
+    public int getUnsignedShortBE() {
+        int i = getUnsignedShortBE(memOffset);
+        memOffset += 2;
+        return i;
+    }
 
-	public static int getUnsignedShortBE(byte[] b) {
-		return (((b[0] & 0xff) << 8) + (b[1] & 0xff));
-	}
+    public short getShortBE(int offset) {
+        val[0] = getByte(offset);
+        val[1] = getByte(offset + 1);
+        return getShortBE(val);
+    }
 
-	public int getInt() {
-		if (isle) {
-			return getIntLE();
-		}
-		return getIntBE();
-	}
+    public static short getShortBE(byte[] b) {
+        return (short) (((b[0] & 0xff) << 8) | (b[1] & 0xff));
+    }
 
-	public int getIntLE() {
-		int i = getIntLE(memOffset);
-		memOffset += 4;
-		return i;
-	}
+    public int getUnsignedShortBE(int offset) {
+        val[0] = getByte(offset);
+        val[1] = getByte(offset + 1);
+        return getUnsignedShortBE(val);
+    }
 
-	public long getUnsignedIntLE() {
-		long l = getUnsignedIntLE(memOffset);
-		memOffset += 4;
-		return l;
-	}
+    public static int getUnsignedShortBE(byte[] b) {
+        return (((b[0] & 0xff) << 8) + (b[1] & 0xff));
+    }
 
-	public long getUnsignedIntLE(int offset) {
-		val[0] = getByte(offset);
-		val[1] = getByte(offset + 1);
-		val[2] = getByte(offset + 2);
-		val[3] = getByte(offset + 3);
-		return getUnsignedIntLE(val);
-	}
+    public int getInt() {
+        if (isle) {
+            return getIntLE();
+        }
+        return getIntBE();
+    }
 
-	public static long getUnsignedIntLE(byte[] b) {
-		return (((b[3] & 0xff) << 24) | ((b[2] & 0xff) << 16) | ((b[1] & 0xff) << 8) | (b[0] & 0xff));
-	}
+    public int getIntLE() {
+        int i = getIntLE(memOffset);
+        memOffset += 4;
+        return i;
+    }
 
-	public int getIntLE(int offset) {
-		val[0] = getByte(offset);
-		val[1] = getByte(offset + 1);
-		val[2] = getByte(offset + 2);
-		val[3] = getByte(offset + 3);
-		return getIntLE(val);
-	}
+    public long getUnsignedIntLE() {
+        long l = getUnsignedIntLE(memOffset);
+        memOffset += 4;
+        return l;
+    }
 
-	public static int getIntLE(byte[] b) {
-		return (((b[3] & 0xff) << 24) | ((b[2] & 0xff) << 16) | ((b[1] & 0xff) << 8) | (b[0] & 0xff));
-	}
+    public long getUnsignedIntLE(int offset) {
+        val[0] = getByte(offset);
+        val[1] = getByte(offset + 1);
+        val[2] = getByte(offset + 2);
+        val[3] = getByte(offset + 3);
+        return getUnsignedIntLE(val);
+    }
 
-	public int getIntBE() {
-		int i = getIntBE(memOffset);
-		memOffset += 4;
-		return i;
-	}
+    public static long getUnsignedIntLE(byte[] b) {
+        return (((b[3] & 0xff) << 24) | ((b[2] & 0xff) << 16) | ((b[1] & 0xff) << 8) | (b[0] & 0xff));
+    }
 
-	public long getUnsignedIntBE() {
-		long l = getUnsignedIntBE(memOffset);
-		memOffset += 4;
-		return l;
-	}
+    public int getIntLE(int offset) {
+        val[0] = getByte(offset);
+        val[1] = getByte(offset + 1);
+        val[2] = getByte(offset + 2);
+        val[3] = getByte(offset + 3);
+        return getIntLE(val);
+    }
 
-	public int getIntBE(int offset) {
-		val[0] = getByte(offset);
-		val[1] = getByte(offset + 1);
-		val[2] = getByte(offset + 2);
-		val[3] = getByte(offset + 3);
-		return getIntBE(val);
-	}
+    public static int getIntLE(byte[] b) {
+        return (((b[3] & 0xff) << 24) | ((b[2] & 0xff) << 16) | ((b[1] & 0xff) << 8) | (b[0] & 0xff));
+    }
 
-	public static int getIntBE(byte[] b) {
-		return (((b[0] & 0xff) << 24) | ((b[1] & 0xff) << 16) | ((b[2] & 0xff) << 8) | (b[3] & 0xff));
-	}
+    public int getIntBE() {
+        int i = getIntBE(memOffset);
+        memOffset += 4;
+        return i;
+    }
 
-	public long getUnsignedIntBE(int offset) {
-		val[0] = getByte(offset);
-		val[1] = getByte(offset + 1);
-		val[2] = getByte(offset + 2);
-		val[3] = getByte(offset + 3);
-		return getUnsignedIntBE(val);
-	}
+    public long getUnsignedIntBE() {
+        long l = getUnsignedIntBE(memOffset);
+        memOffset += 4;
+        return l;
+    }
 
-	public static long getUnsignedIntBE(byte[] b) {
-		return (((b[0] & 0xff) << 24) | ((b[1] & 0xff) << 16) | ((b[2] & 0xff) << 8) | (b[3] & 0xff));
-	}
+    public int getIntBE(int offset) {
+        val[0] = getByte(offset);
+        val[1] = getByte(offset + 1);
+        val[2] = getByte(offset + 2);
+        val[3] = getByte(offset + 3);
+        return getIntBE(val);
+    }
 
-	public long getLong() {
-		if (isle) {
-			return getLongLE();
-		}
-		return getLongBE();
-	}
+    public static int getIntBE(byte[] b) {
+        return (((b[0] & 0xff) << 24) | ((b[1] & 0xff) << 16) | ((b[2] & 0xff) << 8) | (b[3] & 0xff));
+    }
 
-	public long getLongLE() {
-		long l = getLongLE(memOffset);
-		memOffset += 8;
-		return l;
-	}
+    public long getUnsignedIntBE(int offset) {
+        val[0] = getByte(offset);
+        val[1] = getByte(offset + 1);
+        val[2] = getByte(offset + 2);
+        val[3] = getByte(offset + 3);
+        return getUnsignedIntBE(val);
+    }
 
-	public long getLongLE(int offset) {
-		val[0] = getByte(offset);
-		val[1] = getByte(offset + 1);
-		val[2] = getByte(offset + 2);
-		val[3] = getByte(offset + 3);
-		val[4] = getByte(offset + 4);
-		val[5] = getByte(offset + 5);
-		val[6] = getByte(offset + 6);
-		val[7] = getByte(offset + 7);
-		return getLongLE(val);
-	}
+    public static long getUnsignedIntBE(byte[] b) {
+        return (((b[0] & 0xff) << 24) | ((b[1] & 0xff) << 16) | ((b[2] & 0xff) << 8) | (b[3] & 0xff));
+    }
 
-	public long getLongLE(byte[] b) {
-		return ((long) (b[7] & 0xff) << 56) | ((long) (b[6] & 0xff) << 48) | ((long) (b[5] & 0xff) << 40)
-				| ((long) (b[4] & 0xff) << 32) | ((long) (b[3] & 0xff) << 24) | ((long) (b[2] & 0xff) << 16)
-				| ((long) (b[1] & 0xff) << 8) | (b[0] & 0xff);
-	}
+    public long getLong() {
+        if (isle) {
+            return getLongLE();
+        }
+        return getLongBE();
+    }
 
-	public long getLongBE() {
-		long l = getLongBE(memOffset);
-		memOffset += 8;
-		return l;
-	}
+    public long getLongLE() {
+        long l = getLongLE(memOffset);
+        memOffset += 8;
+        return l;
+    }
 
-	public long getLongBE(int offset) {
-		val[0] = getByte(offset);
-		val[1] = getByte(offset + 1);
-		val[2] = getByte(offset + 2);
-		val[3] = getByte(offset + 3);
-		val[4] = getByte(offset + 4);
-		val[5] = getByte(offset + 5);
-		val[6] = getByte(offset + 6);
-		val[7] = getByte(offset + 7);
-		return getLongBE(val);
-	}
+    public long getLongLE(int offset) {
+        val[0] = getByte(offset);
+        val[1] = getByte(offset + 1);
+        val[2] = getByte(offset + 2);
+        val[3] = getByte(offset + 3);
+        val[4] = getByte(offset + 4);
+        val[5] = getByte(offset + 5);
+        val[6] = getByte(offset + 6);
+        val[7] = getByte(offset + 7);
+        return getLongLE(val);
+    }
 
-	public long getLongBE(byte[] b) {
-		return ((long) (b[0] & 0xff) << 56) | ((long) (b[1] & 0xff) << 48) | ((long) (b[2] & 0xff) << 40)
-				| ((long) (b[3] & 0xff) << 32) | ((long) (b[4] & 0xff) << 24) | ((long) (b[5] & 0xff) << 16)
-				| ((long) (b[6] & 0xff) << 8) | (b[7] & 0xff);
-	}
+    public long getLongLE(byte[] b) {
+        return ((long) (b[7] & 0xff) << 56) | ((long) (b[6] & 0xff) << 48) | ((long) (b[5] & 0xff) << 40) | ((long) (b[4] & 0xff) << 32) | ((long) (b[3] & 0xff) << 24) | ((long) (b[2] & 0xff) << 16) | ((long) (b[1] & 0xff) << 8) | (b[0] & 0xff);
+    }
 
+    public long getLongBE() {
+        long l = getLongBE(memOffset);
+        memOffset += 8;
+        return l;
+    }
+
+    public long getLongBE(int offset) {
+        val[0] = getByte(offset);
+        val[1] = getByte(offset + 1);
+        val[2] = getByte(offset + 2);
+        val[3] = getByte(offset + 3);
+        val[4] = getByte(offset + 4);
+        val[5] = getByte(offset + 5);
+        val[6] = getByte(offset + 6);
+        val[7] = getByte(offset + 7);
+        return getLongBE(val);
+    }
+
+    public long getLongBE(byte[] b) {
+        return ((long) (b[0] & 0xff) << 56) | ((long) (b[1] & 0xff) << 48) | ((long) (b[2] & 0xff) << 40) | ((long) (b[3] & 0xff) << 32) | ((long) (b[4] & 0xff) << 24) | ((long) (b[5] & 0xff) << 16) | ((long) (b[6] & 0xff) << 8) | (b[7] & 0xff);
+    }
 }

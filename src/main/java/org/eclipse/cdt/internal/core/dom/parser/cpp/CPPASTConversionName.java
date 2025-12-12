@@ -1,18 +1,20 @@
-/*******************************************************************************
- * Copyright (c) 2005, 2013 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2005, 2013 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Devin Steffler (IBM) - Initial API and implementation
- *     Emanuel Graf IFS - Fix for #198259
- *     Markus Schorn (Wind River Systems)
- *******************************************************************************/
+ *  Contributors:
+ *      Devin Steffler (IBM) - Initial API and implementation
+ *      Emanuel Graf IFS - Fix for #198259
+ *      Markus Schorn (Wind River Systems)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.parser.cpp;
 
 import org.eclipse.cdt.core.dom.ast.ASTTypeUtil;
@@ -29,123 +31,124 @@ import org.eclipse.cdt.internal.core.dom.parser.cpp.semantics.CPPVisitor;
  * Implementation of conversion function ids.
  */
 public class CPPASTConversionName extends CPPASTNameBase implements ICPPASTConversionName {
-	private IASTTypeId typeId;
-	private char[] fName;
 
-	public CPPASTConversionName() {
-	}
+    public IASTTypeId typeId;
 
-	public CPPASTConversionName(IASTTypeId typeId) {
-		setTypeId(typeId);
-	}
+    public char[] fName;
 
-	@Override
-	public CPPASTConversionName copy() {
-		return copy(CopyStyle.withoutLocations);
-	}
+    public CPPASTConversionName() {
+    }
 
-	@Override
-	public CPPASTConversionName copy(CopyStyle style) {
-		CPPASTConversionName copy = new CPPASTConversionName();
-		copy.setTypeId(typeId == null ? null : typeId.copy(style));
-		return copy(copy, style);
-	}
+    public CPPASTConversionName(IASTTypeId typeId) {
+        setTypeId(typeId);
+    }
 
-	@Override
-	public IASTTypeId getTypeId() {
-		return typeId;
-	}
+    @Override
+    public CPPASTConversionName copy() {
+        return copy(CopyStyle.withoutLocations);
+    }
 
-	@Override
-	public void setTypeId(IASTTypeId typeId) {
-		assertNotFrozen();
-		this.typeId = typeId;
-		if (typeId != null) {
-			typeId.setParent(this);
-			typeId.setPropertyInParent(TYPE_ID);
-		}
-	}
+    @Override
+    public CPPASTConversionName copy(CopyStyle style) {
+        CPPASTConversionName copy = new CPPASTConversionName();
+        copy.setTypeId(typeId == null ? null : typeId.copy(style));
+        return copy(copy, style);
+    }
 
-	@Override
-	public boolean accept(ASTVisitor action) {
-		if (action.shouldVisitNames) {
-			switch (action.visit(this)) {
-			case ASTVisitor.PROCESS_ABORT:
-				return false;
-			case ASTVisitor.PROCESS_SKIP:
-				return true;
-			default:
-				break;
-			}
-		}
+    @Override
+    public IASTTypeId getTypeId() {
+        return typeId;
+    }
 
-		if (typeId != null && !typeId.accept(action))
-			return false;
+    @Override
+    public void setTypeId(IASTTypeId typeId) {
+        assertNotFrozen();
+        this.typeId = typeId;
+        if (typeId != null) {
+            typeId.setParent(this);
+            typeId.setPropertyInParent(TYPE_ID);
+        }
+    }
 
-		if (action.shouldVisitNames) {
-			switch (action.leave(this)) {
-			case ASTVisitor.PROCESS_ABORT:
-				return false;
-			case ASTVisitor.PROCESS_SKIP:
-				return true;
-			default:
-				break;
-			}
-		}
-		return true;
-	}
+    @Override
+    public boolean accept(ASTVisitor action) {
+        if (action.shouldVisitNames) {
+            switch(action.visit(this)) {
+                case ASTVisitor.PROCESS_ABORT:
+                    return false;
+                case ASTVisitor.PROCESS_SKIP:
+                    return true;
+                default:
+                    break;
+            }
+        }
+        if (typeId != null && !typeId.accept(action))
+            return false;
+        if (action.shouldVisitNames) {
+            switch(action.leave(this)) {
+                case ASTVisitor.PROCESS_ABORT:
+                    return false;
+                case ASTVisitor.PROCESS_SKIP:
+                    return true;
+                default:
+                    break;
+            }
+        }
+        return true;
+    }
 
-	@Override
-	protected IBinding createIntermediateBinding() {
-		return CPPVisitor.createBinding(this);
-	}
+    @Override
+    protected IBinding createIntermediateBinding() {
+        return CPPVisitor.createBinding(this);
+    }
 
-	@Override
-	public char[] toCharArray() {
-		if (fName == null) {
-			IType t = null;
-			if (typeId != null) {
-				t = CPPVisitor.createType(typeId);
-			}
-			fName = createName(t, typeId);
-		}
-		return fName;
-	}
+    @Override
+    public char[] toCharArray() {
+        if (fName == null) {
+            IType t = null;
+            if (typeId != null) {
+                t = CPPVisitor.createType(typeId);
+            }
+            fName = createName(t, typeId);
+        }
+        return fName;
+    }
 
-	public static char[] createName(String targetName) {
-		StringBuilder buf = new StringBuilder();
-		buf.append(Keywords.cOPERATOR);
-		buf.append(' ');
-		buf.append(targetName);
-		final int len = buf.length();
-		char[] name = new char[len];
-		buf.getChars(0, len, name, 0);
-		return name;
-	}
+    public static char[] createName(String targetName) {
+        StringBuilder buf = new StringBuilder();
+        buf.append(Keywords.cOPERATOR);
+        buf.append(' ');
+        buf.append(targetName);
+        final int len = buf.length();
+        char[] name = new char[len];
+        buf.getChars(0, len, name, 0);
+        return name;
+    }
 
-	public static char[] createName(IType t, IASTNode typeId) {
-		StringBuilder buf = new StringBuilder();
-		buf.append(Keywords.cOPERATOR);
-		buf.append(' ');
-		if (t != null) {
-			ASTTypeUtil.appendType(t, true, buf);
-		} else {
-			buf.append(typeId.getRawSignature());
-			WHITESPACE_SEQ.matcher(buf).replaceAll(" "); //$NON-NLS-1$
-		}
-		final int len = buf.length();
-		char[] name = new char[len];
-		buf.getChars(0, len, name, 0);
-		return name;
-	}
+    public static char[] createName(IType t, IASTNode typeId) {
+        StringBuilder buf = new StringBuilder();
+        buf.append(Keywords.cOPERATOR);
+        buf.append(' ');
+        if (t != null) {
+            ASTTypeUtil.appendType(t, true, buf);
+        } else {
+            buf.append(typeId.getRawSignature());
+            //$NON-NLS-1$
+            WHITESPACE_SEQ.matcher(buf).replaceAll(" ");
+        }
+        final int len = buf.length();
+        char[] name = new char[len];
+        buf.getChars(0, len, name, 0);
+        return name;
+    }
 
-	@Override
-	public char[] getSimpleID() {
-		return toCharArray();
-	}
+    @Override
+    public char[] getSimpleID() {
+        return toCharArray();
+    }
 
-	@Override
-	public char[] getLookupKey() {
-		return Keywords.cOPERATOR;
-	}
+    @Override
+    public char[] getLookupKey() {
+        return Keywords.cOPERATOR;
+    }
 }

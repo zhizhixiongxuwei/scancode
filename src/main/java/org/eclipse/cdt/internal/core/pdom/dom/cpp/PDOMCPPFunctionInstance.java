@@ -36,13 +36,13 @@ import org.eclipse.core.runtime.CoreException;
  */
 public class PDOMCPPFunctionInstance extends PDOMCPPFunctionSpecialization implements ICPPFunctionInstance {
 
-    private static final int ARGUMENTS = PDOMCPPFunctionSpecialization.RECORD_SIZE + 0;
+    static final public int ARGUMENTS = PDOMCPPFunctionSpecialization.RECORD_SIZE + 0;
 
     @SuppressWarnings("hiding")
-    private static final int EXCEPTION_SPEC = PDOMCPPFunctionSpecialization.RECORD_SIZE + 4;
+    static final public int EXCEPTION_SPEC = PDOMCPPFunctionSpecialization.RECORD_SIZE + 4;
 
     @SuppressWarnings("hiding")
-    protected static final int RECORD_SIZE = PDOMCPPFunctionSpecialization.RECORD_SIZE + 8;
+    static final public int RECORD_SIZE = PDOMCPPFunctionSpecialization.RECORD_SIZE + 8;
 
     public PDOMCPPFunctionInstance(PDOMCPPLinkage linkage, PDOMNode parent, ICPPFunction function, PDOMBinding orig) throws CoreException {
         super(linkage, parent, function, orig);

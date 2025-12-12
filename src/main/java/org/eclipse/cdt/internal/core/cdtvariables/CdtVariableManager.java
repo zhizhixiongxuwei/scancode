@@ -1,21 +1,22 @@
-/*******************************************************************************
- * Copyright (c) 2005, 2011 Intel Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2005, 2011 Intel Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- * Intel Corporation - Initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *  Intel Corporation - Initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.cdtvariables;
 
 import java.util.Arrays;
 import java.util.Objects;
-
 import org.eclipse.cdt.core.cdtvariables.CdtVariableException;
 import org.eclipse.cdt.core.cdtvariables.ICdtVariable;
 import org.eclipse.cdt.core.cdtvariables.ICdtVariableManager;
@@ -34,207 +35,191 @@ import org.eclipse.core.variables.IStringVariable;
  * @since 3.0
  */
 public class CdtVariableManager implements ICdtVariableManager {
-	static private CdtVariableManager fDefault;
 
-	public static final UserDefinedVariableSupplier fUserDefinedMacroSupplier = UserDefinedVariableSupplier
-			.getInstance();
-	public static final BuildSystemVariableSupplier fBuildSystemVariableSupplier = BuildSystemVariableSupplier
-			.getInstance();
-	public static final EnvironmentVariableSupplier fEnvironmentMacroSupplier = EnvironmentVariableSupplier
-			.getInstance();
-	public static final CdtMacroSupplier fCdtMacroSupplier = CdtMacroSupplier.getInstance();
-	public static final EclipseVariablesVariableSupplier fEclipseVariablesMacroSupplier = EclipseVariablesVariableSupplier
-			.getInstance();
+    static public CdtVariableManager fDefault;
 
-	protected CdtVariableManager() {
+    public static final UserDefinedVariableSupplier fUserDefinedMacroSupplier = UserDefinedVariableSupplier.getInstance();
 
-	}
+    public static final BuildSystemVariableSupplier fBuildSystemVariableSupplier = BuildSystemVariableSupplier.getInstance();
 
-	public static CdtVariableManager getDefault() {
-		if (fDefault == null)
-			fDefault = new CdtVariableManager();
-		return fDefault;
-	}
+    public static final EnvironmentVariableSupplier fEnvironmentMacroSupplier = EnvironmentVariableSupplier.getInstance();
 
-	@Override
-	public ICdtVariable getVariable(String macroName, ICConfigurationDescription cfg) {
-		if (cfg instanceof CConfigurationDescriptionCache) {
-			StorableCdtVariables macros = ((CConfigurationDescriptionCache) cfg).getCachedVariables();
-			if (macros != null)
-				return macros.getMacro(macroName);
-		}
-		int type = getContextType(cfg);
-		return SupplierBasedCdtVariableManager.getVariable(macroName, getMacroContextInfo(type, cfg), true);
-	}
+    public static final CdtMacroSupplier fCdtMacroSupplier = CdtMacroSupplier.getInstance();
 
-	private IVariableContextInfo getVariableContextInfo(ICConfigurationDescription cfg) {
-		int type = getContextType(cfg);
-		return getMacroContextInfo(type, cfg);
-	}
+    public static final EclipseVariablesVariableSupplier fEclipseVariablesMacroSupplier = EclipseVariablesVariableSupplier.getInstance();
 
-	@Override
-	public ICdtVariable[] getVariables(ICConfigurationDescription cfg) {
-		if (cfg instanceof CConfigurationDescriptionCache) {
-			StorableCdtVariables macros = ((CConfigurationDescriptionCache) cfg).getCachedVariables();
-			if (macros != null)
-				return macros.getMacros();
-		}
-		int type = getContextType(cfg);
-		return SupplierBasedCdtVariableManager.getVariables(getMacroContextInfo(type, cfg), true);
-	}
+    protected CdtVariableManager() {
+    }
 
-	public ICdtVariableSupplier[] getSuppliers(int contextType, Object contextData) {
-		IVariableContextInfo info = getMacroContextInfo(contextType, contextData);
-		if (info != null)
-			return info.getSuppliers();
-		return null;
-	}
+    public static CdtVariableManager getDefault() {
+        if (fDefault == null)
+            fDefault = new CdtVariableManager();
+        return fDefault;
+    }
 
-	public IVariableContextInfo getMacroContextInfo(int contextType, Object contextData) {
-		DefaultVariableContextInfo info = new DefaultVariableContextInfo(contextType, contextData);
-		if (info.getSuppliers() != null)
-			return info;
-		return null;
-	}
+    @Override
+    public ICdtVariable getVariable(String macroName, ICConfigurationDescription cfg) {
+        if (cfg instanceof CConfigurationDescriptionCache) {
+            StorableCdtVariables macros = ((CConfigurationDescriptionCache) cfg).getCachedVariables();
+            if (macros != null)
+                return macros.getMacro(macroName);
+        }
+        int type = getContextType(cfg);
+        return SupplierBasedCdtVariableManager.getVariable(macroName, getMacroContextInfo(type, cfg), true);
+    }
 
-	@Override
-	public String convertStringListToString(String[] value, String listDelimiter) {
-		return CdtVariableResolver.convertStringListToString(value, listDelimiter);
-	}
+    private IVariableContextInfo getVariableContextInfo(ICConfigurationDescription cfg) {
+        int type = getContextType(cfg);
+        return getMacroContextInfo(type, cfg);
+    }
 
-	@Override
-	public String resolveValue(String value, String nonexistentMacrosValue, String listDelimiter,
-			ICConfigurationDescription cfg) throws CdtVariableException {
+    @Override
+    public ICdtVariable[] getVariables(ICConfigurationDescription cfg) {
+        if (cfg instanceof CConfigurationDescriptionCache) {
+            StorableCdtVariables macros = ((CConfigurationDescriptionCache) cfg).getCachedVariables();
+            if (macros != null)
+                return macros.getMacros();
+        }
+        int type = getContextType(cfg);
+        return SupplierBasedCdtVariableManager.getVariables(getMacroContextInfo(type, cfg), true);
+    }
 
-		IVariableContextInfo info = getMacroContextInfo(getContextType(cfg), cfg);
-		if (info != null)
-			return CdtVariableResolver.resolveToString(value,
-					getMacroSubstitutor(info, nonexistentMacrosValue, listDelimiter));
-		return null;
-	}
+    public ICdtVariableSupplier[] getSuppliers(int contextType, Object contextData) {
+        IVariableContextInfo info = getMacroContextInfo(contextType, contextData);
+        if (info != null)
+            return info.getSuppliers();
+        return null;
+    }
 
-	@Override
-	public String[] resolveStringListValue(String value, String nonexistentMacrosValue, String listDelimiter,
-			ICConfigurationDescription cfg) throws CdtVariableException {
+    public IVariableContextInfo getMacroContextInfo(int contextType, Object contextData) {
+        DefaultVariableContextInfo info = new DefaultVariableContextInfo(contextType, contextData);
+        if (info.getSuppliers() != null)
+            return info;
+        return null;
+    }
 
-		IVariableContextInfo info = getMacroContextInfo(getContextType(cfg), cfg);
-		if (info != null)
-			return CdtVariableResolver.resolveToStringList(value,
-					getMacroSubstitutor(info, nonexistentMacrosValue, listDelimiter));
-		return null;
-	}
+    @Override
+    public String convertStringListToString(String[] value, String listDelimiter) {
+        return CdtVariableResolver.convertStringListToString(value, listDelimiter);
+    }
 
-	@Override
-	public boolean isStringListValue(String value, ICConfigurationDescription cfg) throws CdtVariableException {
-		try {
-			CdtVariableResolver.resolveToStringList(value,
-					getMacroSubstitutor(getMacroContextInfo(getContextType(cfg), cfg), " ", null)); //$NON-NLS-1$
-		} catch (CdtVariableException e) {
-			return false;
-		}
-		return true;
+    @Override
+    public String resolveValue(String value, String nonexistentMacrosValue, String listDelimiter, ICConfigurationDescription cfg) throws CdtVariableException {
+        IVariableContextInfo info = getMacroContextInfo(getContextType(cfg), cfg);
+        if (info != null)
+            return CdtVariableResolver.resolveToString(value, getMacroSubstitutor(info, nonexistentMacrosValue, listDelimiter));
+        return null;
+    }
 
-	}
+    @Override
+    public String[] resolveStringListValue(String value, String nonexistentMacrosValue, String listDelimiter, ICConfigurationDescription cfg) throws CdtVariableException {
+        IVariableContextInfo info = getMacroContextInfo(getContextType(cfg), cfg);
+        if (info != null)
+            return CdtVariableResolver.resolveToStringList(value, getMacroSubstitutor(info, nonexistentMacrosValue, listDelimiter));
+        return null;
+    }
 
-	@Override
-	public void checkVariableIntegrity(ICConfigurationDescription cfg) throws CdtVariableException {
+    @Override
+    public boolean isStringListValue(String value, ICConfigurationDescription cfg) throws CdtVariableException {
+        try {
+            CdtVariableResolver.resolveToStringList(value, //$NON-NLS-1$
+            getMacroSubstitutor(getMacroContextInfo(getContextType(cfg), cfg), " ", null));
+        } catch (CdtVariableException e) {
+            return false;
+        }
+        return true;
+    }
 
-		int type = getContextType(cfg);
-		IVariableContextInfo info = getMacroContextInfo(type, cfg);
-		IVariableSubstitutor subst = new CoreVariableSubstitutor(info, null, "") { //$NON-NLS-1$
-			@Override
-			protected ResolvedMacro resolveMacro(ICdtVariable macro) throws CdtVariableException {
-				if (macro instanceof EclipseVariablesVariableSupplier.EclipseVarMacro)
-					return new ResolvedMacro(macro.getName(), ""); //$NON-NLS-1$
-				return super.resolveMacro(macro);
-			}
-		};
-		if (info != null)
-			CdtVariableResolver.checkIntegrity(info, subst);
-	}
+    @Override
+    public void checkVariableIntegrity(ICConfigurationDescription cfg) throws CdtVariableException {
+        int type = getContextType(cfg);
+        IVariableContextInfo info = getMacroContextInfo(type, cfg);
+        IVariableSubstitutor subst = new //$NON-NLS-1$
+        CoreVariableSubstitutor(//$NON-NLS-1$
+        info, //$NON-NLS-1$
+        null, //$NON-NLS-1$
+        "") {
 
-	private int getContextType(ICConfigurationDescription des) {
-		if (des != null)
-			return ICoreVariableContextInfo.CONTEXT_CONFIGURATION;
-		return ICoreVariableContextInfo.CONTEXT_WORKSPACE;
-	}
+            @Override
+            protected ResolvedMacro resolveMacro(ICdtVariable macro) throws CdtVariableException {
+                if (macro instanceof EclipseVariablesVariableSupplier.EclipseVarMacro)
+                    //$NON-NLS-1$
+                    return new ResolvedMacro(macro.getName(), "");
+                return super.resolveMacro(macro);
+            }
+        };
+        if (info != null)
+            CdtVariableResolver.checkIntegrity(info, subst);
+    }
 
-	public IVariableSubstitutor getMacroSubstitutor(IVariableContextInfo info, String inexistentMacroValue,
-			String listDelimiter) {
-		return new CoreVariableSubstitutor(info, inexistentMacroValue, listDelimiter);
-	}
+    private int getContextType(ICConfigurationDescription des) {
+        if (des != null)
+            return ICoreVariableContextInfo.CONTEXT_CONFIGURATION;
+        return ICoreVariableContextInfo.CONTEXT_WORKSPACE;
+    }
 
-	@Override
-	public String[] resolveStringListValues(String[] value, String nonexistentMacrosValue, String listDelimiter,
-			ICConfigurationDescription cfg) throws CdtVariableException {
-		IVariableContextInfo info = getMacroContextInfo(getContextType(cfg), cfg);
-		if (info != null)
-			return CdtVariableResolver.resolveStringListValues(value,
-					getMacroSubstitutor(info, nonexistentMacrosValue, listDelimiter), true);
-		return null;
-	}
+    public IVariableSubstitutor getMacroSubstitutor(IVariableContextInfo info, String inexistentMacroValue, String listDelimiter) {
+        return new CoreVariableSubstitutor(info, inexistentMacroValue, listDelimiter);
+    }
 
-	@Override
-	public boolean isEnvironmentVariable(ICdtVariable variable, ICConfigurationDescription cfg) {
-		if (variable instanceof EnvironmentVariableSupplier.EnvVarMacro)
-			return true;
+    @Override
+    public String[] resolveStringListValues(String[] value, String nonexistentMacrosValue, String listDelimiter, ICConfigurationDescription cfg) throws CdtVariableException {
+        IVariableContextInfo info = getMacroContextInfo(getContextType(cfg), cfg);
+        if (info != null)
+            return CdtVariableResolver.resolveStringListValues(value, getMacroSubstitutor(info, nonexistentMacrosValue, listDelimiter), true);
+        return null;
+    }
 
-		IVariableContextInfo info = getVariableContextInfo(cfg);
-		ICdtVariable var = fEnvironmentMacroSupplier.getVariable(variable.getName(), info);
-		if (var != null && variablesEqual(var, variable))
-			return true;
+    @Override
+    public boolean isEnvironmentVariable(ICdtVariable variable, ICConfigurationDescription cfg) {
+        if (variable instanceof EnvironmentVariableSupplier.EnvVarMacro)
+            return true;
+        IVariableContextInfo info = getVariableContextInfo(cfg);
+        ICdtVariable var = fEnvironmentMacroSupplier.getVariable(variable.getName(), info);
+        if (var != null && variablesEqual(var, variable))
+            return true;
+        return false;
+    }
 
-		return false;
-	}
+    private static boolean variablesEqual(ICdtVariable var1, ICdtVariable var2) {
+        if (Objects.equals(var1, var2))
+            return true;
+        if (var1 == null || var2 == null)
+            return false;
+        if (var1.getValueType() != var2.getValueType())
+            return false;
+        if (!var1.getName().equals(var2.getName()))
+            return false;
+        try {
+            if (CdtVariableResolver.isStringListVariable(var1.getValueType())) {
+                String[] v1 = var1.getStringListValue();
+                String[] v2 = var2.getStringListValue();
+                if (!Arrays.equals(v1, v2))
+                    return false;
+            } else {
+                if (!Objects.equals(var1.getStringValue(), var2.getStringValue()))
+                    return false;
+            }
+        } catch (CdtVariableException e) {
+            return false;
+        }
+        return true;
+    }
 
-	private static boolean variablesEqual(ICdtVariable var1, ICdtVariable var2) {
-		if (Objects.equals(var1, var2))
-			return true;
+    @Override
+    public IStringVariable toEclipseVariable(ICdtVariable variable, ICConfigurationDescription cfg) {
+        if (variable instanceof EclipseVariablesVariableSupplier.EclipseVarMacro) {
+            return ((EclipseVarMacro) variable).getVariable();
+        }
+        return null;
+    }
 
-		if (var1 == null || var2 == null)
-			return false;
-
-		if (var1.getValueType() != var2.getValueType())
-			return false;
-
-		if (!var1.getName().equals(var2.getName()))
-			return false;
-
-		try {
-			if (CdtVariableResolver.isStringListVariable(var1.getValueType())) {
-				String[] v1 = var1.getStringListValue();
-				String[] v2 = var2.getStringListValue();
-				if (!Arrays.equals(v1, v2))
-					return false;
-			} else {
-				if (!Objects.equals(var1.getStringValue(), var2.getStringValue()))
-					return false;
-			}
-		} catch (CdtVariableException e) {
-			return false;
-		}
-
-		return true;
-	}
-
-	@Override
-	public IStringVariable toEclipseVariable(ICdtVariable variable, ICConfigurationDescription cfg) {
-		if (variable instanceof EclipseVariablesVariableSupplier.EclipseVarMacro) {
-			return ((EclipseVarMacro) variable).getVariable();
-		}
-		return null;
-	}
-
-	@Override
-	public boolean isUserVariable(ICdtVariable variable, ICConfigurationDescription cfg) {
-		if (!(variable instanceof StorableCdtVariable))
-			return false;
-
-		if (cfg != null)
-			return UserDefinedVariableSupplier.getInstance()
-					.containsVariable(ICoreVariableContextInfo.CONTEXT_CONFIGURATION, cfg, variable);
-
-		return UserDefinedVariableSupplier.getInstance().containsVariable(ICoreVariableContextInfo.CONTEXT_WORKSPACE,
-				null, variable);
-	}
+    @Override
+    public boolean isUserVariable(ICdtVariable variable, ICConfigurationDescription cfg) {
+        if (!(variable instanceof StorableCdtVariable))
+            return false;
+        if (cfg != null)
+            return UserDefinedVariableSupplier.getInstance().containsVariable(ICoreVariableContextInfo.CONTEXT_CONFIGURATION, cfg, variable);
+        return UserDefinedVariableSupplier.getInstance().containsVariable(ICoreVariableContextInfo.CONTEXT_WORKSPACE, null, variable);
+    }
 }

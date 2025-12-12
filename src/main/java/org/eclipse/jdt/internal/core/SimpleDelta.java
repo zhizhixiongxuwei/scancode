@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2000, 2009 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *      IBM Corporation - initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.jdt.internal.core;
 
 import org.eclipse.jdt.core.IJavaElementDelta;
@@ -20,109 +22,116 @@ import org.eclipse.jdt.core.IJavaElementDelta;
  */
 public class SimpleDelta {
 
-	/*
+    /*
 	 * @see IJavaElementDelta#getKind()
 	 */
-	protected int kind = 0;
+    public int kind = 0;
 
-	/*
+    /*
 	 * @see IJavaElementDelta#getFlags()
 	 */
-	protected int changeFlags = 0;
+    public int changeFlags = 0;
 
-	/*
+    /*
 	 * Marks this delta as added
 	 */
-	public void added() {
-		this.kind = IJavaElementDelta.ADDED;
-	}
+    public void added() {
+        this.kind = IJavaElementDelta.ADDED;
+    }
 
-	/*
+    /*
 	 * Marks this delta as changed with the given change flag
 	 */
-	public void changed(int flags) {
-		this.kind = IJavaElementDelta.CHANGED;
-		this.changeFlags |= flags;
-	}
+    public void changed(int flags) {
+        this.kind = IJavaElementDelta.CHANGED;
+        this.changeFlags |= flags;
+    }
 
-	/*
+    /*
 	 * @see IJavaElementDelta#getFlags()
 	 */
-	public int getFlags() {
-		return this.changeFlags;
-	}
+    public int getFlags() {
+        return this.changeFlags;
+    }
 
-	/*
+    /*
 	 * @see IJavaElementDelta#getKind()
 	 */
-	public int getKind() {
-		return this.kind;
-	}
+    public int getKind() {
+        return this.kind;
+    }
 
-	/*
+    /*
 	 * Mark this delta has a having a modifiers change
 	 */
-	public void modifiers() {
-		changed(IJavaElementDelta.F_MODIFIERS);
-	}
+    public void modifiers() {
+        changed(IJavaElementDelta.F_MODIFIERS);
+    }
 
-	/*
+    /*
 	 * Marks this delta as removed
 	 */
-	public void removed() {
-		this.kind = IJavaElementDelta.REMOVED;
-		this.changeFlags = 0;
-	}
+    public void removed() {
+        this.kind = IJavaElementDelta.REMOVED;
+        this.changeFlags = 0;
+    }
 
-	/*
+    /*
 	 * Mark this delta has a having a super type change
 	 */
-	public void superTypes() {
-		changed(IJavaElementDelta.F_SUPER_TYPES);
-	}
+    public void superTypes() {
+        changed(IJavaElementDelta.F_SUPER_TYPES);
+    }
 
-	protected void toDebugString(StringBuilder buffer) {
-		buffer.append("["); //$NON-NLS-1$
-		switch (getKind()) {
-			case IJavaElementDelta.ADDED :
-				buffer.append('+');
-				break;
-			case IJavaElementDelta.REMOVED :
-				buffer.append('-');
-				break;
-			case IJavaElementDelta.CHANGED :
-				buffer.append('*');
-				break;
-			default :
-				buffer.append('?');
-				break;
-		}
-		buffer.append("]: {"); //$NON-NLS-1$
-		toDebugString(buffer, getFlags());
-		buffer.append("}"); //$NON-NLS-1$
-	}
+    protected void toDebugString(StringBuilder buffer) {
+        //$NON-NLS-1$
+        buffer.append("[");
+        switch(getKind()) {
+            case IJavaElementDelta.ADDED:
+                buffer.append('+');
+                break;
+            case IJavaElementDelta.REMOVED:
+                buffer.append('-');
+                break;
+            case IJavaElementDelta.CHANGED:
+                buffer.append('*');
+                break;
+            default:
+                buffer.append('?');
+                break;
+        }
+        //$NON-NLS-1$
+        buffer.append("]: {");
+        toDebugString(buffer, getFlags());
+        //$NON-NLS-1$
+        buffer.append("}");
+    }
 
-	protected boolean toDebugString(StringBuilder buffer, int flags) {
-		boolean prev = false;
-		if ((flags & IJavaElementDelta.F_MODIFIERS) != 0) {
-			if (prev)
-				buffer.append(" | "); //$NON-NLS-1$
-			buffer.append("MODIFIERS CHANGED"); //$NON-NLS-1$
-			prev = true;
-		}
-		if ((flags & IJavaElementDelta.F_SUPER_TYPES) != 0) {
-			if (prev)
-				buffer.append(" | "); //$NON-NLS-1$
-			buffer.append("SUPER TYPES CHANGED"); //$NON-NLS-1$
-			prev = true;
-		}
-		return prev;
-	}
+    protected boolean toDebugString(StringBuilder buffer, int flags) {
+        boolean prev = false;
+        if ((flags & IJavaElementDelta.F_MODIFIERS) != 0) {
+            if (prev)
+                //$NON-NLS-1$
+                buffer.append(" | ");
+            //$NON-NLS-1$
+            buffer.append("MODIFIERS CHANGED");
+            prev = true;
+        }
+        if ((flags & IJavaElementDelta.F_SUPER_TYPES) != 0) {
+            if (prev)
+                //$NON-NLS-1$
+                buffer.append(" | ");
+            //$NON-NLS-1$
+            buffer.append("SUPER TYPES CHANGED");
+            prev = true;
+        }
+        return prev;
+    }
 
-	@Override
-	public String toString() {
-		StringBuilder buffer = new StringBuilder();
-		toDebugString(buffer);
-		return buffer.toString();
-	}
+    @Override
+    public String toString() {
+        StringBuilder buffer = new StringBuilder();
+        toDebugString(buffer);
+        return buffer.toString();
+    }
 }

@@ -47,17 +47,17 @@ import org.eclipse.core.runtime.CoreException;
  */
 public class PDOMCEnumeration extends PDOMBinding implements IEnumeration, IIndexType, IPDOMMemberOwner {
 
-    private static final int OFFSET_ENUMERATOR_LIST = PDOMBinding.RECORD_SIZE;
+    static final public int OFFSET_ENUMERATOR_LIST = PDOMBinding.RECORD_SIZE;
 
-    private static final int OFFSET_MIN_VALUE = OFFSET_ENUMERATOR_LIST + Database.PTR_SIZE;
+    static final public int OFFSET_MIN_VALUE = OFFSET_ENUMERATOR_LIST + Database.PTR_SIZE;
 
-    private static final int OFFSET_MAX_VALUE = OFFSET_MIN_VALUE + 8;
+    static final public int OFFSET_MAX_VALUE = OFFSET_MIN_VALUE + 8;
 
     @SuppressWarnings("hiding")
-    protected static final int RECORD_SIZE = OFFSET_MAX_VALUE + 8;
+    static final public int RECORD_SIZE = OFFSET_MAX_VALUE + 8;
 
     // No need for volatile, all fields of Long are final.
-    private Long fMinValue;
+    public Long fMinValue;
 
     // No need for volatile, all fields of Long are final.
     private Long fMaxValue;

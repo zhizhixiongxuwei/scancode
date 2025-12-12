@@ -38,15 +38,15 @@ import org.eclipse.jdt.internal.core.search.matching.MatchLocator.WrappedCoreExc
 public class MemberDeclarationVisitor extends ASTVisitor {
 
     // Matches information
-    private final MatchLocator locator;
+    final public MatchLocator locator;
 
-    private final IJavaElement enclosingElement;
+    final public IJavaElement enclosingElement;
 
-    private final MatchingNodeSet nodeSet;
+    final public MatchingNodeSet nodeSet;
 
-    private final ASTNode[] matchingNodes;
+    final public ASTNode[] matchingNodes;
 
-    private final ASTNode matchingNode;
+    final public ASTNode matchingNode;
 
     // Local type storage
     HashtableOfIntValues occurrencesCounts;

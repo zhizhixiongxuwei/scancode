@@ -79,9 +79,9 @@ final public class TypeConflictingSimpleNameFinder implements ConflictingSimpleN
         return arrayOfArrays;
     }
 
-    private final IJavaProject javaProject;
+    final public IJavaProject javaProject;
 
-    private final SearchEngine searchEngine;
+    final public SearchEngine searchEngine;
 
     TypeConflictingSimpleNameFinder(IJavaProject javaProject, SearchEngine searchEngine) {
         this.javaProject = javaProject;

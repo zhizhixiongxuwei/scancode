@@ -46,13 +46,13 @@ import org.eclipse.jdt.internal.core.search.processing.JobManager;
 
 public class AddJarFileToIndex extends BinaryContainer {
 
-    private static final char JAR_SEPARATOR = IJavaSearchScope.JAR_FILE_ENTRY_SEPARATOR.charAt(0);
+    static final public char JAR_SEPARATOR = IJavaSearchScope.JAR_FILE_ENTRY_SEPARATOR.charAt(0);
 
-    IFile resource;
+    public IFile resource;
 
-    private IndexLocation indexFileURL;
+    public IndexLocation indexFileURL;
 
-    private final boolean forceIndexUpdate;
+    final public boolean forceIndexUpdate;
 
     public AddJarFileToIndex(IFile resource, IndexLocation indexFile, IndexManager manager) {
         this(resource, indexFile, manager, false);
@@ -224,10 +224,10 @@ public class AddJarFileToIndex extends BinaryContainer {
                         }
                         if (!needToReindex) {
                             if (JobManager.VERBOSE)
+                                //$NON-NLS-1$
                                 trace(//$NON-NLS-1$
-                                "-> no indexing required (index is consistent with library) for " + zip.getName() + //$NON-NLS-1$
-                                " (" + (System.currentTimeMillis() - initialTime) + //$NON-NLS-1$
-                                "ms)");
+                                "-> no indexing required (index is consistent with library) for " + zip.getName() + " (" + //$NON-NLS-1$
+                                (System.currentTimeMillis() - initialTime) + "ms)");
                             // to ensure its placed into the saved state
                             this.manager.saveIndex(index);
                             return true;
@@ -290,10 +290,10 @@ public class AddJarFileToIndex extends BinaryContainer {
                     this.manager.saveIndex(index);
                 }
                 if (JobManager.VERBOSE)
+                    //$NON-NLS-1$
                     trace(//$NON-NLS-1$
-                    "-> done indexing of " + zip.getName() + //$NON-NLS-1$
-                    " (" + (System.currentTimeMillis() - initialTime) + //$NON-NLS-1$
-                    "ms)");
+                    "-> done indexing of " + zip.getName() + " (" + //$NON-NLS-1$
+                    (System.currentTimeMillis() - initialTime) + "ms)");
             } finally {
                 if (zip != null) {
                     if (JavaModelManager.ZIP_ACCESS_VERBOSE) {

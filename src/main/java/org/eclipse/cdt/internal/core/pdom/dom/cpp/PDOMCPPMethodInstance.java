@@ -34,7 +34,7 @@ public class PDOMCPPMethodInstance extends PDOMCPPFunctionInstance implements IC
      * The size in bytes of a PDOMCPPMethodInstance record in the database.
      */
     @SuppressWarnings("hiding")
-    protected static final int RECORD_SIZE = PDOMCPPFunctionInstance.RECORD_SIZE + 0;
+    static final public int RECORD_SIZE = PDOMCPPFunctionInstance.RECORD_SIZE + 0;
 
     public PDOMCPPMethodInstance(PDOMCPPLinkage linkage, PDOMNode parent, ICPPMethod method, PDOMBinding instantiated) throws CoreException {
         super(linkage, parent, method, instantiated);

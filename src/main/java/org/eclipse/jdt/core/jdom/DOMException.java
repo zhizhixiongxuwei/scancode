@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2000, 2009 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *      IBM Corporation - initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.jdt.core.jdom;
 
 /**
@@ -25,19 +27,22 @@ package org.eclipse.jdt.core.jdom;
  */
 public class DOMException extends RuntimeException {
 
-	private static final long serialVersionUID = 2536853590795032028L; // backward compatible
-/**
- * Creates a new exception with no detail message.
- */
-public DOMException() {
-	// just create a new DOMException with no detail message
-}
-/**
- * Creates a new exception with the given detail message.
- *
- * @param message the detail message
- */
-public DOMException(String message) {
-	super(message);
-}
+    // backward compatible
+    static final public long serialVersionUID = 2536853590795032028L;
+
+    /**
+     * Creates a new exception with no detail message.
+     */
+    public DOMException() {
+        // just create a new DOMException with no detail message
+    }
+
+    /**
+     * Creates a new exception with the given detail message.
+     *
+     * @param message the detail message
+     */
+    public DOMException(String message) {
+        super(message);
+    }
 }

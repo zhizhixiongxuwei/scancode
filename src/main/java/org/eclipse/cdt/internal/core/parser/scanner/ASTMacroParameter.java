@@ -5,7 +5,7 @@ import org.eclipse.cdt.core.dom.ast.IASTPreprocessorFunctionStyleMacroDefinition
 
 public class ASTMacroParameter extends ASTPreprocessorNode implements IASTFunctionStyleMacroParameter {
 
-    private final String fParameter;
+    final public String fParameter;
 
     public ASTMacroParameter(IASTPreprocessorFunctionStyleMacroDefinition parent, char[] param, int offset, int endOffset) {
         super(parent, IASTPreprocessorFunctionStyleMacroDefinition.PARAMETER, offset, endOffset);

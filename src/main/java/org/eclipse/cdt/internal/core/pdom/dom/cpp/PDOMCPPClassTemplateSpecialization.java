@@ -48,12 +48,12 @@ import org.eclipse.core.runtime.CoreException;
  */
 public class PDOMCPPClassTemplateSpecialization extends PDOMCPPClassSpecialization implements ICPPClassTemplate, ICPPInstanceCache {
 
-    private static final int TEMPLATE_PARAMS = PDOMCPPClassSpecialization.RECORD_SIZE;
+    static final public int TEMPLATE_PARAMS = PDOMCPPClassSpecialization.RECORD_SIZE;
 
     @SuppressWarnings("hiding")
-    protected static final int RECORD_SIZE = TEMPLATE_PARAMS + Database.PTR_SIZE;
+    static final public int RECORD_SIZE = TEMPLATE_PARAMS + Database.PTR_SIZE;
 
-    private volatile IPDOMCPPTemplateParameter[] fTemplateParameters;
+    volatile public IPDOMCPPTemplateParameter[] fTemplateParameters;
 
     public PDOMCPPClassTemplateSpecialization(PDOMCPPLinkage linkage, PDOMNode parent, ICPPClassTemplate template, PDOMBinding specialized) throws CoreException {
         super(linkage, parent, template, specialized);

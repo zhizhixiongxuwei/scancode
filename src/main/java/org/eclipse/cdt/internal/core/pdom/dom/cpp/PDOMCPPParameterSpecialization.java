@@ -38,16 +38,16 @@ import org.eclipse.core.runtime.CoreException;
  */
 public class PDOMCPPParameterSpecialization extends PDOMCPPSpecialization implements ICPPParameter {
 
-    private static final int NEXT_PARAM = PDOMCPPSpecialization.RECORD_SIZE;
+    static final public int NEXT_PARAM = PDOMCPPSpecialization.RECORD_SIZE;
 
-    private static final int DEFAULT_VALUE = NEXT_PARAM + Database.PTR_SIZE;
+    static final public int DEFAULT_VALUE = NEXT_PARAM + Database.PTR_SIZE;
 
     @SuppressWarnings("hiding")
-    private static final int RECORD_SIZE = DEFAULT_VALUE + Database.VALUE_SIZE;
+    static final public int RECORD_SIZE = DEFAULT_VALUE + Database.VALUE_SIZE;
 
-    private final IType fType;
+    final public IType fType;
 
-    private volatile IValue fDefaultValue = IntegralValue.NOT_INITIALIZED;
+    volatile public IValue fDefaultValue = IntegralValue.NOT_INITIALIZED;
 
     public PDOMCPPParameterSpecialization(PDOMLinkage linkage, long record, IType t) {
         super(linkage, record);

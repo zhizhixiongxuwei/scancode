@@ -26,15 +26,15 @@ import org.eclipse.jdt.internal.compiler.util.Util;
  */
 public class RecoveredPackageBinding implements IPackageBinding {
 
-    private static final String[] NO_NAME_COMPONENTS = CharOperation.NO_STRINGS;
+    static final public String[] NO_NAME_COMPONENTS = CharOperation.NO_STRINGS;
 
-    private static final String UNNAMED = Util.EMPTY_STRING;
+    static final public String UNNAMED = Util.EMPTY_STRING;
 
-    private static final char PACKAGE_NAME_SEPARATOR = '.';
+    static final public char PACKAGE_NAME_SEPARATOR = '.';
 
-    private final PackageBinding binding;
+    final public PackageBinding binding;
 
-    private final BindingResolver resolver;
+    final public BindingResolver resolver;
 
     private String name = null;
 

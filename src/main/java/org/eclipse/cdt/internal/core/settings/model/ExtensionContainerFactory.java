@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2007, 2010 Intel Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2007, 2010 Intel Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- * Intel Corporation - Initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *  Intel Corporation - Initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.settings.model;
 
 import java.util.Arrays;
@@ -18,7 +20,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
 import org.eclipse.cdt.core.CCorePlugin;
 import org.eclipse.cdt.core.settings.model.CExternalSetting;
 import org.eclipse.cdt.core.settings.model.ICConfigurationDescription;
@@ -36,236 +37,237 @@ import org.eclipse.core.runtime.Platform;
  * Responsible for managing external settings providers contributed through the extension point
  */
 public class ExtensionContainerFactory extends CExternalSettingContainerFactoryWithListener {
-	static final String FACTORY_ID = CCorePlugin.PLUGIN_ID + ".extension.container.factory"; //$NON-NLS-1$
-	private static final String EXTENSION_ID = CCorePlugin.PLUGIN_ID + ".externalSettingsProvider"; //$NON-NLS-1$
 
-	private static ExtensionContainerFactory fInstance;
-	private Map<String, CExtensionSettingProviderDescriptor> fDescriptorMap;
+    //$NON-NLS-1$
+    static final public String FACTORY_ID = CCorePlugin.PLUGIN_ID + ".extension.container.factory";
 
-	private static class NullProvider extends CExternalSettingProvider {
-		private static final NullProvider INSTANCE = new NullProvider();
+    //$NON-NLS-1$
+    static final public String EXTENSION_ID = CCorePlugin.PLUGIN_ID + ".externalSettingsProvider";
 
-		@Override
-		public CExternalSetting[] getSettings(IProject project, ICConfigurationDescription cfg) {
-			return new CExternalSetting[0];
-		}
+    static public ExtensionContainerFactory fInstance;
 
-	}
+    public Map<String, CExtensionSettingProviderDescriptor> fDescriptorMap;
 
-	private static class CESContainer extends CExternalSettingsContainer {
-		private CExternalSetting[] fSettings;
+    private static class NullProvider extends CExternalSettingProvider {
 
-		CESContainer(CExternalSetting[] settings) {
-			fSettings = settings.clone();
-		}
+        private static final NullProvider INSTANCE = new NullProvider();
 
-		@Override
-		public CExternalSetting[] getExternalSettings() {
-			return fSettings.clone();
-		}
+        @Override
+        public CExternalSetting[] getSettings(IProject project, ICConfigurationDescription cfg) {
+            return new CExternalSetting[0];
+        }
+    }
 
-	}
+    private static class CESContainer extends CExternalSettingsContainer {
 
-	private static class CExtensionSettingProviderDescriptor {
-		private static final String PROVIDER = "provider"; //$NON-NLS-1$
-		private static final String CLASS = "class"; //$NON-NLS-1$
+        private CExternalSetting[] fSettings;
 
-		private IExtension fExtension;
-		private IConfigurationElement fProviderElement;
-		private String fId;
-		private String fName;
-		private CExternalSettingProvider fProvider;
+        CESContainer(CExternalSetting[] settings) {
+            fSettings = settings.clone();
+        }
 
-		CExtensionSettingProviderDescriptor(IExtension extension) {
-			fId = extension.getUniqueIdentifier();
-			fName = extension.getLabel();
-			fExtension = extension;
-		}
+        @Override
+        public CExternalSetting[] getExternalSettings() {
+            return fSettings.clone();
+        }
+    }
 
-		public String getId() {
-			return fId;
-		}
+    private static class CExtensionSettingProviderDescriptor {
 
-		@SuppressWarnings("unused")
-		public String getName() {
-			return fName;
-		}
+        //$NON-NLS-1$
+        private static final String PROVIDER = "provider";
 
-		private CExternalSettingProvider getProvider() {
-			if (fProvider == null) {
-				try {
-					fProvider = createProvider();
-				} catch (CoreException e) {
-					CCorePlugin.log(e);
-				}
-				if (fProvider == null) {
-					fProvider = NullProvider.INSTANCE;
-				}
-			}
-			return fProvider;
-		}
+        //$NON-NLS-1$
+        private static final String CLASS = "class";
 
-		CExternalSettingsContainer getContainer(IProject project, ICConfigurationDescription cfg,
-				CExternalSetting[] previousSettings) {
-			return new CESContainer(getProvider().getSettings(project, cfg, previousSettings));
-		}
+        private IExtension fExtension;
 
-		CExternalSettingProvider createProvider() throws CoreException {
-			IConfigurationElement el = getProviderElement();
-			if (el != null) {
-				Object obj = el.createExecutableExtension(CLASS);
-				if (obj instanceof CExternalSettingProvider) {
-					return (CExternalSettingProvider) obj;
-				} else
-					throw ExceptionFactory
-							.createCoreException(SettingsModelMessages.getString("ExtensionContainerFactory.4")); //$NON-NLS-1$
-			}
-			throw ExceptionFactory.createCoreException(SettingsModelMessages.getString("ExtensionContainerFactory.5")); //$NON-NLS-1$
-		}
+        private IConfigurationElement fProviderElement;
 
-		private IConfigurationElement getProviderElement() {
-			if (fProviderElement == null)
-				fProviderElement = getProviderElement(fExtension);
-			return fProviderElement;
-		}
+        private String fId;
 
-		private static IConfigurationElement getProviderElement(IExtension ext) {
-			IConfigurationElement els[] = ext.getConfigurationElements();
-			for (IConfigurationElement el : els) {
-				String name = el.getName();
-				if (PROVIDER.equals(name))
-					return el;
-			}
-			return null;
-		}
-	}
+        private String fName;
 
-	private Map<String, CExtensionSettingProviderDescriptor> getProviderDescriptorMap() {
-		if (fDescriptorMap == null) {
-			initProviderInfoSynch();
-		}
-		return fDescriptorMap;
-	}
+        private CExternalSettingProvider fProvider;
 
-	private synchronized void initProviderInfoSynch() {
-		if (fDescriptorMap != null)
-			return;
+        CExtensionSettingProviderDescriptor(IExtension extension) {
+            fId = extension.getUniqueIdentifier();
+            fName = extension.getLabel();
+            fExtension = extension;
+        }
 
-		IExtensionPoint extensionPoint = Platform.getExtensionRegistry().getExtensionPoint(EXTENSION_ID);
-		IExtension exts[] = extensionPoint.getExtensions();
-		fDescriptorMap = new HashMap<>();
+        public String getId() {
+            return fId;
+        }
 
-		for (IExtension ext : exts) {
-			CExtensionSettingProviderDescriptor dr = new CExtensionSettingProviderDescriptor(ext);
-			fDescriptorMap.put(dr.getId(), dr);
-		}
-	}
+        @SuppressWarnings("unused")
+        public String getName() {
+            return fName;
+        }
 
-	private ExtensionContainerFactory() {
-	}
+        private CExternalSettingProvider getProvider() {
+            if (fProvider == null) {
+                try {
+                    fProvider = createProvider();
+                } catch (CoreException e) {
+                    CCorePlugin.log(e);
+                }
+                if (fProvider == null) {
+                    fProvider = NullProvider.INSTANCE;
+                }
+            }
+            return fProvider;
+        }
 
-	public static ExtensionContainerFactory getInstance() {
-		if (fInstance == null) {
-			fInstance = new ExtensionContainerFactory();
-		}
-		return fInstance;
-	}
+        CExternalSettingsContainer getContainer(IProject project, ICConfigurationDescription cfg, CExternalSetting[] previousSettings) {
+            return new CESContainer(getProvider().getSettings(project, cfg, previousSettings));
+        }
 
-	public static ExtensionContainerFactory getInstanceInitialized() {
-		CExternalSettingContainerFactory f = CExternalSettingsManager.getInstance().getFactory(FACTORY_ID);
-		if (f instanceof ExtensionContainerFactory)
-			return (ExtensionContainerFactory) f;
-		return getInstance();
-	}
+        CExternalSettingProvider createProvider() throws CoreException {
+            IConfigurationElement el = getProviderElement();
+            if (el != null) {
+                Object obj = el.createExecutableExtension(CLASS);
+                if (obj instanceof CExternalSettingProvider) {
+                    return (CExternalSettingProvider) obj;
+                } else
+                    throw ExceptionFactory.createCoreException(//$NON-NLS-1$
+                    SettingsModelMessages.getString("ExtensionContainerFactory.4"));
+            }
+            //$NON-NLS-1$
+            throw ExceptionFactory.createCoreException(SettingsModelMessages.getString("ExtensionContainerFactory.5"));
+        }
 
-	@Override
-	public CExternalSettingsContainer createContainer(String id, IProject project, ICConfigurationDescription cfgDes,
-			CExternalSetting[] previousSettings) throws CoreException {
-		CExtensionSettingProviderDescriptor dr = getProviderDescriptorMap().get(id);
-		if (dr != null)
-			return dr.getContainer(project, cfgDes, previousSettings);
-		// Notify the manager that there's no external settings manager matching id.
-		throw new CoreException(
-				CCorePlugin.createStatus("External settings provider: \"" + id + "\" couldn't be found for " + //$NON-NLS-1$//$NON-NLS-2$
-						cfgDes.getProjectDescription().getProject() + ":" + cfgDes.getName())); //$NON-NLS-1$
-	}
+        private IConfigurationElement getProviderElement() {
+            if (fProviderElement == null)
+                fProviderElement = getProviderElement(fExtension);
+            return fProviderElement;
+        }
 
-	public static String[] getReferencedProviderIds(ICConfigurationDescription cfg) {
-		CContainerRef[] refs = CExternalSettingsManager.getInstance().getReferences(cfg, FACTORY_ID);
-		String[] ids = new String[refs.length];
-		for (int i = 0; i < refs.length; i++) {
-			ids[i] = refs[i].getContainerId();
-		}
-		return ids;
-	}
+        private static IConfigurationElement getProviderElement(IExtension ext) {
+            IConfigurationElement[] els = ext.getConfigurationElements();
+            for (IConfigurationElement el : els) {
+                String name = el.getName();
+                if (PROVIDER.equals(name))
+                    return el;
+            }
+            return null;
+        }
+    }
 
-	public static void setReferencedProviderIds(ICConfigurationDescription cfg, String ids[]) {
-		Set<String> newIdsSet = new HashSet<>(Arrays.asList(ids));
-		Set<String> oldIdsSet = new HashSet<>(Arrays.asList(getReferencedProviderIds(cfg)));
-		Set<String> newIdsSetCopy = new HashSet<>(newIdsSet);
-		newIdsSet.removeAll(oldIdsSet);
-		oldIdsSet.removeAll(newIdsSetCopy);
+    private Map<String, CExtensionSettingProviderDescriptor> getProviderDescriptorMap() {
+        if (fDescriptorMap == null) {
+            initProviderInfoSynch();
+        }
+        return fDescriptorMap;
+    }
 
-		if (oldIdsSet.size() != 0) {
-			for (String string : oldIdsSet) {
-				removeReference(cfg, string);
-			}
-		}
+    private synchronized void initProviderInfoSynch() {
+        if (fDescriptorMap != null)
+            return;
+        IExtensionPoint extensionPoint = Platform.getExtensionRegistry().getExtensionPoint(EXTENSION_ID);
+        IExtension[] exts = extensionPoint.getExtensions();
+        fDescriptorMap = new HashMap<>();
+        for (IExtension ext : exts) {
+            CExtensionSettingProviderDescriptor dr = new CExtensionSettingProviderDescriptor(ext);
+            fDescriptorMap.put(dr.getId(), dr);
+        }
+    }
 
-		if (newIdsSet.size() != 0) {
-			for (String string : newIdsSet) {
-				createReference(cfg, string);
-			}
-		}
-	}
+    private ExtensionContainerFactory() {
+    }
 
-	public static void updateReferencedProviderIds(String ids[], IProgressMonitor monitor) {
-		ExtensionContainerFactory instance = getInstanceInitialized();
-		CExternalSettingsContainerChangeInfo[] changeInfos = new CExternalSettingsContainerChangeInfo[ids.length];
+    public static ExtensionContainerFactory getInstance() {
+        if (fInstance == null) {
+            fInstance = new ExtensionContainerFactory();
+        }
+        return fInstance;
+    }
 
-		for (int i = 0; i < changeInfos.length; i++) {
-			changeInfos[i] = new CExternalSettingsContainerChangeInfo(
-					CExternalSettingsContainerChangeInfo.CONTAINER_CONTENTS, new CContainerRef(FACTORY_ID, ids[i]),
-					null);
-		}
+    public static ExtensionContainerFactory getInstanceInitialized() {
+        CExternalSettingContainerFactory f = CExternalSettingsManager.getInstance().getFactory(FACTORY_ID);
+        if (f instanceof ExtensionContainerFactory)
+            return (ExtensionContainerFactory) f;
+        return getInstance();
+    }
 
-		instance.notifySettingsChange(null, null, changeInfos);
+    @Override
+    public CExternalSettingsContainer createContainer(String id, IProject project, ICConfigurationDescription cfgDes, CExternalSetting[] previousSettings) throws CoreException {
+        CExtensionSettingProviderDescriptor dr = getProviderDescriptorMap().get(id);
+        if (dr != null)
+            return dr.getContainer(project, cfgDes, previousSettings);
+        // Notify the manager that there's no external settings manager matching id.
+        throw new CoreException(CCorePlugin.createStatus(//$NON-NLS-1$//$NON-NLS-2$
+        "External settings provider: \"" + id + "\" couldn't be found for " + cfgDes.getProjectDescription().getProject() + ":" + //$NON-NLS-1$
+        cfgDes.getName()));
+    }
 
-		if (monitor != null)
-			monitor.done();
-	}
+    public static String[] getReferencedProviderIds(ICConfigurationDescription cfg) {
+        CContainerRef[] refs = CExternalSettingsManager.getInstance().getReferences(cfg, FACTORY_ID);
+        String[] ids = new String[refs.length];
+        for (int i = 0; i < refs.length; i++) {
+            ids[i] = refs[i].getContainerId();
+        }
+        return ids;
+    }
 
-	public static void updateReferencedProviderIds(ICConfigurationDescription cfg, String ids[]) {
-		Set<String> newIdsSet = new HashSet<>(Arrays.asList(ids));
-		Set<String> oldIdsSet = new HashSet<>(Arrays.asList(getReferencedProviderIds(cfg)));
-		Set<String> newIdsSetCopy = new HashSet<>(newIdsSet);
-		newIdsSetCopy.removeAll(oldIdsSet);
-		newIdsSet.removeAll(newIdsSetCopy);
+    public static void setReferencedProviderIds(ICConfigurationDescription cfg, String[] ids) {
+        Set<String> newIdsSet = new HashSet<>(Arrays.asList(ids));
+        Set<String> oldIdsSet = new HashSet<>(Arrays.asList(getReferencedProviderIds(cfg)));
+        Set<String> newIdsSetCopy = new HashSet<>(newIdsSet);
+        newIdsSet.removeAll(oldIdsSet);
+        oldIdsSet.removeAll(newIdsSetCopy);
+        if (oldIdsSet.size() != 0) {
+            for (String string : oldIdsSet) {
+                removeReference(cfg, string);
+            }
+        }
+        if (newIdsSet.size() != 0) {
+            for (String string : newIdsSet) {
+                createReference(cfg, string);
+            }
+        }
+    }
 
-		if (newIdsSet.size() != 0) {
-			for (String string : newIdsSet) {
-				providerChanged(cfg, string);
-			}
-		}
-	}
+    public static void updateReferencedProviderIds(String[] ids, IProgressMonitor monitor) {
+        ExtensionContainerFactory instance = getInstanceInitialized();
+        CExternalSettingsContainerChangeInfo[] changeInfos = new CExternalSettingsContainerChangeInfo[ids.length];
+        for (int i = 0; i < changeInfos.length; i++) {
+            changeInfos[i] = new CExternalSettingsContainerChangeInfo(CExternalSettingsContainerChangeInfo.CONTAINER_CONTENTS, new CContainerRef(FACTORY_ID, ids[i]), null);
+        }
+        instance.notifySettingsChange(null, null, changeInfos);
+        if (monitor != null)
+            monitor.done();
+    }
 
-	private static void createReference(ICConfigurationDescription cfg, String id) {
-		CContainerRef cr = createContainerRef(id);
-		CExternalSettingsManager.getInstance().addContainer(cfg, cr);
-	}
+    public static void updateReferencedProviderIds(ICConfigurationDescription cfg, String[] ids) {
+        Set<String> newIdsSet = new HashSet<>(Arrays.asList(ids));
+        Set<String> oldIdsSet = new HashSet<>(Arrays.asList(getReferencedProviderIds(cfg)));
+        Set<String> newIdsSetCopy = new HashSet<>(newIdsSet);
+        newIdsSetCopy.removeAll(oldIdsSet);
+        newIdsSet.removeAll(newIdsSetCopy);
+        if (newIdsSet.size() != 0) {
+            for (String string : newIdsSet) {
+                providerChanged(cfg, string);
+            }
+        }
+    }
 
-	private static void providerChanged(ICConfigurationDescription cfg, String id) {
-		CContainerRef cr = createContainerRef(id);
-		CExternalSettingsManager.getInstance().containerContentsChanged(cfg, cr);
+    private static void createReference(ICConfigurationDescription cfg, String id) {
+        CContainerRef cr = createContainerRef(id);
+        CExternalSettingsManager.getInstance().addContainer(cfg, cr);
+    }
 
-	}
+    private static void providerChanged(ICConfigurationDescription cfg, String id) {
+        CContainerRef cr = createContainerRef(id);
+        CExternalSettingsManager.getInstance().containerContentsChanged(cfg, cr);
+    }
 
-	private static void removeReference(ICConfigurationDescription cfg, String id) {
-		CContainerRef cr = createContainerRef(id);
-		CExternalSettingsManager.getInstance().removeContainer(cfg, cr);
-	}
+    private static void removeReference(ICConfigurationDescription cfg, String id) {
+        CContainerRef cr = createContainerRef(id);
+        CExternalSettingsManager.getInstance().removeContainer(cfg, cr);
+    }
 
-	private static CContainerRef createContainerRef(String id) {
-		return new CContainerRef(FACTORY_ID, id);
-	}
+    private static CContainerRef createContainerRef(String id) {
+        return new CContainerRef(FACTORY_ID, id);
+    }
 }

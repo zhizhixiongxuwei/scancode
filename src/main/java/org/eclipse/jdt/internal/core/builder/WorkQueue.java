@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2000, 2009 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *      IBM Corporation - initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.jdt.internal.core.builder;
 
 import java.util.Arrays;
@@ -19,42 +21,44 @@ import java.util.Set;
 
 public class WorkQueue {
 
-private final Set<SourceFile> needsCompileList;
-private final Set<SourceFile> compiledList;
+    final public Set<SourceFile> needsCompileList;
 
-public WorkQueue() {
-	this.needsCompileList = new HashSet<>();
-	this.compiledList = new HashSet<>();
-}
+    final public Set<SourceFile> compiledList;
 
-public void add(SourceFile element) {
-	this.needsCompileList.add(element);
-}
+    public WorkQueue() {
+        this.needsCompileList = new HashSet<>();
+        this.compiledList = new HashSet<>();
+    }
 
-public void addAll(SourceFile[] elements) {
-	this.needsCompileList.addAll(Arrays.asList(elements));
-}
+    public void add(SourceFile element) {
+        this.needsCompileList.add(element);
+    }
 
-public void clear() {
-	this.needsCompileList.clear();
-	this.compiledList.clear();
-}
+    public void addAll(SourceFile[] elements) {
+        this.needsCompileList.addAll(Arrays.asList(elements));
+    }
 
-public void finished(SourceFile element) {
-	this.needsCompileList.remove(element);
-	this.compiledList.add(element);
-}
+    public void clear() {
+        this.needsCompileList.clear();
+        this.compiledList.clear();
+    }
 
-public boolean isCompiled(SourceFile element) {
-	return this.compiledList.contains(element);
-}
+    public void finished(SourceFile element) {
+        this.needsCompileList.remove(element);
+        this.compiledList.add(element);
+    }
 
-public boolean isWaiting(SourceFile element) {
-	return this.needsCompileList.contains(element);
-}
+    public boolean isCompiled(SourceFile element) {
+        return this.compiledList.contains(element);
+    }
 
-@Override
-public String toString() {
-	return "WorkQueue: " + this.needsCompileList; //$NON-NLS-1$
-}
+    public boolean isWaiting(SourceFile element) {
+        return this.needsCompileList.contains(element);
+    }
+
+    @Override
+    public String toString() {
+        //$NON-NLS-1$
+        return "WorkQueue: " + this.needsCompileList;
+    }
 }

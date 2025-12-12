@@ -31,15 +31,15 @@ import org.eclipse.jdt.internal.core.SearchableEnvironment;
  */
 public class ModuleBinding implements IModuleBinding {
 
-    protected static final ITypeBinding[] NO_TYPE_BINDINGS = new ITypeBinding[0];
+    static final public ITypeBinding[] NO_TYPE_BINDINGS = new ITypeBinding[0];
 
-    private final String name = null;
+    final public String name = null;
 
-    private volatile String key;
+    volatile public String key;
 
-    private boolean isOpen = false;
+    public boolean isOpen = false;
 
-    private final org.eclipse.jdt.internal.compiler.lookup.ModuleBinding binding;
+    final public org.eclipse.jdt.internal.compiler.lookup.ModuleBinding binding;
 
     protected BindingResolver resolver;
 

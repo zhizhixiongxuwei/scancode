@@ -39,12 +39,12 @@ public class AutoTypeResolver implements ICPPFunctionTemplate {
     // Template parameter of the function. This parameter is used in place of 'auto' keyword.
     public static final ICPPTemplateTypeParameter AUTO_TYPE = new CPPTemplateTypeParameter(new CPPASTName(), false);
 
-    private static final ICPPTemplateTypeParameter[] TEMPLATE_PARAMETERS = new ICPPTemplateTypeParameter[] { AUTO_TYPE };
+    static final public ICPPTemplateTypeParameter[] TEMPLATE_PARAMETERS = new ICPPTemplateTypeParameter[] { AUTO_TYPE };
 
     //$NON-NLS-1$
-    private static final String UNEXPECTED_CALL = "Unexpected call";
+    static final public String UNEXPECTED_CALL = "Unexpected call";
 
-    private final CPPFunctionType functionType;
+    final public CPPFunctionType functionType;
 
     public AutoTypeResolver(IType paramType) {
         functionType = new CPPFunctionType(new CPPBasicType(Kind.eVoid, 0), new IType[] { paramType }, null);

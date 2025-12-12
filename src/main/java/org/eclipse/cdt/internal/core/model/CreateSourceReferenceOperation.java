@@ -1,18 +1,19 @@
-/*******************************************************************************
- * Copyright (c) 2002, 2008 QNX Software Systems and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2002, 2008 QNX Software Systems and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- * QNX Software Systems - Initial API and implementation
- * Anton Leherbauer (Wind River Systems) - Fixed bug 141484
- *******************************************************************************/
-
+ *  Contributors:
+ *  QNX Software Systems - Initial API and implementation
+ *  Anton Leherbauer (Wind River Systems) - Fixed bug 141484
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.model;
 
 import org.eclipse.cdt.core.model.CModelException;
@@ -25,58 +26,58 @@ import org.eclipse.cdt.core.model.ITranslationUnit;
  */
 public class CreateSourceReferenceOperation extends CreateElementInTUOperation {
 
-	/**
-	 * Element Name
-	 */
-	String fName;
+    /**
+     * Element Name
+     */
+    public String fName;
 
-	/**
-	 * Element Type
-	 */
-	int fElementType;
+    /**
+     * Element Type
+     */
+    public int fElementType;
 
-	/**
-	 * Source Reference element to copy to parent
-	 */
-	String fSource;
+    /**
+     * Source Reference element to copy to parent
+     */
+    public String fSource;
 
-	/**
-	 * @param parentElement
-	 */
-	public CreateSourceReferenceOperation(ICElement parentElement, String name, int elementType, String source) {
-		super(parentElement);
-		fName = name;
-		fElementType = elementType;
-		fSource = source;
-	}
+    /**
+     * @param parentElement
+     */
+    public CreateSourceReferenceOperation(ICElement parentElement, String name, int elementType, String source) {
+        super(parentElement);
+        fName = name;
+        fElementType = elementType;
+        fSource = source;
+    }
 
-	@Override
-	protected String generateElement(ITranslationUnit unit) throws CModelException {
-		return fSource;
-	}
+    @Override
+    protected String generateElement(ITranslationUnit unit) throws CModelException {
+        return fSource;
+    }
 
-	@Override
-	protected ICElement generateResultHandle() {
-		IParent parent = (IParent) getParentElement();
-		try {
-			ICElement[] celements = parent.getChildren();
-			for (int i = 0; i < celements.length; ++i) {
-				if (celements[i].getElementType() == fElementType) {
-					String name = celements[i].getElementName();
-					if (name.equals(fName)) {
-						return celements[i];
-					}
-				}
-			}
-		} catch (CModelException e) {
-			//
-		}
-		return null;
-	}
+    @Override
+    protected ICElement generateResultHandle() {
+        IParent parent = (IParent) getParentElement();
+        try {
+            ICElement[] celements = parent.getChildren();
+            for (int i = 0; i < celements.length; ++i) {
+                if (celements[i].getElementType() == fElementType) {
+                    String name = celements[i].getElementName();
+                    if (name.equals(fName)) {
+                        return celements[i];
+                    }
+                }
+            }
+        } catch (CModelException e) {
+            //
+        }
+        return null;
+    }
 
-	@Override
-	protected String getMainTaskName() {
-		return "operation.createsourceReference"; //$NON-NLS-1$
-	}
-
+    @Override
+    protected String getMainTaskName() {
+        //$NON-NLS-1$
+        return "operation.createsourceReference";
+    }
 }

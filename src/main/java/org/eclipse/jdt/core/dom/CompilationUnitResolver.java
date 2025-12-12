@@ -105,7 +105,7 @@ public class CompilationUnitResolver extends Compiler {
         }
     }
 
-    private static ECJCompilationUnitResolver FACADE;
+    static public ECJCompilationUnitResolver FACADE;
 
     public static synchronized ICompilationUnitResolver getInstance() {
         if (FACADE == null) {
@@ -288,9 +288,10 @@ public class CompilationUnitResolver extends Compiler {
                     this.requestedKeys.put(fileName, list);
                 }
             } else {
-                char[] key = resolver.hasTypeName() ? // binary binding
-                resolver.getKey().toCharArray() : resolver.hasModuleName() ? resolver.moduleName() : // package binding or base type binding
-                CharOperation.concatWith(resolver.compoundName(), '.');
+                char[] key = // binary binding
+                resolver.hasTypeName() ? resolver.getKey().toCharArray() : // package binding or base type binding
+                resolver.hasModuleName() ? // package binding or base type binding
+                resolver.moduleName() : CharOperation.concatWith(resolver.compoundName(), '.');
                 this.requestedKeys.put(key, resolver);
             }
             worked(1);
@@ -708,11 +709,14 @@ public class CompilationUnitResolver extends Compiler {
             compilerOptions.ignoreMethodBodies = ignoreMethodBodies;
             resolver = new CompilationUnitResolver(environment, getHandlingPolicy(), compilerOptions, getRequestor(), problemFactory, monitor, javaProject != null);
             boolean analyzeAndGenerateCode = !ignoreMethodBodies;
-            unit = resolver.resolve(// no existing compilation unit declaration
-            null, sourceUnit, nodeSearcher, // method verification
-            true, // analyze code
-            analyzeAndGenerateCode, // generate code
-            analyzeAndGenerateCode);
+            unit = // no existing compilation unit declaration
+            resolver.// no existing compilation unit declaration
+            resolve(// method verification
+            null, // method verification
+            sourceUnit, // method verification
+            nodeSearcher, // analyze code
+            true, // generate code
+            analyzeAndGenerateCode, analyzeAndGenerateCode);
             if (resolver.hasCompilationAborted) {
                 // the bindings could not be resolved due to missing types in name environment
                 // see https://bugs.eclipse.org/bugs/show_bug.cgi?id=86541

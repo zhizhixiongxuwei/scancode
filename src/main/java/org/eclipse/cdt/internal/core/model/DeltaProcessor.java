@@ -45,12 +45,12 @@ final public class DeltaProcessor {
     /**
      * The <code>CElementDelta</code> corresponding to the <code>IResourceDelta</code> being translated.
      */
-    private CElementDelta fCurrentDelta;
+    public CElementDelta fCurrentDelta;
 
-    static final ICElementDelta[] NO_DELTA = new ICElementDelta[0];
+    static final public ICElementDelta[] NO_DELTA = new ICElementDelta[0];
 
     // Hold on the element being renamed.
-    private ICElement movedFromElement;
+    public ICElement movedFromElement;
 
     /**
      * Creates the create corresponding to this resource.

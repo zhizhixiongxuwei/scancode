@@ -33,7 +33,7 @@ import org.eclipse.cdt.internal.core.index.composite.ICompositesFactory;
 
 public class CompositeCPPNamespaceScope extends CompositeScope implements ICPPNamespaceScope {
 
-    ICPPNamespace[] namespaces;
+    public ICPPNamespace[] namespaces;
 
     public CompositeCPPNamespaceScope(ICompositesFactory cf, ICPPNamespace[] namespaces) {
         super(cf, (IIndexFragmentBinding) namespaces[0]);

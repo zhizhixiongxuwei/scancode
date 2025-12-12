@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2002, 2009 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2002, 2009 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- * Rational Software - Initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *  Rational Software - Initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.core.model;
 
 import java.util.EventObject;
@@ -48,77 +50,76 @@ import java.util.EventObject;
  * @see IBuffer
  * This class is similar to the JDT BufferChangedEvent class.
  */
-
 public class BufferChangedEvent extends EventObject {
-	/**
-	 * Comment for <code>serialVersionUID</code>
-	 */
-	private static final long serialVersionUID = 3979268036526355761L;
 
-	/**
-	 * The length of text that has been modified in the buffer.
-	 */
-	private int length;
+    /**
+     * Comment for <code>serialVersionUID</code>
+     */
+    static final public long serialVersionUID = 3979268036526355761L;
 
-	/**
-	 * The offset into the buffer where the modification took place.
-	 */
-	private int offset;
+    /**
+     * The length of text that has been modified in the buffer.
+     */
+    public int length;
 
-	/**
-	 * The text that was modified.
-	 */
-	private String text;
+    /**
+     * The offset into the buffer where the modification took place.
+     */
+    public int offset;
 
-	/**
-	 * Creates a new buffer changed event indicating that the given buffer has changed.
-	 */
-	public BufferChangedEvent(IBuffer buffer, int offset, int length, String text) {
-		super(buffer);
-		this.offset = offset;
-		this.length = length;
-		this.text = text;
-	}
+    /**
+     * The text that was modified.
+     */
+    public String text;
 
-	/**
-	 * Returns the buffer which has changed.
-	 *
-	 * @return the buffer affected by the change
-	 */
-	public IBuffer getBuffer() {
-		return (IBuffer) source;
-	}
+    /**
+     * Creates a new buffer changed event indicating that the given buffer has changed.
+     */
+    public BufferChangedEvent(IBuffer buffer, int offset, int length, String text) {
+        super(buffer);
+        this.offset = offset;
+        this.length = length;
+        this.text = text;
+    }
 
-	/**
-	 * Returns the length of text removed or replaced in the buffer, or
-	 * 0 if text has been inserted into the buffer.
-	 *
-	 * @return the length of the original text fragment modified by the
-	 *   buffer change (<code> 0 </code> in case of insertion).
-	 */
-	public int getLength() {
-		return this.length;
-	}
+    /**
+     * Returns the buffer which has changed.
+     *
+     * @return the buffer affected by the change
+     */
+    public IBuffer getBuffer() {
+        return (IBuffer) source;
+    }
 
-	/**
-	 * Returns the index of the first character inserted, removed, or replaced
-	 * in the buffer.
-	 *
-	 * @return the source offset of the textual manipulation in the buffer
-	 */
-	public int getOffset() {
-		return this.offset;
-	}
+    /**
+     * Returns the length of text removed or replaced in the buffer, or
+     * 0 if text has been inserted into the buffer.
+     *
+     * @return the length of the original text fragment modified by the
+     *   buffer change (<code> 0 </code> in case of insertion).
+     */
+    public int getLength() {
+        return this.length;
+    }
 
-	/**
-	 * Returns the text that was inserted, the replacement text,
-	 * or <code>null</code> if text has been removed.
-	 *
-	 * @return the text corresponding to the buffer change (<code> null </code>
-	 *   in case of deletion).
-	 */
-	public String getText() {
-		return this.text;
-	}
+    /**
+     * Returns the index of the first character inserted, removed, or replaced
+     * in the buffer.
+     *
+     * @return the source offset of the textual manipulation in the buffer
+     */
+    public int getOffset() {
+        return this.offset;
+    }
 
+    /**
+     * Returns the text that was inserted, the replacement text,
+     * or <code>null</code> if text has been removed.
+     *
+     * @return the text corresponding to the buffer change (<code> null </code>
+     *   in case of deletion).
+     */
+    public String getText() {
+        return this.text;
+    }
 }

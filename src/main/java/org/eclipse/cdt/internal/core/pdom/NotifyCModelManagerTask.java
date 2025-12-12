@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2009, 2011 Wind River Systems, Inc. and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2009, 2011 Wind River Systems, Inc. and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *    Markus Schorn - initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *     Markus Schorn - initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.pdom;
 
 import org.eclipse.cdt.core.CCorePlugin;
@@ -28,35 +30,35 @@ import org.eclipse.core.runtime.content.IContentTypeManager.ContentTypeChangeEve
  * Task to notify the CModel manager of changes to the content types.
  */
 public class NotifyCModelManagerTask implements IPDOMIndexerTask {
-	private final IProject fProject;
 
-	public NotifyCModelManagerTask(IProject project) {
-		fProject = project;
-	}
+    final public IProject fProject;
 
-	@Override
-	public IPDOMIndexer getIndexer() {
-		return null;
-	}
+    public NotifyCModelManagerTask(IProject project) {
+        fProject = project;
+    }
 
-	@Override
-	public IndexerProgress getProgressInformation() {
-		return new IndexerProgress();
-	}
+    @Override
+    public IPDOMIndexer getIndexer() {
+        return null;
+    }
 
-	@Override
-	public void run(IProgressMonitor monitor) throws InterruptedException {
-		IContentType ct1 = Platform.getContentTypeManager().getContentType(CCorePlugin.CONTENT_TYPE_CXXHEADER);
-		IContentType ct2 = Platform.getContentTypeManager().getContentType(CCorePlugin.CONTENT_TYPE_CXXSOURCE);
-		if (ct1 != null && ct2 != null) {
-			final ProjectScope scope = new ProjectScope(fProject);
-			CModelManager.getDefault().contentTypeChanged(new ContentTypeChangeEvent[] {
-					new ContentTypeChangeEvent(ct1, scope), new ContentTypeChangeEvent(ct2, scope) });
-		}
-	}
+    @Override
+    public IndexerProgress getProgressInformation() {
+        return new IndexerProgress();
+    }
 
-	@Override
-	public boolean acceptUrgentTask(IPDOMIndexerTask task) {
-		return false;
-	}
+    @Override
+    public void run(IProgressMonitor monitor) throws InterruptedException {
+        IContentType ct1 = Platform.getContentTypeManager().getContentType(CCorePlugin.CONTENT_TYPE_CXXHEADER);
+        IContentType ct2 = Platform.getContentTypeManager().getContentType(CCorePlugin.CONTENT_TYPE_CXXSOURCE);
+        if (ct1 != null && ct2 != null) {
+            final ProjectScope scope = new ProjectScope(fProject);
+            CModelManager.getDefault().contentTypeChanged(new ContentTypeChangeEvent[] { new ContentTypeChangeEvent(ct1, scope), new ContentTypeChangeEvent(ct2, scope) });
+        }
+    }
+
+    @Override
+    public boolean acceptUrgentTask(IPDOMIndexerTask task) {
+        return false;
+    }
 }

@@ -11,15 +11,15 @@ import org.eclipse.core.runtime.CoreException;
 
 public class ASTInclusionStatement extends ASTPreprocessorNode implements IASTPreprocessorIncludeStatement {
 
-    private static final ISignificantMacros[] NO_VERSIONS = {};
+    static final public ISignificantMacros[] NO_VERSIONS = {};
 
-    private final ASTPreprocessorName fName;
+    final public ASTPreprocessorName fName;
 
-    private final String fPath;
+    final public String fPath;
 
-    private final boolean fIsResolved;
+    final public boolean fIsResolved;
 
-    private final boolean fIsSystemInclude;
+    final public boolean fIsSystemInclude;
 
     private final boolean fFoundByHeuristics;
 

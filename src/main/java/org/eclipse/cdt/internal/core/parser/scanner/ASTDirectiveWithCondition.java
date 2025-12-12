@@ -4,9 +4,9 @@ import org.eclipse.cdt.core.dom.ast.IASTTranslationUnit;
 
 abstract public class ASTDirectiveWithCondition extends ASTPreprocessorNode {
 
-    protected final int fConditionOffset;
+    final public int fConditionOffset;
 
-    private final boolean fTaken;
+    final public boolean fTaken;
 
     public ASTDirectiveWithCondition(IASTTranslationUnit parent, int startNumber, int condNumber, int endNumber, boolean taken) {
         super(parent, IASTTranslationUnit.PREPROCESSOR_STATEMENT, startNumber, endNumber);

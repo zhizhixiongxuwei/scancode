@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2014 Nathan Ridge.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2014 Nathan Ridge.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Nathan Ridge - initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *      Nathan Ridge - initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.parser.cpp.semantics;
 
 import org.eclipse.cdt.core.CCorePlugin;
@@ -28,41 +30,41 @@ import org.eclipse.core.runtime.CoreException;
  * Represents the type of an unknown member.
  */
 public class TypeOfUnknownMember extends CPPUnknownBinding implements ICPPUnknownType, ISerializableType {
-	private final CPPUnknownMember fMember;
 
-	public TypeOfUnknownMember(CPPUnknownMember member) {
-		super(("decltype(" + member.getName() + ")").toCharArray()); //$NON-NLS-1$  //$NON-NLS-2$
-		fMember = member;
-	}
+    final public CPPUnknownMember fMember;
 
-	public CPPUnknownMember getUnknownMember() {
-		return fMember;
-	}
+    public TypeOfUnknownMember(CPPUnknownMember member) {
+        //$NON-NLS-1$  //$NON-NLS-2$
+        super(("decltype(" + member.getName() + ")").toCharArray());
+        fMember = member;
+    }
 
-	@Override
-	public boolean isSameType(IType type) {
-		return type instanceof TypeOfUnknownMember && fMember == ((TypeOfUnknownMember) type).fMember;
-	}
+    public CPPUnknownMember getUnknownMember() {
+        return fMember;
+    }
 
-	@Override
-	public void marshal(ITypeMarshalBuffer buffer) throws CoreException {
-		buffer.putShort(ITypeMarshalBuffer.UNKNOWN_MEMBER_TYPE);
-		fMember.marshal(buffer);
-	}
+    @Override
+    public boolean isSameType(IType type) {
+        return type instanceof TypeOfUnknownMember && fMember == ((TypeOfUnknownMember) type).fMember;
+    }
 
-	public static IType unmarshal(IIndexFragment fragment, short firstBytes, ITypeMarshalBuffer buffer)
-			throws CoreException {
-		short firstBytesForMember = buffer.getShort();
-		if ((firstBytesForMember & ITypeMarshalBuffer.KIND_MASK) != ITypeMarshalBuffer.UNKNOWN_MEMBER)
-			throw new CoreException(
-					CCorePlugin.createStatus("Expected an unknown memebr, first bytes=" + firstBytesForMember)); //$NON-NLS-1$
-		return new TypeOfUnknownMember(
-				(CPPUnknownMember) CPPUnknownMember.unmarshal(fragment, firstBytesForMember, buffer));
-	}
+    @Override
+    public void marshal(ITypeMarshalBuffer buffer) throws CoreException {
+        buffer.putShort(ITypeMarshalBuffer.UNKNOWN_MEMBER_TYPE);
+        fMember.marshal(buffer);
+    }
 
-	@Override
-	public IBinding getOwner() {
-		// We won't know until instantiation.
-		return null;
-	}
+    public static IType unmarshal(IIndexFragment fragment, short firstBytes, ITypeMarshalBuffer buffer) throws CoreException {
+        short firstBytesForMember = buffer.getShort();
+        if ((firstBytesForMember & ITypeMarshalBuffer.KIND_MASK) != ITypeMarshalBuffer.UNKNOWN_MEMBER)
+            throw new CoreException(//$NON-NLS-1$
+            CCorePlugin.createStatus("Expected an unknown memebr, first bytes=" + firstBytesForMember));
+        return new TypeOfUnknownMember((CPPUnknownMember) CPPUnknownMember.unmarshal(fragment, firstBytesForMember, buffer));
+    }
+
+    @Override
+    public IBinding getOwner() {
+        // We won't know until instantiation.
+        return null;
+    }
 }

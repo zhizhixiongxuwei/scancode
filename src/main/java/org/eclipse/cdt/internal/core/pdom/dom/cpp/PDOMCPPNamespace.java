@@ -57,16 +57,16 @@ import org.eclipse.core.runtime.CoreException;
  */
 public class PDOMCPPNamespace extends PDOMCPPBinding implements ICPPNamespace, ICPPNamespaceScope, IIndexScope {
 
-    private static final int INDEX_OFFSET = PDOMCPPBinding.RECORD_SIZE;
+    static final public int INDEX_OFFSET = PDOMCPPBinding.RECORD_SIZE;
 
-    private static final int FIRST_NAMESPACE_CHILD_OFFSET = INDEX_OFFSET + Database.PTR_SIZE;
+    static final public int FIRST_NAMESPACE_CHILD_OFFSET = INDEX_OFFSET + Database.PTR_SIZE;
 
-    private static final int NEXT_NAMESPACE_SIBBLING_OFFSET = FIRST_NAMESPACE_CHILD_OFFSET + Database.PTR_SIZE;
+    static final public int NEXT_NAMESPACE_SIBBLING_OFFSET = FIRST_NAMESPACE_CHILD_OFFSET + Database.PTR_SIZE;
 
-    private static final int FLAG_OFFSET = NEXT_NAMESPACE_SIBBLING_OFFSET + Database.PTR_SIZE;
+    static final public int FLAG_OFFSET = NEXT_NAMESPACE_SIBBLING_OFFSET + Database.PTR_SIZE;
 
     @SuppressWarnings("hiding")
-    protected static final int RECORD_SIZE = FLAG_OFFSET + 1;
+    static final public int RECORD_SIZE = FLAG_OFFSET + 1;
 
     private static int INLINE_FLAG = 0x1;
 

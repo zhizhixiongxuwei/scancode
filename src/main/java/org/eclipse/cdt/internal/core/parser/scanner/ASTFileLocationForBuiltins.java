@@ -5,11 +5,11 @@ import org.eclipse.cdt.core.dom.ast.IASTPreprocessorIncludeStatement;
 
 public class ASTFileLocationForBuiltins implements IASTFileLocation {
 
-    private String fFile;
+    public String fFile;
 
-    private int fOffset;
+    public int fOffset;
 
-    private int fLength;
+    public int fLength;
 
     public ASTFileLocationForBuiltins(String file, int startOffset, int length) {
         fFile = file;

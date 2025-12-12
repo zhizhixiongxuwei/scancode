@@ -25,11 +25,11 @@ import org.eclipse.jdt.internal.core.util.Util;
 
 public class RemoveFolderFromIndex extends IndexRequest {
 
-    IPath folderPath;
+    public IPath folderPath;
 
-    char[][] inclusionPatterns;
+    public char[][] inclusionPatterns;
 
-    char[][] exclusionPatterns;
+    public char[][] exclusionPatterns;
 
     public RemoveFolderFromIndex(IPath folderPath, char[][] inclusionPatterns, char[][] exclusionPatterns, IProject project, IndexManager manager) {
         super(project.getFullPath(), manager);

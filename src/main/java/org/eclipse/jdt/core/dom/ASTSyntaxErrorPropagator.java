@@ -23,7 +23,7 @@ import org.eclipse.jdt.core.compiler.IProblem;
  */
 public class ASTSyntaxErrorPropagator extends ASTVisitor {
 
-    private final CategorizedProblem[] problems;
+    final public CategorizedProblem[] problems;
 
     ASTSyntaxErrorPropagator(CategorizedProblem[] problems) {
         // visit Javadoc.tags() as well

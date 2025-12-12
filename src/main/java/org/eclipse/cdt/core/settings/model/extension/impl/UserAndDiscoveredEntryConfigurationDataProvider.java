@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2007, 2008 Intel Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2007, 2008 Intel Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- * Intel Corporation - Initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *  Intel Corporation - Initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.core.settings.model.extension.impl;
 
 import org.eclipse.cdt.core.settings.model.ICLanguageSettingEntry;
@@ -23,67 +25,65 @@ import org.eclipse.cdt.core.settings.model.util.UserAndDiscoveredEntryDataSerial
 import org.eclipse.cdt.core.settings.model.util.UserAndDiscoveredEntryLanguageData;
 
 public abstract class UserAndDiscoveredEntryConfigurationDataProvider extends CDefaultConfigurationDataProvider {
-	private static DataFactory fDataFactory;
 
-	protected class LanguageData extends UserAndDiscoveredEntryLanguageData {
+    static public DataFactory fDataFactory;
 
-		public LanguageData() {
-			super();
-		}
+    protected class LanguageData extends UserAndDiscoveredEntryLanguageData {
 
-		public LanguageData(String id, CLanguageData base) {
-			super(id, base);
-		}
+        public LanguageData() {
+            super();
+        }
 
-		public LanguageData(String id, String languageId, String[] ids, boolean isContentTypes) {
-			super(id, languageId, ids, isContentTypes);
-		}
+        public LanguageData(String id, CLanguageData base) {
+            super(id, base);
+        }
 
-		public LanguageData(String id, String name, String languageId, int kinds, String[] ids,
-				boolean isContentTypes) {
-			super(id, languageId, ids, isContentTypes);
-			fName = name;
-			fSupportedKinds = kinds;
-		}
+        public LanguageData(String id, String languageId, String[] ids, boolean isContentTypes) {
+            super(id, languageId, ids, isContentTypes);
+        }
 
-		@Override
-		protected ICLanguageSettingEntry[] getAllDiscoveredEntries(int kind) {
-			return UserAndDiscoveredEntryConfigurationDataProvider.this.getAllDiscoveredEntries(this, kind);
-		}
-	}
+        public LanguageData(String id, String name, String languageId, int kinds, String[] ids, boolean isContentTypes) {
+            super(id, languageId, ids, isContentTypes);
+            fName = name;
+            fSupportedKinds = kinds;
+        }
 
-	protected class DataFactory extends CDataFactory {
-		@Override
-		public CLanguageData createLanguageData(CConfigurationData cfg, CResourceData rcBase, CLanguageData base,
-				String id, boolean clone) {
-			if (id == null)
-				id = clone ? base.getId() : CDataUtil.genId(rcBase.getId());
-			return new LanguageData(id, base);
-		}
+        @Override
+        protected ICLanguageSettingEntry[] getAllDiscoveredEntries(int kind) {
+            return UserAndDiscoveredEntryConfigurationDataProvider.this.getAllDiscoveredEntries(this, kind);
+        }
+    }
 
-		@Override
-		public CLanguageData createLanguageData(CConfigurationData cfg, CResourceData rcBase, String id, String name,
-				String languageId, int supportedKinds, String[] rcTypes, boolean isContentTypes) {
-			if (id == null)
-				id = CDataUtil.genId(rcBase.getId());
-			LanguageData lData = new LanguageData(id, name, languageId, supportedKinds, rcTypes, isContentTypes);
-			return lData;
-		}
-	}
+    protected class DataFactory extends CDataFactory {
 
-	@Override
-	protected CDataSerializer getDataSerializer() {
-		return UserAndDiscoveredEntryDataSerializer.getDefault();
-	}
+        @Override
+        public CLanguageData createLanguageData(CConfigurationData cfg, CResourceData rcBase, CLanguageData base, String id, boolean clone) {
+            if (id == null)
+                id = clone ? base.getId() : CDataUtil.genId(rcBase.getId());
+            return new LanguageData(id, base);
+        }
 
-	@Override
-	protected CDataFactory getDataFactory() {
-		if (fDataFactory == null) {
-			fDataFactory = new DataFactory();
-		}
-		return fDataFactory;
-	}
+        @Override
+        public CLanguageData createLanguageData(CConfigurationData cfg, CResourceData rcBase, String id, String name, String languageId, int supportedKinds, String[] rcTypes, boolean isContentTypes) {
+            if (id == null)
+                id = CDataUtil.genId(rcBase.getId());
+            LanguageData lData = new LanguageData(id, name, languageId, supportedKinds, rcTypes, isContentTypes);
+            return lData;
+        }
+    }
 
-	protected abstract ICLanguageSettingEntry[] getAllDiscoveredEntries(LanguageData data, int kind);
+    @Override
+    protected CDataSerializer getDataSerializer() {
+        return UserAndDiscoveredEntryDataSerializer.getDefault();
+    }
 
+    @Override
+    protected CDataFactory getDataFactory() {
+        if (fDataFactory == null) {
+            fDataFactory = new DataFactory();
+        }
+        return fDataFactory;
+    }
+
+    protected abstract ICLanguageSettingEntry[] getAllDiscoveredEntries(LanguageData data, int kind);
 }

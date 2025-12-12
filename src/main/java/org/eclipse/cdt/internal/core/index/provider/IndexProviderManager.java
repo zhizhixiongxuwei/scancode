@@ -1,18 +1,20 @@
-/*******************************************************************************
- * Copyright (c) 2007, 2016 Symbian Software Systems and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2007, 2016 Symbian Software Systems and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Andrew Ferguson (Symbian) - Initial implementation
- *     Markus Schorn (Wind River Systems)
- *     Sergey Prigogin (Google)
- *******************************************************************************/
+ *  Contributors:
+ *      Andrew Ferguson (Symbian) - Initial implementation
+ *      Markus Schorn (Wind River Systems)
+ *      Sergey Prigogin (Google)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.index.provider;
 
 import java.util.ArrayList;
@@ -21,7 +23,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.eclipse.cdt.core.CCorePlugin;
 import org.eclipse.cdt.core.index.IIndexManager;
 import org.eclipse.cdt.core.index.provider.IIndexProvider;
@@ -67,414 +68,412 @@ import org.osgi.framework.Version;
  * @since 4.0
  */
 public final class IndexProviderManager implements IElementChangedListener {
-	private static final String ELEMENT_RO_PDOM_PROVIDER = "ReadOnlyPDOMProvider"; //$NON-NLS-1$
-	private static final String ELEMENT_RO_INDEX_FRAGMENT_PROVIDER = "ReadOnlyIndexFragmentProvider"; //$NON-NLS-1$
-	private static final String ELEMENT_PROVIDER_USAGE = "FragmentProviderUsage"; //$NON-NLS-1$
-	@SuppressWarnings("nls")
-	private static final String ATTRIBUTE_CLASS = "class", ATTRIBUTE_NAVIGATION = "navigation",
-			ATTRIBUTE_CONTENT_ASSIST = "content_assist", ATTRIBUTE_ADD_IMPORT = "add_import",
-			ATTRIBUTE_CALL_HIERARCHY = "call_hierarchy", ATTRIBUTE_TYPE_HIERARCHY = "type_hierarchy",
-			ATTRIBUTE_INCLUDE_BROWSER = "include_browser", ATTRIBUTE_SEARCH = "search", ATTRIBUTE_EDITOR = "editor";
 
-	private IIndexFragmentProvider[] fragmentProviders;
-	private int[] fragmentProviderUsage;
-	private Map<ProvisionMapKey, Boolean> provisionMap;
-	private Set<String> compatibleFragmentUnavailable;
-	private VersionRange pdomVersionRange;
+    //$NON-NLS-1$
+    static final public String ELEMENT_RO_PDOM_PROVIDER = "ReadOnlyPDOMProvider";
 
-	public IndexProviderManager() {
-		reset();
-	}
+    //$NON-NLS-1$
+    static final public String ELEMENT_RO_INDEX_FRAGMENT_PROVIDER = "ReadOnlyIndexFragmentProvider";
 
-	/**
-	 * <b>Note: This method should not be called by clients for purposes other than testing</b>
-	 */
-	public void reset() {
-		Version minVersion = Version.parseVersion(PDOM.versionString(PDOM.getMinSupportedVersion()));
-		Version maxVersion = Version.parseVersion(PDOM.versionString(PDOM.getMaxSupportedVersion()));
-		reset(new VersionRange(minVersion, true, maxVersion, true));
-	}
+    //$NON-NLS-1$
+    static final public String ELEMENT_PROVIDER_USAGE = "FragmentProviderUsage";
 
-	/**
-	 * <b>Note: This method should not be called by clients for purposes other than testing</b>
-	 * @param pdomVersionRange
-	 */
-	public void reset(VersionRange pdomVersionRange) {
-		this.fragmentProviders = new IIndexFragmentProvider[0];
-		this.provisionMap = new HashMap<>();
-		this.pdomVersionRange = pdomVersionRange;
-		this.compatibleFragmentUnavailable = new HashSet<>();
-	}
+    @SuppressWarnings("nls")
+    static final public String ATTRIBUTE_CLASS = "class", ATTRIBUTE_NAVIGATION = "navigation", ATTRIBUTE_CONTENT_ASSIST = "content_assist", ATTRIBUTE_ADD_IMPORT = "add_import", ATTRIBUTE_CALL_HIERARCHY = "call_hierarchy", ATTRIBUTE_TYPE_HIERARCHY = "type_hierarchy", ATTRIBUTE_INCLUDE_BROWSER = "include_browser", ATTRIBUTE_SEARCH = "search", ATTRIBUTE_EDITOR = "editor";
 
-	public void startup() {
-		List<IIndexFragmentProvider> providers = new ArrayList<>();
-		List<IConfigurationElement[]> usageSpecifications = new ArrayList<>();
-		IExtensionRegistry registry = Platform.getExtensionRegistry();
-		IExtensionPoint indexProviders = registry.getExtensionPoint(CCorePlugin.INDEX_UNIQ_ID);
-		for (IExtension extension : indexProviders.getExtensions()) {
-			try {
-				for (IConfigurationElement element : extension.getConfigurationElements()) {
-					if (ELEMENT_RO_PDOM_PROVIDER.equals(element.getName())) {
-						Object provider = element.createExecutableExtension(ATTRIBUTE_CLASS);
-						if (provider instanceof IReadOnlyPDOMProvider) {
-							providers.add(new ReadOnlyPDOMProviderBridge((IReadOnlyPDOMProvider) provider));
-							usageSpecifications.add(element.getChildren(ELEMENT_PROVIDER_USAGE));
-						} else {
-							CCorePlugin.log(NLS.bind(Messages.IndexProviderManager_InvalidIndexProvider,
-									extension.getContributor().getName()));
-						}
-					} else if (ELEMENT_RO_INDEX_FRAGMENT_PROVIDER.equals(element.getName())) {
-						Object provider = element.createExecutableExtension(ATTRIBUTE_CLASS);
+    public IIndexFragmentProvider[] fragmentProviders;
 
-						if (provider instanceof IIndexFragmentProvider) {
-							providers.add((IIndexFragmentProvider) provider);
-							usageSpecifications.add(element.getChildren(ELEMENT_PROVIDER_USAGE));
-						} else {
-							CCorePlugin.log(NLS.bind(Messages.IndexProviderManager_InvalidIndexProvider,
-									extension.getContributor().getName()));
-						}
-					}
-				}
-			} catch (CoreException e) {
-				CCorePlugin.log(e);
-			}
-		}
+    private int[] fragmentProviderUsage;
 
-		CoreModel.getDefault().addElementChangedListener(this);
-		this.fragmentProviders = providers.toArray(new IIndexFragmentProvider[providers.size()]);
-		this.fragmentProviderUsage = computeProviderUsage(usageSpecifications);
-		assert fragmentProviders.length == fragmentProviderUsage.length;
-	}
+    private Map<ProvisionMapKey, Boolean> provisionMap;
 
-	private int[] computeProviderUsage(List<IConfigurationElement[]> usageFilters) {
-		int[] usage = new int[usageFilters.size()];
-		for (int i = 0; i < usage.length; i++) {
-			IConfigurationElement[] usageFilter = usageFilters.get(i);
-			usage[i] = computeProviderUsage(usageFilter);
-		}
-		return usage;
-	}
+    private Set<String> compatibleFragmentUnavailable;
 
-	private int computeProviderUsage(IConfigurationElement[] usageFilter) {
-		if (usageFilter == null || usageFilter.length == 0)
-			return -1; // Allow usage for all tools.
+    private VersionRange pdomVersionRange;
 
-		int result = 0;
-		IConfigurationElement elem = usageFilter[0];
-		result |= getOption(elem, ATTRIBUTE_ADD_IMPORT, IIndexManager.ADD_EXTENSION_FRAGMENTS_ADD_IMPORT);
-		result |= getOption(elem, ATTRIBUTE_CALL_HIERARCHY, IIndexManager.ADD_EXTENSION_FRAGMENTS_CALL_HIERARCHY);
-		result |= getOption(elem, ATTRIBUTE_CONTENT_ASSIST, IIndexManager.ADD_EXTENSION_FRAGMENTS_CONTENT_ASSIST);
-		result |= getOption(elem, ATTRIBUTE_INCLUDE_BROWSER, IIndexManager.ADD_EXTENSION_FRAGMENTS_INCLUDE_BROWSER);
-		result |= getOption(elem, ATTRIBUTE_NAVIGATION, IIndexManager.ADD_EXTENSION_FRAGMENTS_NAVIGATION);
-		result |= getOption(elem, ATTRIBUTE_SEARCH, IIndexManager.ADD_EXTENSION_FRAGMENTS_SEARCH);
-		result |= getOption(elem, ATTRIBUTE_TYPE_HIERARCHY, IIndexManager.ADD_EXTENSION_FRAGMENTS_TYPE_HIERARCHY);
-		result |= getOption(elem, ATTRIBUTE_EDITOR, IIndexManager.ADD_EXTENSION_FRAGMENTS_EDITOR);
+    public IndexProviderManager() {
+        reset();
+    }
 
-		return result;
-	}
+    /**
+     * <b>Note: This method should not be called by clients for purposes other than testing</b>
+     */
+    public void reset() {
+        Version minVersion = Version.parseVersion(PDOM.versionString(PDOM.getMinSupportedVersion()));
+        Version maxVersion = Version.parseVersion(PDOM.versionString(PDOM.getMaxSupportedVersion()));
+        reset(new VersionRange(minVersion, true, maxVersion, true));
+    }
 
-	public int getOption(IConfigurationElement elem, String attributeName, int option) {
-		if (Boolean.parseBoolean(elem.getAttribute(attributeName)))
-			return option;
-		return 0;
-	}
+    /**
+     * <b>Note: This method should not be called by clients for purposes other than testing</b>
+     * @param pdomVersionRange
+     */
+    public void reset(VersionRange pdomVersionRange) {
+        this.fragmentProviders = new IIndexFragmentProvider[0];
+        this.provisionMap = new HashMap<>();
+        this.pdomVersionRange = pdomVersionRange;
+        this.compatibleFragmentUnavailable = new HashSet<>();
+    }
 
-	/**
-	 * Get the array of IIndexFragment objects provided by all of the
-	 * registered IIndexProvider objects for the specified project, and
-	 * for the current state of the project.
-	 * Order in the array is not significant.
-	 * @param config
-	 * @return the array of IIndexFragment objects for the current state
-	 */
-	public IIndexFragment[] getProvidedIndexFragments(ICConfigurationDescription config, int usage)
-			throws CoreException {
-		Map<String, IIndexFragment> id2fragment = new HashMap<>();
+    public void startup() {
+        List<IIndexFragmentProvider> providers = new ArrayList<>();
+        List<IConfigurationElement[]> usageSpecifications = new ArrayList<>();
+        IExtensionRegistry registry = Platform.getExtensionRegistry();
+        IExtensionPoint indexProviders = registry.getExtensionPoint(CCorePlugin.INDEX_UNIQ_ID);
+        for (IExtension extension : indexProviders.getExtensions()) {
+            try {
+                for (IConfigurationElement element : extension.getConfigurationElements()) {
+                    if (ELEMENT_RO_PDOM_PROVIDER.equals(element.getName())) {
+                        Object provider = element.createExecutableExtension(ATTRIBUTE_CLASS);
+                        if (provider instanceof IReadOnlyPDOMProvider) {
+                            providers.add(new ReadOnlyPDOMProviderBridge((IReadOnlyPDOMProvider) provider));
+                            usageSpecifications.add(element.getChildren(ELEMENT_PROVIDER_USAGE));
+                        } else {
+                            CCorePlugin.log(NLS.bind(Messages.IndexProviderManager_InvalidIndexProvider, extension.getContributor().getName()));
+                        }
+                    } else if (ELEMENT_RO_INDEX_FRAGMENT_PROVIDER.equals(element.getName())) {
+                        Object provider = element.createExecutableExtension(ATTRIBUTE_CLASS);
+                        if (provider instanceof IIndexFragmentProvider) {
+                            providers.add((IIndexFragmentProvider) provider);
+                            usageSpecifications.add(element.getChildren(ELEMENT_PROVIDER_USAGE));
+                        } else {
+                            CCorePlugin.log(NLS.bind(Messages.IndexProviderManager_InvalidIndexProvider, extension.getContributor().getName()));
+                        }
+                    }
+                }
+            } catch (CoreException e) {
+                CCorePlugin.log(e);
+            }
+        }
+        CoreModel.getDefault().addElementChangedListener(this);
+        this.fragmentProviders = providers.toArray(new IIndexFragmentProvider[providers.size()]);
+        this.fragmentProviderUsage = computeProviderUsage(usageSpecifications);
+        assert fragmentProviders.length == fragmentProviderUsage.length;
+    }
 
-		IProject project = config.getProjectDescription().getProject();
-		for (int i = 0; i < fragmentProviders.length; i++) {
-			if ((fragmentProviderUsage[i] & usage) != 0) {
-				IIndexFragmentProvider provider = fragmentProviders[i];
-				try {
-					if (providesForProject(provider, project)) {
-						IIndexFragment[] fragments = provider.getIndexFragments(config);
-						for (IIndexFragment fragment : fragments) {
-							try {
-								processCandidate(id2fragment, fragment);
-							} catch (InterruptedException e) {
-								CCorePlugin.log(e); // continue with next candidate
-							} catch (CoreException e) {
-								CCorePlugin.log(e); // continue with next candidate
-							}
-						}
-					}
-				} catch (CoreException e) {
-					CCorePlugin.log(e); // move to next provider
-				}
-			}
-		}
+    private int[] computeProviderUsage(List<IConfigurationElement[]> usageFilters) {
+        int[] usage = new int[usageFilters.size()];
+        for (int i = 0; i < usage.length; i++) {
+            IConfigurationElement[] usageFilter = usageFilters.get(i);
+            usage[i] = computeProviderUsage(usageFilter);
+        }
+        return usage;
+    }
 
-		// Make log entries for any fragments which have no compatible equivalents
-		List<IIndexFragment> preresult = new ArrayList<>();
-		for (Map.Entry<String, IIndexFragment> entry : id2fragment.entrySet()) {
-			if (entry.getValue() == null) {
-				String key = entry.getKey();
-				if (!compatibleFragmentUnavailable.contains(key)) {
-					String msg = NLS.bind(Messages.IndexProviderManager_NoCompatibleFragmentsAvailable, key,
-							collectVersions(config, project, usage, key));
-					CCorePlugin.log(new Status(IStatus.WARNING, CCorePlugin.PLUGIN_ID, msg));
-					compatibleFragmentUnavailable.add(key);
-				}
-			} else {
-				preresult.add(entry.getValue());
-			}
-		}
-		return preresult.toArray(new IIndexFragment[preresult.size()]);
-	}
+    private int computeProviderUsage(IConfigurationElement[] usageFilter) {
+        if (usageFilter == null || usageFilter.length == 0)
+            // Allow usage for all tools.
+            return -1;
+        int result = 0;
+        IConfigurationElement elem = usageFilter[0];
+        result |= getOption(elem, ATTRIBUTE_ADD_IMPORT, IIndexManager.ADD_EXTENSION_FRAGMENTS_ADD_IMPORT);
+        result |= getOption(elem, ATTRIBUTE_CALL_HIERARCHY, IIndexManager.ADD_EXTENSION_FRAGMENTS_CALL_HIERARCHY);
+        result |= getOption(elem, ATTRIBUTE_CONTENT_ASSIST, IIndexManager.ADD_EXTENSION_FRAGMENTS_CONTENT_ASSIST);
+        result |= getOption(elem, ATTRIBUTE_INCLUDE_BROWSER, IIndexManager.ADD_EXTENSION_FRAGMENTS_INCLUDE_BROWSER);
+        result |= getOption(elem, ATTRIBUTE_NAVIGATION, IIndexManager.ADD_EXTENSION_FRAGMENTS_NAVIGATION);
+        result |= getOption(elem, ATTRIBUTE_SEARCH, IIndexManager.ADD_EXTENSION_FRAGMENTS_SEARCH);
+        result |= getOption(elem, ATTRIBUTE_TYPE_HIERARCHY, IIndexManager.ADD_EXTENSION_FRAGMENTS_TYPE_HIERARCHY);
+        result |= getOption(elem, ATTRIBUTE_EDITOR, IIndexManager.ADD_EXTENSION_FRAGMENTS_EDITOR);
+        return result;
+    }
 
-	/**
-	 * Used for logging a problem.
-	 */
-	private String collectVersions(ICConfigurationDescription config, IProject project, int usage, String fragid) {
-		StringBuilder result = new StringBuilder();
-		for (int i = 0; i < fragmentProviders.length; i++) {
-			if ((fragmentProviderUsage[i] & usage) != 0) {
-				IIndexFragmentProvider provider = fragmentProviders[i];
-				try {
-					if (providesForProject(provider, project)) {
-						IIndexFragment[] fragments = provider.getIndexFragments(config);
-						for (IIndexFragment fragment : fragments) {
-							try {
-								fragment.acquireReadLock();
-								try {
-									if (fragid.equals(fragment.getProperty(IIndexFragment.PROPERTY_FRAGMENT_ID))) {
-										String csver = fragment
-												.getProperty(IIndexFragment.PROPERTY_FRAGMENT_FORMAT_VERSION);
-										if (csver != null) {
-											if (result.length() > 0)
-												result.append(", "); //$NON-NLS-1$
-											result.append(csver);
-										}
-									}
-								} finally {
-									fragment.releaseReadLock();
-								}
-							} catch (Exception e) {
-								// No logging, we are generating a msg for the log.
-							}
-						}
-					}
-				} catch (CoreException e) {
-					// No logging, we are generating a msg for the log.
-				}
-			}
-		}
-		return result.toString();
-	}
+    public int getOption(IConfigurationElement elem, String attributeName, int option) {
+        if (Boolean.parseBoolean(elem.getAttribute(attributeName)))
+            return option;
+        return 0;
+    }
 
-	/**
-	 * Returns the version range supported by the format identified by the specified formatID.
-	 * @param formatID
-	 */
-	private VersionRange getCurrentlySupportedVersionRangeForFormat(String formatID) {
-		if (PDOM.FRAGMENT_PROPERTY_VALUE_FORMAT_ID.equals(formatID)) {
-			return pdomVersionRange;
-		}
-		// Version range checks do not apply to non-PDOM IIndexFragments.
-		return null;
-	}
+    /**
+     * Get the array of IIndexFragment objects provided by all of the
+     * registered IIndexProvider objects for the specified project, and
+     * for the current state of the project.
+     * Order in the array is not significant.
+     * @param config
+     * @return the array of IIndexFragment objects for the current state
+     */
+    public IIndexFragment[] getProvidedIndexFragments(ICConfigurationDescription config, int usage) throws CoreException {
+        Map<String, IIndexFragment> id2fragment = new HashMap<>();
+        IProject project = config.getProjectDescription().getProject();
+        for (int i = 0; i < fragmentProviders.length; i++) {
+            if ((fragmentProviderUsage[i] & usage) != 0) {
+                IIndexFragmentProvider provider = fragmentProviders[i];
+                try {
+                    if (providesForProject(provider, project)) {
+                        IIndexFragment[] fragments = provider.getIndexFragments(config);
+                        for (IIndexFragment fragment : fragments) {
+                            try {
+                                processCandidate(id2fragment, fragment);
+                            } catch (InterruptedException e) {
+                                // continue with next candidate
+                                CCorePlugin.log(e);
+                            } catch (CoreException e) {
+                                // continue with next candidate
+                                CCorePlugin.log(e);
+                            }
+                        }
+                    }
+                } catch (CoreException e) {
+                    // move to next provider
+                    CCorePlugin.log(e);
+                }
+            }
+        }
+        // Make log entries for any fragments which have no compatible equivalents
+        List<IIndexFragment> preresult = new ArrayList<>();
+        for (Map.Entry<String, IIndexFragment> entry : id2fragment.entrySet()) {
+            if (entry.getValue() == null) {
+                String key = entry.getKey();
+                if (!compatibleFragmentUnavailable.contains(key)) {
+                    String msg = NLS.bind(Messages.IndexProviderManager_NoCompatibleFragmentsAvailable, key, collectVersions(config, project, usage, key));
+                    CCorePlugin.log(new Status(IStatus.WARNING, CCorePlugin.PLUGIN_ID, msg));
+                    compatibleFragmentUnavailable.add(key);
+                }
+            } else {
+                preresult.add(entry.getValue());
+            }
+        }
+        return preresult.toArray(new IIndexFragment[preresult.size()]);
+    }
 
-	/**
-	 * Examines the candidate fragment, adding it to the map (using its fragment id as key) if
-	 * it compatible with the current run-time, and it is better than any existing fragments for
-	 * the same fragment id.
-	 * @param id2fragment
-	 * @param candidate
-	 */
-	private void processCandidate(Map<String, IIndexFragment> id2fragment, IIndexFragment candidate)
-			throws InterruptedException, CoreException {
-		String cid = null, csver = null, cformatID = null;
-		candidate.acquireReadLock();
-		try {
-			cid = candidate.getProperty(IIndexFragment.PROPERTY_FRAGMENT_ID);
-			csver = candidate.getProperty(IIndexFragment.PROPERTY_FRAGMENT_FORMAT_VERSION);
-			cformatID = candidate.getProperty(IIndexFragment.PROPERTY_FRAGMENT_FORMAT_ID);
-		} finally {
-			candidate.releaseReadLock();
-		}
-		assert cid != null && csver != null && cformatID != null;
+    /**
+     * Used for logging a problem.
+     */
+    private String collectVersions(ICConfigurationDescription config, IProject project, int usage, String fragid) {
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < fragmentProviders.length; i++) {
+            if ((fragmentProviderUsage[i] & usage) != 0) {
+                IIndexFragmentProvider provider = fragmentProviders[i];
+                try {
+                    if (providesForProject(provider, project)) {
+                        IIndexFragment[] fragments = provider.getIndexFragments(config);
+                        for (IIndexFragment fragment : fragments) {
+                            try {
+                                fragment.acquireReadLock();
+                                try {
+                                    if (fragid.equals(fragment.getProperty(IIndexFragment.PROPERTY_FRAGMENT_ID))) {
+                                        String csver = fragment.getProperty(IIndexFragment.PROPERTY_FRAGMENT_FORMAT_VERSION);
+                                        if (csver != null) {
+                                            if (result.length() > 0)
+                                                //$NON-NLS-1$
+                                                result.append(", ");
+                                            result.append(csver);
+                                        }
+                                    }
+                                } finally {
+                                    fragment.releaseReadLock();
+                                }
+                            } catch (Exception e) {
+                                // No logging, we are generating a msg for the log.
+                            }
+                        }
+                    }
+                } catch (CoreException e) {
+                    // No logging, we are generating a msg for the log.
+                }
+            }
+        }
+        return result.toString();
+    }
 
-		Version cver = Version.parseVersion(csver); // illegal argument exception
-		IIndexFragment existing = id2fragment.get(cid);
+    /**
+     * Returns the version range supported by the format identified by the specified formatID.
+     * @param formatID
+     */
+    private VersionRange getCurrentlySupportedVersionRangeForFormat(String formatID) {
+        if (PDOM.FRAGMENT_PROPERTY_VALUE_FORMAT_ID.equals(formatID)) {
+            return pdomVersionRange;
+        }
+        // Version range checks do not apply to non-PDOM IIndexFragments.
+        return null;
+    }
 
-		VersionRange versionRange = getCurrentlySupportedVersionRangeForFormat(cformatID);
-		if (versionRange == null || versionRange.isIncluded(cver)) {
-			if (existing != null) {
-				String esver = null, eformatID = null;
-				existing.acquireReadLock();
-				try {
-					esver = existing.getProperty(IIndexFragment.PROPERTY_FRAGMENT_FORMAT_VERSION);
-					eformatID = existing.getProperty(IIndexFragment.PROPERTY_FRAGMENT_FORMAT_ID);
-				} finally {
-					existing.releaseReadLock();
-				}
-
-				if (eformatID.equals(cformatID)) {
-					Version ever = Version.parseVersion(esver); // illegal argument exception
-					if (ever.compareTo(cver) < 0) {
-						id2fragment.put(cid, candidate);
-					}
-				} else {
-					/*
+    /**
+     * Examines the candidate fragment, adding it to the map (using its fragment id as key) if
+     * it compatible with the current run-time, and it is better than any existing fragments for
+     * the same fragment id.
+     * @param id2fragment
+     * @param candidate
+     */
+    private void processCandidate(Map<String, IIndexFragment> id2fragment, IIndexFragment candidate) throws InterruptedException, CoreException {
+        String cid = null, csver = null, cformatID = null;
+        candidate.acquireReadLock();
+        try {
+            cid = candidate.getProperty(IIndexFragment.PROPERTY_FRAGMENT_ID);
+            csver = candidate.getProperty(IIndexFragment.PROPERTY_FRAGMENT_FORMAT_VERSION);
+            cformatID = candidate.getProperty(IIndexFragment.PROPERTY_FRAGMENT_FORMAT_ID);
+        } finally {
+            candidate.releaseReadLock();
+        }
+        assert cid != null && csver != null && cformatID != null;
+        // illegal argument exception
+        Version cver = Version.parseVersion(csver);
+        IIndexFragment existing = id2fragment.get(cid);
+        VersionRange versionRange = getCurrentlySupportedVersionRangeForFormat(cformatID);
+        if (versionRange == null || versionRange.isIncluded(cver)) {
+            if (existing != null) {
+                String esver = null, eformatID = null;
+                existing.acquireReadLock();
+                try {
+                    esver = existing.getProperty(IIndexFragment.PROPERTY_FRAGMENT_FORMAT_VERSION);
+                    eformatID = existing.getProperty(IIndexFragment.PROPERTY_FRAGMENT_FORMAT_ID);
+                } finally {
+                    existing.releaseReadLock();
+                }
+                if (eformatID.equals(cformatID)) {
+                    // illegal argument exception
+                    Version ever = Version.parseVersion(esver);
+                    if (ever.compareTo(cver) < 0) {
+                        id2fragment.put(cid, candidate);
+                    }
+                } else {
+                    /*
 					 * In future we could allow users to specify
 					 * how format (i.e. PDOM -> custom IIndexFragment implementation)
 					 * changes are coped with.
 					 */
-				}
-			} else {
-				id2fragment.put(cid, candidate);
-			}
-		} else {
-			if (existing == null) {
-				id2fragment.put(cid, null); // signifies candidate is unusable
-			}
-		}
-	}
+                }
+            } else {
+                id2fragment.put(cid, candidate);
+            }
+        } else {
+            if (existing == null) {
+                // signifies candidate is unusable
+                id2fragment.put(cid, null);
+            }
+        }
+    }
 
-	/**
-	 * Adds a PDOM-based index fragment provider.
-	 *
-	 * <b>Note: This method should not be called for purposes other than testing</b>
-	 * @param provider
-	 */
-	public void addIndexProvider(IIndexProvider provider) {
-		if (!(provider instanceof IIndexFragmentProvider)) {
-			/* This engineering compromise can be resolved when we address whether
+    /**
+     * Adds a PDOM-based index fragment provider.
+     *
+     * <b>Note: This method should not be called for purposes other than testing</b>
+     * @param provider
+     */
+    public void addIndexProvider(IIndexProvider provider) {
+        if (!(provider instanceof IIndexFragmentProvider)) {
+            /* This engineering compromise can be resolved when we address whether
 			 * IIndexFragment can be made public. The extension point only accepts
 			 * instances of IOfflinePDOMIndexProvider so this should never happen (tm)
 			 */
-			CCorePlugin.log("An unknown index provider implementation was plugged in to the CIndex extension point"); //$NON-NLS-1$
-			return;
-		}
+            //$NON-NLS-1$
+            CCorePlugin.log("An unknown index provider implementation was plugged in to the CIndex extension point");
+            return;
+        }
+        final int length = fragmentProviders.length;
+        IIndexFragmentProvider[] newProviders = new IIndexFragmentProvider[length + 1];
+        System.arraycopy(fragmentProviders, 0, newProviders, 0, length);
+        newProviders[length] = (IIndexFragmentProvider) provider;
+        fragmentProviders = newProviders;
+        int[] newFilters = new int[length + 1];
+        System.arraycopy(fragmentProviderUsage, 0, newFilters, 0, length);
+        newFilters[length] = -1;
+        fragmentProviderUsage = newFilters;
+    }
 
-		final int length = fragmentProviders.length;
+    /**
+     * Removes the specified provider by object identity. Only a PDOM-based provider can be removed
+     * using this method.
+     *
+     * <b>Note: This method should not be called for purposes other than testing</b>
+     * @param provider
+     */
+    public void removeIndexProvider(IIndexProvider provider) {
+        for (int i = 0; i < fragmentProviders.length; i++) {
+            if (fragmentProviders[i] == provider) {
+                final int length = fragmentProviders.length;
+                IIndexFragmentProvider[] newProviders = new IIndexFragmentProvider[length - 1];
+                System.arraycopy(fragmentProviders, 0, newProviders, 0, i);
+                System.arraycopy(fragmentProviders, i + 1, newProviders, i, length - i - 1);
+                fragmentProviders = newProviders;
+                int[] newFilters = new int[length - 1];
+                System.arraycopy(fragmentProviderUsage, 0, newFilters, 0, i);
+                System.arraycopy(fragmentProviderUsage, i + 1, newFilters, i, length - i - 1);
+                fragmentProviderUsage = newFilters;
+                return;
+            }
+        }
+    }
 
-		IIndexFragmentProvider[] newProviders = new IIndexFragmentProvider[length + 1];
-		System.arraycopy(fragmentProviders, 0, newProviders, 0, length);
-		newProviders[length] = (IIndexFragmentProvider) provider;
-		fragmentProviders = newProviders;
+    private boolean providesForProject(IIndexProvider provider, IProject project) {
+        ProvisionMapKey key = new ProvisionMapKey(provider, project);
+        if (!provisionMap.containsKey(key)) {
+            try {
+                ICProject cproject = CoreModel.getDefault().create(project);
+                provisionMap.put(key, Boolean.valueOf(provider.providesFor(cproject)));
+            } catch (CoreException e) {
+                CCorePlugin.log(e);
+                provisionMap.put(key, Boolean.FALSE);
+            }
+        }
+        return provisionMap.get(key).booleanValue();
+    }
 
-		int[] newFilters = new int[length + 1];
-		System.arraycopy(fragmentProviderUsage, 0, newFilters, 0, length);
-		newFilters[length] = -1;
-		fragmentProviderUsage = newFilters;
-	}
+    @Override
+    public void elementChanged(ElementChangedEvent event) {
+        try {
+            if (event.getType() == ElementChangedEvent.POST_CHANGE) {
+                processDelta(event.getDelta());
+            }
+        } catch (CoreException e) {
+            CCorePlugin.log(e);
+        }
+    }
 
-	/**
-	 * Removes the specified provider by object identity. Only a PDOM-based provider can be removed
-	 * using this method.
-	 *
-	 * <b>Note: This method should not be called for purposes other than testing</b>
-	 * @param provider
-	 */
-	public void removeIndexProvider(IIndexProvider provider) {
-		for (int i = 0; i < fragmentProviders.length; i++) {
-			if (fragmentProviders[i] == provider) {
-				final int length = fragmentProviders.length;
-				IIndexFragmentProvider[] newProviders = new IIndexFragmentProvider[length - 1];
-				System.arraycopy(fragmentProviders, 0, newProviders, 0, i);
-				System.arraycopy(fragmentProviders, i + 1, newProviders, i, length - i - 1);
-				fragmentProviders = newProviders;
+    private void processDelta(ICElementDelta delta) throws CoreException {
+        int type = delta.getElement().getElementType();
+        switch(type) {
+            case ICElement.C_MODEL:
+                // Loop through the children
+                ICElementDelta[] children = delta.getAffectedChildren();
+                for (int i = 0; i < children.length; ++i) {
+                    processDelta(children[i]);
+                }
+                break;
+            case ICElement.C_PROJECT:
+                final ICProject cproject = (ICProject) delta.getElement();
+                switch(delta.getKind()) {
+                    case ICElementDelta.REMOVED:
+                        List<ProvisionMapKey> toRemove = new ArrayList<>();
+                        for (ProvisionMapKey key : provisionMap.keySet()) {
+                            if (key.getProject().equals(cproject.getProject())) {
+                                toRemove.add(key);
+                            }
+                        }
+                        for (ProvisionMapKey key : toRemove) {
+                            provisionMap.remove(key);
+                        }
+                        break;
+                }
+        }
+    }
 
-				int[] newFilters = new int[length - 1];
-				System.arraycopy(fragmentProviderUsage, 0, newFilters, 0, i);
-				System.arraycopy(fragmentProviderUsage, i + 1, newFilters, i, length - i - 1);
-				fragmentProviderUsage = newFilters;
-				return;
-			}
-		}
-	}
+    private static class ProvisionMapKey {
 
-	private boolean providesForProject(IIndexProvider provider, IProject project) {
-		ProvisionMapKey key = new ProvisionMapKey(provider, project);
+        private final IIndexProvider provider;
 
-		if (!provisionMap.containsKey(key)) {
-			try {
-				ICProject cproject = CoreModel.getDefault().create(project);
-				provisionMap.put(key, Boolean.valueOf(provider.providesFor(cproject)));
-			} catch (CoreException e) {
-				CCorePlugin.log(e);
-				provisionMap.put(key, Boolean.FALSE);
-			}
-		}
+        private final IProject project;
 
-		return provisionMap.get(key).booleanValue();
-	}
+        ProvisionMapKey(IIndexProvider provider, IProject project) {
+            this.provider = provider;
+            this.project = project;
+        }
 
-	@Override
-	public void elementChanged(ElementChangedEvent event) {
-		try {
-			if (event.getType() == ElementChangedEvent.POST_CHANGE) {
-				processDelta(event.getDelta());
-			}
-		} catch (CoreException e) {
-			CCorePlugin.log(e);
-		}
-	}
+        @Override
+        public boolean equals(Object obj) {
+            if (obj instanceof ProvisionMapKey) {
+                ProvisionMapKey other = (ProvisionMapKey) obj;
+                return other.project.equals(project) && other.provider.equals(provider);
+            }
+            return false;
+        }
 
-	private void processDelta(ICElementDelta delta) throws CoreException {
-		int type = delta.getElement().getElementType();
-		switch (type) {
-		case ICElement.C_MODEL:
-			// Loop through the children
-			ICElementDelta[] children = delta.getAffectedChildren();
-			for (int i = 0; i < children.length; ++i) {
-				processDelta(children[i]);
-			}
-			break;
-		case ICElement.C_PROJECT:
-			final ICProject cproject = (ICProject) delta.getElement();
-			switch (delta.getKind()) {
-			case ICElementDelta.REMOVED:
-				List<ProvisionMapKey> toRemove = new ArrayList<>();
-				for (ProvisionMapKey key : provisionMap.keySet()) {
-					if (key.getProject().equals(cproject.getProject())) {
-						toRemove.add(key);
-					}
-				}
-				for (ProvisionMapKey key : toRemove) {
-					provisionMap.remove(key);
-				}
-				break;
-			}
-		}
-	}
+        @Override
+        public int hashCode() {
+            return project.hashCode() ^ provider.hashCode();
+        }
 
-	private static class ProvisionMapKey {
-		private final IIndexProvider provider;
-		private final IProject project;
-
-		ProvisionMapKey(IIndexProvider provider, IProject project) {
-			this.provider = provider;
-			this.project = project;
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (obj instanceof ProvisionMapKey) {
-				ProvisionMapKey other = (ProvisionMapKey) obj;
-				return other.project.equals(project) && other.provider.equals(provider);
-			}
-			return false;
-		}
-
-		@Override
-		public int hashCode() {
-			return project.hashCode() ^ provider.hashCode();
-		}
-
-		public IProject getProject() {
-			return project;
-		}
-	}
+        public IProject getProject() {
+            return project;
+        }
+    }
 }

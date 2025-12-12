@@ -1,18 +1,20 @@
-/*******************************************************************************
- * Copyright (c) 2002, 2011 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2002, 2011 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- * Rational Software - Initial API and implementation
- * Markus Schorn (Wind River Systems)
- * Anton Leherbauer (Wind River Systems)
- *******************************************************************************/
+ *  Contributors:
+ *  Rational Software - Initial API and implementation
+ *  Markus Schorn (Wind River Systems)
+ *  Anton Leherbauer (Wind River Systems)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.model;
 
 import org.eclipse.cdt.core.model.CModelException;
@@ -22,119 +24,121 @@ import org.eclipse.cdt.core.parser.ast.ASTAccessVisibility;
 
 public class MethodDeclaration extends FunctionDeclaration implements IMethodDeclaration {
 
-	boolean isConst = false;
-	boolean isConstructor = false;
-	boolean isDestructor = false;
+    public boolean isConst = false;
 
-	public MethodDeclaration(ICElement parent, String name) {
-		super(parent, name, ICElement.C_METHOD_DECLARATION);
-	}
+    public boolean isConstructor = false;
 
-	public MethodDeclaration(ICElement parent, String name, int type) {
-		super(parent, name, type);
-	}
+    public boolean isDestructor = false;
 
-	@Override
-	public boolean isConstructor() {
-		return isConstructor;
-	}
+    public MethodDeclaration(ICElement parent, String name) {
+        super(parent, name, ICElement.C_METHOD_DECLARATION);
+    }
 
-	@Override
-	public boolean isDestructor() {
-		return isDestructor;
-	}
+    public MethodDeclaration(ICElement parent, String name, int type) {
+        super(parent, name, type);
+    }
 
-	public void setConstructor(boolean isConstructor) {
-		this.isConstructor = isConstructor;
-	}
+    @Override
+    public boolean isConstructor() {
+        return isConstructor;
+    }
 
-	public void setDestructor(boolean isDestructor) {
-		this.isDestructor = isDestructor;
-	}
+    @Override
+    public boolean isDestructor() {
+        return isDestructor;
+    }
 
-	@Override
-	public boolean isOperator() {
-		return getElementName().startsWith("operator"); //$NON-NLS-1$
-	}
+    public void setConstructor(boolean isConstructor) {
+        this.isConstructor = isConstructor;
+    }
 
-	@Override
-	public boolean isPureVirtual() throws CModelException {
-		return getMethodInfo().isPureVirtual();
-	}
+    public void setDestructor(boolean isDestructor) {
+        this.isDestructor = isDestructor;
+    }
 
-	public void setPureVirtual(boolean isPureVirtual) throws CModelException {
-		getMethodInfo().setPureVirtual(isPureVirtual);
-	}
+    @Override
+    public boolean isOperator() {
+        //$NON-NLS-1$
+        return getElementName().startsWith("operator");
+    }
 
-	@Override
-	public boolean isInline() throws CModelException {
-		return getMethodInfo().isInline();
-	}
+    @Override
+    public boolean isPureVirtual() throws CModelException {
+        return getMethodInfo().isPureVirtual();
+    }
 
-	public void setInline(boolean isInline) throws CModelException {
-		getMethodInfo().setInline(isInline);
-	}
+    public void setPureVirtual(boolean isPureVirtual) throws CModelException {
+        getMethodInfo().setPureVirtual(isPureVirtual);
+    }
 
-	@Override
-	public boolean isVirtual() throws CModelException {
-		return getMethodInfo().isVirtual();
-	}
+    @Override
+    public boolean isInline() throws CModelException {
+        return getMethodInfo().isInline();
+    }
 
-	public void setVirtual(boolean isVirtual) throws CModelException {
-		getMethodInfo().setVirtual(isVirtual);
-	}
+    public void setInline(boolean isInline) throws CModelException {
+        getMethodInfo().setInline(isInline);
+    }
 
-	@Override
-	public boolean isFriend() throws CModelException {
-		return getMethodInfo().isFriend();
-	}
+    @Override
+    public boolean isVirtual() throws CModelException {
+        return getMethodInfo().isVirtual();
+    }
 
-	public void setFriend(boolean isFriend) throws CModelException {
-		getMethodInfo().setFriend(isFriend);
-	}
+    public void setVirtual(boolean isVirtual) throws CModelException {
+        getMethodInfo().setVirtual(isVirtual);
+    }
 
-	@Override
-	public boolean isConst() {
-		return isConst;
-	}
+    @Override
+    public boolean isFriend() throws CModelException {
+        return getMethodInfo().isFriend();
+    }
 
-	@Override
-	public void setConst(boolean isConst) throws CModelException {
-		this.isConst = isConst;
-	}
+    public void setFriend(boolean isFriend) throws CModelException {
+        getMethodInfo().setFriend(isFriend);
+    }
 
-	@Override
-	public ASTAccessVisibility getVisibility() throws CModelException {
-		return getMethodInfo().getVisibility();
-	}
+    @Override
+    public boolean isConst() {
+        return isConst;
+    }
 
-	public void setVisibility(ASTAccessVisibility visibility) throws CModelException {
-		getMethodInfo().setVisibility(visibility);
-	}
+    @Override
+    public void setConst(boolean isConst) throws CModelException {
+        this.isConst = isConst;
+    }
 
-	@Override
-	protected CElementInfo createElementInfo() {
-		return new MethodInfo(this);
-	}
+    @Override
+    public ASTAccessVisibility getVisibility() throws CModelException {
+        return getMethodInfo().getVisibility();
+    }
 
-	protected MethodInfo getMethodInfo() throws CModelException {
-		return (MethodInfo) getElementInfo();
-	}
+    public void setVisibility(ASTAccessVisibility visibility) throws CModelException {
+        getMethodInfo().setVisibility(visibility);
+    }
 
-	@Override
-	public boolean equals(Object other) {
-		if (other instanceof IMethodDeclaration) {
-			return equals(this, (IMethodDeclaration) other);
-		}
-		return false;
-	}
+    @Override
+    protected CElementInfo createElementInfo() {
+        return new MethodInfo(this);
+    }
 
-	public static boolean equals(IMethodDeclaration lhs, IMethodDeclaration rhs) {
-		try {
-			return lhs.isConst() == rhs.isConst() && FunctionDeclaration.equals(lhs, rhs);
-		} catch (CModelException e) {
-			return false;
-		}
-	}
+    protected MethodInfo getMethodInfo() throws CModelException {
+        return (MethodInfo) getElementInfo();
+    }
 
+    @Override
+    public boolean equals(Object other) {
+        if (other instanceof IMethodDeclaration) {
+            return equals(this, (IMethodDeclaration) other);
+        }
+        return false;
+    }
+
+    public static boolean equals(IMethodDeclaration lhs, IMethodDeclaration rhs) {
+        try {
+            return lhs.isConst() == rhs.isConst() && FunctionDeclaration.equals(lhs, rhs);
+        } catch (CModelException e) {
+            return false;
+        }
+    }
 }

@@ -1,17 +1,19 @@
-/*******************************************************************************
- * Copyright (c) 2012, 2016 Wind River Systems, Inc. and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2012, 2016 Wind River Systems, Inc. and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Markus Schorn - initial API and implementation
- *     Sergey Prigogin (Google)
- *******************************************************************************/
+ *  Contributors:
+ *      Markus Schorn - initial API and implementation
+ *      Sergey Prigogin (Google)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.parser.cpp.semantics;
 
 import static org.eclipse.cdt.core.dom.ast.IASTExpression.ValueCategory.LVALUE;
@@ -43,7 +45,6 @@ import static org.eclipse.cdt.core.dom.ast.IASTTypeIdExpression.op_sizeof;
 import static org.eclipse.cdt.core.dom.ast.IASTTypeIdExpression.op_sizeofParameterPack;
 import static org.eclipse.cdt.core.dom.ast.IASTTypeIdExpression.op_typeid;
 import static org.eclipse.cdt.core.dom.ast.IASTTypeIdExpression.op_typeof;
-
 import org.eclipse.cdt.core.dom.ast.IASTBinaryExpression;
 import org.eclipse.cdt.core.dom.ast.IASTExpression.ValueCategory;
 import org.eclipse.cdt.core.dom.ast.IASTNode;
@@ -65,271 +66,264 @@ import org.eclipse.cdt.internal.core.dom.parser.cpp.InstantiationContext;
 import org.eclipse.core.runtime.CoreException;
 
 public class EvalUnaryTypeID extends CPPDependentEvaluation {
-	private final int fOperator;
-	private final IType fOrigType;
-	private IType fType;
 
-	public EvalUnaryTypeID(int operator, IType type, IASTNode pointOfDefinition) {
-		this(operator, type, findEnclosingTemplate(pointOfDefinition));
-	}
+    final public int fOperator;
 
-	public EvalUnaryTypeID(int operator, IType type, IBinding templateDefinition) {
-		super(templateDefinition);
-		fOperator = operator;
-		fOrigType = type;
-	}
+    final public IType fOrigType;
 
-	public int getOperator() {
-		return fOperator;
-	}
+    public IType fType;
 
-	public IType getArgument() {
-		return fOrigType;
-	}
+    public EvalUnaryTypeID(int operator, IType type, IASTNode pointOfDefinition) {
+        this(operator, type, findEnclosingTemplate(pointOfDefinition));
+    }
 
-	@Override
-	public boolean isInitializerList() {
-		return false;
-	}
+    public EvalUnaryTypeID(int operator, IType type, IBinding templateDefinition) {
+        super(templateDefinition);
+        fOperator = operator;
+        fOrigType = type;
+    }
 
-	@Override
-	public boolean isFunctionSet() {
-		return false;
-	}
+    public int getOperator() {
+        return fOperator;
+    }
 
-	@Override
-	public boolean isTypeDependent() {
-		if (fOperator == op_typeof)
-			return CPPTemplates.isDependentType(fOrigType);
-		return false;
-	}
+    public IType getArgument() {
+        return fOrigType;
+    }
 
-	@Override
-	public boolean isValueDependent() {
-		switch (fOperator) {
-		case op_sizeofParameterPack:
-			return true;
-		case op_sizeof:
-		case op_alignof:
-		case op_has_nothrow_copy:
-		case op_has_nothrow_constructor:
-		case op_has_trivial_assign:
-		case op_has_trivial_constructor:
-		case op_has_trivial_copy:
-		case op_has_trivial_destructor:
-		case op_has_unique_object_representations:
-		case op_has_virtual_destructor:
-		case op_is_abstract:
-		case op_is_aggregate:
-		case op_is_class:
-		case op_is_empty:
-		case op_is_enum:
-		case op_is_final:
-		case op_is_literal_type:
-		case op_is_pod:
-		case op_is_polymorphic:
-		case op_is_standard_layout:
-		case op_is_trivial:
-		case op_is_trivially_copyable:
-		case op_is_union:
-		case op_is_function:
-			return CPPTemplates.isDependentType(fOrigType);
+    @Override
+    public boolean isInitializerList() {
+        return false;
+    }
 
-		case op_typeid:
-		case op_typeof:
-			return false;
-		}
-		return false;
-	}
+    @Override
+    public boolean isFunctionSet() {
+        return false;
+    }
 
-	@Override
-	public boolean isConstantExpression() {
-		return true;
-	}
+    @Override
+    public boolean isTypeDependent() {
+        if (fOperator == op_typeof)
+            return CPPTemplates.isDependentType(fOrigType);
+        return false;
+    }
 
-	@Override
-	public boolean isEquivalentTo(ICPPEvaluation other) {
-		if (!(other instanceof EvalUnaryTypeID)) {
-			return false;
-		}
-		EvalUnaryTypeID o = (EvalUnaryTypeID) other;
-		return fOperator == o.fOperator && fOrigType.isSameType(o.fOrigType);
-	}
+    @Override
+    public boolean isValueDependent() {
+        switch(fOperator) {
+            case op_sizeofParameterPack:
+                return true;
+            case op_sizeof:
+            case op_alignof:
+            case op_has_nothrow_copy:
+            case op_has_nothrow_constructor:
+            case op_has_trivial_assign:
+            case op_has_trivial_constructor:
+            case op_has_trivial_copy:
+            case op_has_trivial_destructor:
+            case op_has_unique_object_representations:
+            case op_has_virtual_destructor:
+            case op_is_abstract:
+            case op_is_aggregate:
+            case op_is_class:
+            case op_is_empty:
+            case op_is_enum:
+            case op_is_final:
+            case op_is_literal_type:
+            case op_is_pod:
+            case op_is_polymorphic:
+            case op_is_standard_layout:
+            case op_is_trivial:
+            case op_is_trivially_copyable:
+            case op_is_union:
+            case op_is_function:
+                return CPPTemplates.isDependentType(fOrigType);
+            case op_typeid:
+            case op_typeof:
+                return false;
+        }
+        return false;
+    }
 
-	@Override
-	public IType getType() {
-		if (fType == null)
-			fType = computeType();
-		return fType;
-	}
+    @Override
+    public boolean isConstantExpression() {
+        return true;
+    }
 
-	private IType computeType() {
-		switch (fOperator) {
-		case op_sizeof:
-		case op_sizeofParameterPack:
-		case op_alignof:
-			IType result = (IType) CPPVisitor.get_SIZE_T().clone();
-			if (SemanticUtil.getSimplifiedType(result) instanceof CPPBasicType) {
-				result = CPPVisitor.associateTypeWithValue(result, getValue());
-			}
-			return result;
-		case op_typeid:
-			return CPPVisitor.get_type_info();
-		case op_has_nothrow_copy:
-		case op_has_nothrow_constructor:
-		case op_has_trivial_assign:
-		case op_has_trivial_constructor:
-		case op_has_trivial_copy:
-		case op_has_trivial_destructor:
-		case op_has_unique_object_representations:
-		case op_has_virtual_destructor:
-		case op_is_abstract:
-		case op_is_aggregate:
-		case op_is_class:
-		case op_is_empty:
-		case op_is_enum:
-		case op_is_final:
-		case op_is_literal_type:
-		case op_is_pod:
-		case op_is_polymorphic:
-		case op_is_standard_layout:
-		case op_is_trivial:
-		case op_is_trivially_copyable:
-		case op_is_union:
-		case op_is_function:
-			return CPPBasicType.BOOLEAN;
-		case op_typeof:
-			if (isTypeDependent())
-				return new TypeOfDependentExpression(this);
-			return fOrigType;
-		}
-		return ProblemType.UNKNOWN_FOR_EXPRESSION;
-	}
+    @Override
+    public boolean isEquivalentTo(ICPPEvaluation other) {
+        if (!(other instanceof EvalUnaryTypeID)) {
+            return false;
+        }
+        EvalUnaryTypeID o = (EvalUnaryTypeID) other;
+        return fOperator == o.fOperator && fOrigType.isSameType(o.fOrigType);
+    }
 
-	@Override
-	public IValue getValue() {
-		if (isValueDependent())
-			return DependentValue.create(this);
+    @Override
+    public IType getType() {
+        if (fType == null)
+            fType = computeType();
+        return fType;
+    }
 
-		return ValueFactory.evaluateUnaryTypeIdExpression(fOperator, fOrigType);
-	}
+    private IType computeType() {
+        switch(fOperator) {
+            case op_sizeof:
+            case op_sizeofParameterPack:
+            case op_alignof:
+                IType result = (IType) CPPVisitor.get_SIZE_T().clone();
+                if (SemanticUtil.getSimplifiedType(result) instanceof CPPBasicType) {
+                    result = CPPVisitor.associateTypeWithValue(result, getValue());
+                }
+                return result;
+            case op_typeid:
+                return CPPVisitor.get_type_info();
+            case op_has_nothrow_copy:
+            case op_has_nothrow_constructor:
+            case op_has_trivial_assign:
+            case op_has_trivial_constructor:
+            case op_has_trivial_copy:
+            case op_has_trivial_destructor:
+            case op_has_unique_object_representations:
+            case op_has_virtual_destructor:
+            case op_is_abstract:
+            case op_is_aggregate:
+            case op_is_class:
+            case op_is_empty:
+            case op_is_enum:
+            case op_is_final:
+            case op_is_literal_type:
+            case op_is_pod:
+            case op_is_polymorphic:
+            case op_is_standard_layout:
+            case op_is_trivial:
+            case op_is_trivially_copyable:
+            case op_is_union:
+            case op_is_function:
+                return CPPBasicType.BOOLEAN;
+            case op_typeof:
+                if (isTypeDependent())
+                    return new TypeOfDependentExpression(this);
+                return fOrigType;
+        }
+        return ProblemType.UNKNOWN_FOR_EXPRESSION;
+    }
 
-	@Override
-	public ValueCategory getValueCategory() {
-		return fOperator == op_typeid ? LVALUE : PRVALUE;
-	}
+    @Override
+    public IValue getValue() {
+        if (isValueDependent())
+            return DependentValue.create(this);
+        return ValueFactory.evaluateUnaryTypeIdExpression(fOperator, fOrigType);
+    }
 
-	@Override
-	public void marshal(ITypeMarshalBuffer buffer, boolean includeValue) throws CoreException {
-		buffer.putShort(ITypeMarshalBuffer.EVAL_UNARY_TYPE_ID);
-		buffer.putByte((byte) fOperator);
-		buffer.marshalType(fOrigType);
-		marshalTemplateDefinition(buffer);
-	}
+    @Override
+    public ValueCategory getValueCategory() {
+        return fOperator == op_typeid ? LVALUE : PRVALUE;
+    }
 
-	public static ICPPEvaluation unmarshal(short firstBytes, ITypeMarshalBuffer buffer) throws CoreException {
-		int op = buffer.getByte();
-		IType arg = buffer.unmarshalType();
-		IBinding templateDefinition = buffer.unmarshalBinding();
-		return new EvalUnaryTypeID(op, arg, templateDefinition);
-	}
+    @Override
+    public void marshal(ITypeMarshalBuffer buffer, boolean includeValue) throws CoreException {
+        buffer.putShort(ITypeMarshalBuffer.EVAL_UNARY_TYPE_ID);
+        buffer.putByte((byte) fOperator);
+        buffer.marshalType(fOrigType);
+        marshalTemplateDefinition(buffer);
+    }
 
-	@Override
-	public ICPPEvaluation instantiate(InstantiationContext context, int maxDepth) {
-		if (fOperator == op_sizeofParameterPack) {
-			return instantiateSizeofParameterPack(context);
-		}
-		return instantiateBySubstitution(context);
-	}
+    public static ICPPEvaluation unmarshal(short firstBytes, ITypeMarshalBuffer buffer) throws CoreException {
+        int op = buffer.getByte();
+        IType arg = buffer.unmarshalType();
+        IBinding templateDefinition = buffer.unmarshalBinding();
+        return new EvalUnaryTypeID(op, arg, templateDefinition);
+    }
 
-	@Override
-	public ICPPEvaluation computeForFunctionCall(ActivationRecord record, ConstexprEvaluationContext context) {
-		return this;
-	}
+    @Override
+    public ICPPEvaluation instantiate(InstantiationContext context, int maxDepth) {
+        if (fOperator == op_sizeofParameterPack) {
+            return instantiateSizeofParameterPack(context);
+        }
+        return instantiateBySubstitution(context);
+    }
 
-	@Override
-	public int determinePackSize(ICPPTemplateParameterMap tpMap) {
-		return CPPTemplates.determinePackSize(fOrigType, tpMap);
-	}
+    @Override
+    public ICPPEvaluation computeForFunctionCall(ActivationRecord record, ConstexprEvaluationContext context) {
+        return this;
+    }
 
-	@Override
-	public boolean referencesTemplateParameter() {
-		return CPPTemplates.isDependentType(fOrigType);
-	}
+    @Override
+    public int determinePackSize(ICPPTemplateParameterMap tpMap) {
+        return CPPTemplates.determinePackSize(fOrigType, tpMap);
+    }
 
-	private ICPPEvaluation instantiateBySubstitution(InstantiationContext context) {
-		IType type = CPPTemplates.instantiateType(fOrigType, context);
-		if (type == fOrigType)
-			return this;
-		return new EvalUnaryTypeID(fOperator, type, getTemplateDefinition());
-	}
+    @Override
+    public boolean referencesTemplateParameter() {
+        return CPPTemplates.isDependentType(fOrigType);
+    }
 
-	private ICPPEvaluation instantiateSizeofParameterPack(InstantiationContext context) {
-		if (fOrigType instanceof ICPPTemplateParameter) {
-			ICPPTemplateParameter pack = (ICPPTemplateParameter) fOrigType;
-			if (pack.isParameterPack()) {
-				ICPPTemplateArgument[] args = context.getPackExpansion(pack);
-				if (args == null) {
-					return this;
-				}
-				int concreteArgCount = 0;
-				int packExpansionCount = 0;
-				for (ICPPTemplateArgument arg : args) {
-					if (arg.isPackExpansion()) {
-						packExpansionCount++;
-					} else {
-						concreteArgCount++;
-					}
-				}
-				if (packExpansionCount > 0) {
-					// TODO(bug 530103):
-					//   This will only handle correctly the case where there is a single argument
-					//   which is a pack expansion, and no concrete arguments.
-					//   To correctly handle cases with multiple pack expansions, or a mixture
-					//   of concrete arguments and pack expansions, we need to do the following:
-					//     - For each pack expansion, find the parameter pack P which it's
-					//       expanding (if it's expanding multiple parameter packs, any one
-					//       should be sufficient), and construct an EvalUnaryTypeId representing
-					//       sizeof...(P).
-					//     - Construct an EvalBinary tree representing the sum of |concreteArgCount|
-					//       and the EvalUnaryTypeIds from the previous step.
+    private ICPPEvaluation instantiateBySubstitution(InstantiationContext context) {
+        IType type = CPPTemplates.instantiateType(fOrigType, context);
+        if (type == fOrigType)
+            return this;
+        return new EvalUnaryTypeID(fOperator, type, getTemplateDefinition());
+    }
 
-					//malaperle: I implemented something that kind-of does what the comment
-					//above suggest but am not confident enough that it covers all cases (hence the several instanceof checks).
-					ICPPEvaluation packEval = null;
-					for (ICPPTemplateArgument arg : args) {
-						if (arg.isPackExpansion()) {
-							if (arg.getTypeValue() instanceof ICPPParameterPackType) {
-								ICPPParameterPackType parameterPackType = (ICPPParameterPackType) arg.getTypeValue();
-								IType type = parameterPackType.getType();
-								if (type instanceof ICPPTemplateParameter)
-									packEval = new EvalUnaryTypeID(fOperator, type, getTemplateDefinition());
+    private ICPPEvaluation instantiateSizeofParameterPack(InstantiationContext context) {
+        if (fOrigType instanceof ICPPTemplateParameter) {
+            ICPPTemplateParameter pack = (ICPPTemplateParameter) fOrigType;
+            if (pack.isParameterPack()) {
+                ICPPTemplateArgument[] args = context.getPackExpansion(pack);
+                if (args == null) {
+                    return this;
+                }
+                int concreteArgCount = 0;
+                int packExpansionCount = 0;
+                for (ICPPTemplateArgument arg : args) {
+                    if (arg.isPackExpansion()) {
+                        packExpansionCount++;
+                    } else {
+                        concreteArgCount++;
+                    }
+                }
+                if (packExpansionCount > 0) {
+                    // TODO(bug 530103):
+                    //   This will only handle correctly the case where there is a single argument
+                    //   which is a pack expansion, and no concrete arguments.
+                    //   To correctly handle cases with multiple pack expansions, or a mixture
+                    //   of concrete arguments and pack expansions, we need to do the following:
+                    //     - For each pack expansion, find the parameter pack P which it's
+                    //       expanding (if it's expanding multiple parameter packs, any one
+                    //       should be sufficient), and construct an EvalUnaryTypeId representing
+                    //       sizeof...(P).
+                    //     - Construct an EvalBinary tree representing the sum of |concreteArgCount|
+                    //       and the EvalUnaryTypeIds from the previous step.
+                    //malaperle: I implemented something that kind-of does what the comment
+                    //above suggest but am not confident enough that it covers all cases (hence the several instanceof checks).
+                    ICPPEvaluation packEval = null;
+                    for (ICPPTemplateArgument arg : args) {
+                        if (arg.isPackExpansion()) {
+                            if (arg.getTypeValue() instanceof ICPPParameterPackType) {
+                                ICPPParameterPackType parameterPackType = (ICPPParameterPackType) arg.getTypeValue();
+                                IType type = parameterPackType.getType();
+                                if (type instanceof ICPPTemplateParameter)
+                                    packEval = new EvalUnaryTypeID(fOperator, type, getTemplateDefinition());
+                            }
+                        }
+                    }
+                    // Can we really get here?
+                    if (packEval == null)
+                        return instantiateBySubstitution(context);
+                    // For sizeof(...(T)), T={U..., U...}
+                    ICPPEvaluation multiPackCountEval = new EvalBinary(IASTBinaryExpression.op_multiply, packEval, new EvalFixed(getType(), getValueCategory(), IntegralValue.create(packExpansionCount)), pack);
+                    return new EvalBinary(IASTBinaryExpression.op_plus, multiPackCountEval, new EvalFixed(getType(), getValueCategory(), IntegralValue.create(concreteArgCount)), pack);
+                } else {
+                    return new EvalFixed(getType(), getValueCategory(), IntegralValue.create(concreteArgCount));
+                }
+            }
+        }
+        return EvalFixed.INCOMPLETE;
+    }
 
-							}
-						}
-					}
-
-					// Can we really get here?
-					if (packEval == null)
-						return instantiateBySubstitution(context);
-
-					// For sizeof(...(T)), T={U..., U...}
-					ICPPEvaluation multiPackCountEval = new EvalBinary(IASTBinaryExpression.op_multiply, packEval,
-							new EvalFixed(getType(), getValueCategory(), IntegralValue.create(packExpansionCount)),
-							pack);
-
-					return new EvalBinary(IASTBinaryExpression.op_plus, multiPackCountEval,
-							new EvalFixed(getType(), getValueCategory(), IntegralValue.create(concreteArgCount)), pack);
-				} else {
-					return new EvalFixed(getType(), getValueCategory(), IntegralValue.create(concreteArgCount));
-				}
-			}
-		}
-		return EvalFixed.INCOMPLETE;
-	}
-
-	@Override
-	public boolean isNoexcept() {
-		return true;
-	}
+    @Override
+    public boolean isNoexcept() {
+        return true;
+    }
 }

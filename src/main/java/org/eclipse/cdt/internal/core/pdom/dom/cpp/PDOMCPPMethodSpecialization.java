@@ -40,13 +40,13 @@ public class PDOMCPPMethodSpecialization extends PDOMCPPFunctionSpecialization i
      * the record).
      */
     // byte
-    protected static final int ANNOTATION1 = PDOMCPPFunctionSpecialization.RECORD_SIZE;
+    static final public int ANNOTATION1 = PDOMCPPFunctionSpecialization.RECORD_SIZE;
 
     /**
      * The size in bytes of a PDOMCPPMethodSpecialization record in the database.
      */
     @SuppressWarnings("hiding")
-    protected static final int RECORD_SIZE = PDOMCPPFunctionSpecialization.RECORD_SIZE + 1;
+    static final public int RECORD_SIZE = PDOMCPPFunctionSpecialization.RECORD_SIZE + 1;
 
     public PDOMCPPMethodSpecialization(PDOMCPPLinkage linkage, PDOMNode parent, ICPPMethod method, PDOMBinding specialized) throws CoreException {
         super(linkage, parent, method, specialized);

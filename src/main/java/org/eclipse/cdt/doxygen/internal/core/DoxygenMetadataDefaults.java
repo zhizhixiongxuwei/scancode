@@ -22,43 +22,43 @@ import org.eclipse.core.runtime.preferences.PreferenceMetadata;
 
 final public class DoxygenMetadataDefaults implements DoxygenMetadata {
 
-    private final PreferenceMetadata<Boolean> useBriefTagOption;
+    final public PreferenceMetadata<Boolean> useBriefTagOption;
 
-    private final PreferenceMetadata<Boolean> useStructuralCommandsOption;
+    final public PreferenceMetadata<Boolean> useStructuralCommandsOption;
 
-    private final PreferenceMetadata<Boolean> useJavadocStyleOption;
+    final public PreferenceMetadata<Boolean> useJavadocStyleOption;
 
-    private final PreferenceMetadata<Boolean> newLineAfterBriefOption;
+    final public PreferenceMetadata<Boolean> newLineAfterBriefOption;
 
-    private final PreferenceMetadata<Boolean> usePrePostTagOption;
+    final public PreferenceMetadata<Boolean> usePrePostTagOption;
 
     private final List<PreferenceMetadata<Boolean>> booleanOptions;
 
     public DoxygenMetadataDefaults() {
         this.useBriefTagOption = new //$NON-NLS-1$
+        //$NON-NLS-1$
         PreferenceMetadata<>(//$NON-NLS-1$
         Boolean.class, //$NON-NLS-1$
-        "doxygen_use_brief_tag", //$NON-NLS-1$
-        false, DoxygenCoreMessages.DoxygenMetadataDefaults_use_brief_tag_name, DoxygenCoreMessages.DoxygenMetadataDefaults_use_brief_tag_description);
+        "doxygen_use_brief_tag", false, DoxygenCoreMessages.DoxygenMetadataDefaults_use_brief_tag_name, DoxygenCoreMessages.DoxygenMetadataDefaults_use_brief_tag_description);
         this.useStructuralCommandsOption = new //$NON-NLS-1$
+        //$NON-NLS-1$
         PreferenceMetadata<>(//$NON-NLS-1$
-        Boolean.class, //$NON-NLS-1$
-        "doxygen_use_structural_commands", false, DoxygenCoreMessages.DoxygenMetadataDefaults_use_structured_commands_name, DoxygenCoreMessages.DoxygenMetadataDefaults_use_structured_commands_description);
+        Boolean.class, "doxygen_use_structural_commands", false, DoxygenCoreMessages.DoxygenMetadataDefaults_use_structured_commands_name, DoxygenCoreMessages.DoxygenMetadataDefaults_use_structured_commands_description);
         this.useJavadocStyleOption = new //$NON-NLS-1$
+        //$NON-NLS-1$
         PreferenceMetadata<>(//$NON-NLS-1$
         Boolean.class, //$NON-NLS-1$
-        "doxygen_use_javadoc_tags", //$NON-NLS-1$
-        true, DoxygenCoreMessages.DoxygenMetadataDefaults_use_javadoc_style_name, DoxygenCoreMessages.DoxygenMetadataDefaults_use_javadoc_style_description);
+        "doxygen_use_javadoc_tags", true, DoxygenCoreMessages.DoxygenMetadataDefaults_use_javadoc_style_name, DoxygenCoreMessages.DoxygenMetadataDefaults_use_javadoc_style_description);
         this.newLineAfterBriefOption = new //$NON-NLS-1$
+        //$NON-NLS-1$
         PreferenceMetadata<>(//$NON-NLS-1$
         Boolean.class, //$NON-NLS-1$
-        "doxygen_new_line_after_brief", //$NON-NLS-1$
-        true, DoxygenCoreMessages.DoxygenMetadataDefaults_new_line_after_brief_name, DoxygenCoreMessages.DoxygenMetadataDefaults_new_line_after_brief_description);
+        "doxygen_new_line_after_brief", true, DoxygenCoreMessages.DoxygenMetadataDefaults_new_line_after_brief_name, DoxygenCoreMessages.DoxygenMetadataDefaults_new_line_after_brief_description);
         this.usePrePostTagOption = new //$NON-NLS-1$
+        //$NON-NLS-1$
         PreferenceMetadata<>(//$NON-NLS-1$
         Boolean.class, //$NON-NLS-1$
-        "doxygen_use_pre_tag", //$NON-NLS-1$
-        false, DoxygenCoreMessages.DoxygenMetadataDefaults_use_pre_post_tags_name, DoxygenCoreMessages.DoxygenMetadataDefaults_use_pre_post_tags_description);
+        "doxygen_use_pre_tag", false, DoxygenCoreMessages.DoxygenMetadataDefaults_use_pre_post_tags_name, DoxygenCoreMessages.DoxygenMetadataDefaults_use_pre_post_tags_description);
         this.booleanOptions = new ArrayList<>();
         booleanOptions.add(useBriefTagOption);
         booleanOptions.add(useStructuralCommandsOption);

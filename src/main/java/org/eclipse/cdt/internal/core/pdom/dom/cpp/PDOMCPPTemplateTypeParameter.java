@@ -44,16 +44,16 @@ import org.eclipse.core.runtime.CoreException;
  */
 public class PDOMCPPTemplateTypeParameter extends PDOMCPPBinding implements IPDOMMemberOwner, ICPPTemplateTypeParameter, ICPPUnknownType, IIndexType, IPDOMCPPTemplateParameter {
 
-    private static final int PACK_BIT = 1 << 31;
+    static final public int PACK_BIT = 1 << 31;
 
-    private static final int DEFAULT_TYPE = PDOMCPPBinding.RECORD_SIZE;
+    static final public int DEFAULT_TYPE = PDOMCPPBinding.RECORD_SIZE;
 
-    private static final int MEMBERLIST = DEFAULT_TYPE + Database.TYPE_SIZE;
+    static final public int MEMBERLIST = DEFAULT_TYPE + Database.TYPE_SIZE;
 
-    private static final int PARAMETERID = MEMBERLIST + Database.PTR_SIZE;
+    static final public int PARAMETERID = MEMBERLIST + Database.PTR_SIZE;
 
     @SuppressWarnings("hiding")
-    protected static final int RECORD_SIZE = PARAMETERID + 4;
+    static final public int RECORD_SIZE = PARAMETERID + 4;
 
     // No need for volatile, PDOMCPPUnknownScope protects its fields.
     private PDOMCPPUnknownScope fUnknownScope;

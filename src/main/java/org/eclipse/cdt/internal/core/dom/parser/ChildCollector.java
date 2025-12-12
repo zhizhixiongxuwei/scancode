@@ -25,9 +25,9 @@ import org.eclipse.cdt.core.dom.ast.IASTNode;
  */
 public class ChildCollector extends ASTGenericVisitor {
 
-    private final IASTNode fNode;
+    final public IASTNode fNode;
 
-    private List<IASTNode> fNodes;
+    public List<IASTNode> fNodes;
 
     public ChildCollector(IASTNode node) {
         super(true);

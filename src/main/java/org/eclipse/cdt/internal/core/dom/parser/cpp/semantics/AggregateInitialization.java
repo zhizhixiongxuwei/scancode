@@ -29,9 +29,9 @@ import org.eclipse.cdt.internal.core.dom.parser.cpp.semantics.Cost.Rank;
 
 public class AggregateInitialization {
 
-    private ICPPEvaluation[] fInitializers;
+    public ICPPEvaluation[] fInitializers;
 
-    private int fIndex = 0;
+    public int fIndex = 0;
 
     /**
      * Checks whether 'target' can be initialized from 'list' according to the rules for

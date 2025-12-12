@@ -1,18 +1,20 @@
-/*******************************************************************************
- * Copyright (c) 2008, 2014 IBM Wind River Systems, Inc. and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2008, 2014 IBM Wind River Systems, Inc. and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Markus Schorn - Initial API and implementation
- *     Sergey Prigogin (Google)
- *     Thomas Corbat (IFS)
- *******************************************************************************/
+ *  Contributors:
+ *      Markus Schorn - Initial API and implementation
+ *      Sergey Prigogin (Google)
+ *      Thomas Corbat (IFS)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.parser.c;
 
 import org.eclipse.cdt.core.dom.ast.ASTVisitor;
@@ -39,119 +41,118 @@ import org.eclipse.cdt.internal.core.dom.parser.IASTInternalScope;
  * @since 5.0.1
  */
 public class CASTAmbiguousSimpleDeclaration extends ASTAmbiguousNode implements IASTAmbiguousSimpleDeclaration {
-	private IASTSimpleDeclaration fSimpleDecl;
-	private IASTDeclSpecifier fAltDeclSpec;
-	private IASTDeclarator fAltDtor;
 
-	public CASTAmbiguousSimpleDeclaration(IASTSimpleDeclaration decl, IASTDeclSpecifier declSpec, IASTDeclarator dtor) {
-		fSimpleDecl = decl;
-		fAltDeclSpec = declSpec;
-		fAltDtor = dtor;
-	}
+    public IASTSimpleDeclaration fSimpleDecl;
 
-	@Override
-	protected void beforeResolution() {
-		// Populate containing scope, so that it will not be affected by the alternative branches.
-		IScope scope = CVisitor.getContainingScope(this);
-		if (scope instanceof IASTInternalScope) {
-			((IASTInternalScope) scope).populateCache();
-		}
-	}
+    public IASTDeclSpecifier fAltDeclSpec;
 
-	@Override
-	public IASTNode[] getNodes() {
-		return new IASTNode[] { fSimpleDecl, fAltDeclSpec, fAltDtor };
-	}
+    public IASTDeclarator fAltDtor;
 
-	@Override
-	public IASTSimpleDeclaration copy() {
-		throw new UnsupportedOperationException();
-	}
+    public CASTAmbiguousSimpleDeclaration(IASTSimpleDeclaration decl, IASTDeclSpecifier declSpec, IASTDeclarator dtor) {
+        fSimpleDecl = decl;
+        fAltDeclSpec = declSpec;
+        fAltDtor = dtor;
+    }
 
-	@Override
-	public IASTSimpleDeclaration copy(CopyStyle style) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    protected void beforeResolution() {
+        // Populate containing scope, so that it will not be affected by the alternative branches.
+        IScope scope = CVisitor.getContainingScope(this);
+        if (scope instanceof IASTInternalScope) {
+            ((IASTInternalScope) scope).populateCache();
+        }
+    }
 
-	@Override
-	public void addDeclarator(IASTDeclarator declarator) {
-		fSimpleDecl.addDeclarator(declarator);
-	}
+    @Override
+    public IASTNode[] getNodes() {
+        return new IASTNode[] { fSimpleDecl, fAltDeclSpec, fAltDtor };
+    }
 
-	@Override
-	public IASTDeclSpecifier getDeclSpecifier() {
-		return fSimpleDecl.getDeclSpecifier();
-	}
+    @Override
+    public IASTSimpleDeclaration copy() {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public IASTDeclarator[] getDeclarators() {
-		return fSimpleDecl.getDeclarators();
-	}
+    @Override
+    public IASTSimpleDeclaration copy(CopyStyle style) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public void setDeclSpecifier(IASTDeclSpecifier declSpec) {
-		fSimpleDecl.setDeclSpecifier(declSpec);
-	}
+    @Override
+    public void addDeclarator(IASTDeclarator declarator) {
+        fSimpleDecl.addDeclarator(declarator);
+    }
 
-	@Override
-	public IASTAttribute[] getAttributes() {
-		return fSimpleDecl.getAttributes();
-	}
+    @Override
+    public IASTDeclSpecifier getDeclSpecifier() {
+        return fSimpleDecl.getDeclSpecifier();
+    }
 
-	@Deprecated
-	@Override
-	public void addAttribute(IASTAttribute attribute) {
-		fSimpleDecl.addAttribute(attribute);
-	}
+    @Override
+    public IASTDeclarator[] getDeclarators() {
+        return fSimpleDecl.getDeclarators();
+    }
 
-	@Override
-	public IASTAttributeSpecifier[] getAttributeSpecifiers() {
-		return fSimpleDecl.getAttributeSpecifiers();
-	}
+    @Override
+    public void setDeclSpecifier(IASTDeclSpecifier declSpec) {
+        fSimpleDecl.setDeclSpecifier(declSpec);
+    }
 
-	@Override
-	public void addAttributeSpecifier(IASTAttributeSpecifier attributeSpecifier) {
-		fSimpleDecl.addAttributeSpecifier(attributeSpecifier);
-	}
+    @Override
+    public IASTAttribute[] getAttributes() {
+        return fSimpleDecl.getAttributes();
+    }
 
-	@Override
-	protected final IASTNode doResolveAmbiguity(ASTVisitor resolver) {
-		final IASTAmbiguityParent owner = (IASTAmbiguityParent) getParent();
-		IASTNode nodeToReplace = this;
+    @Deprecated
+    @Override
+    public void addAttribute(IASTAttribute attribute) {
+        fSimpleDecl.addAttribute(attribute);
+    }
 
-		// Handle nested ambiguities first.
-		owner.replace(nodeToReplace, fSimpleDecl);
-		IASTDeclSpecifier declSpec = fSimpleDecl.getDeclSpecifier();
-		declSpec.accept(resolver);
+    @Override
+    public IASTAttributeSpecifier[] getAttributeSpecifiers() {
+        return fSimpleDecl.getAttributeSpecifiers();
+    }
 
-		// Find nested names.
-		final NameCollector nameCollector = new NameCollector();
-		declSpec.accept(nameCollector);
-		final IASTName[] names = nameCollector.getNames();
+    @Override
+    public void addAttributeSpecifier(IASTAttributeSpecifier attributeSpecifier) {
+        fSimpleDecl.addAttributeSpecifier(attributeSpecifier);
+    }
 
-		// Resolve names.
-		boolean hasIssue = false;
-		for (IASTName name : names) {
-			try {
-				IBinding b = name.resolveBinding();
-				if (b instanceof IProblemBinding) {
-					hasIssue = true;
-					break;
-				}
-			} catch (Exception t) {
-				hasIssue = true;
-				break;
-			}
-		}
-		if (hasIssue) {
-			// Use the alternate version.
-			final IASTAmbiguityParent parent = (IASTAmbiguityParent) fSimpleDecl;
-			parent.replace(declSpec, fAltDeclSpec);
-			parent.replace(fSimpleDecl.getDeclarators()[0], fAltDtor);
-		}
-
-		// Resolve further nested ambiguities.
-		fSimpleDecl.accept(resolver);
-		return fSimpleDecl;
-	}
+    @Override
+    protected final IASTNode doResolveAmbiguity(ASTVisitor resolver) {
+        final IASTAmbiguityParent owner = (IASTAmbiguityParent) getParent();
+        IASTNode nodeToReplace = this;
+        // Handle nested ambiguities first.
+        owner.replace(nodeToReplace, fSimpleDecl);
+        IASTDeclSpecifier declSpec = fSimpleDecl.getDeclSpecifier();
+        declSpec.accept(resolver);
+        // Find nested names.
+        final NameCollector nameCollector = new NameCollector();
+        declSpec.accept(nameCollector);
+        final IASTName[] names = nameCollector.getNames();
+        // Resolve names.
+        boolean hasIssue = false;
+        for (IASTName name : names) {
+            try {
+                IBinding b = name.resolveBinding();
+                if (b instanceof IProblemBinding) {
+                    hasIssue = true;
+                    break;
+                }
+            } catch (Exception t) {
+                hasIssue = true;
+                break;
+            }
+        }
+        if (hasIssue) {
+            // Use the alternate version.
+            final IASTAmbiguityParent parent = (IASTAmbiguityParent) fSimpleDecl;
+            parent.replace(declSpec, fAltDeclSpec);
+            parent.replace(fSimpleDecl.getDeclarators()[0], fAltDtor);
+        }
+        // Resolve further nested ambiguities.
+        fSimpleDecl.accept(resolver);
+        return fSimpleDecl;
+    }
 }

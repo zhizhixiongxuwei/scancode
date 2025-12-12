@@ -1,20 +1,21 @@
-/*******************************************************************************
- * Copyright (c) 2002, 2009 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2002, 2009 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *    John Camelon (IBM Rational Software) - Initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *     John Camelon (IBM Rational Software) - Initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.core.parser;
 
 import java.util.Set;
-
 import org.eclipse.cdt.internal.core.parser.token.KeywordSets;
 
 /**
@@ -22,13 +23,14 @@ import org.eclipse.cdt.internal.core.parser.token.KeywordSets;
  * @noinstantiate This class is not intended to be instantiated by clients.
  */
 public class ParserFactory {
-	private static IParserLogService defaultLogService = new DefaultLogService();
 
-	public static IParserLogService createDefaultLogService() {
-		return defaultLogService;
-	}
+    static public IParserLogService defaultLogService = new DefaultLogService();
 
-	public static Set<String> getKeywordSet(KeywordSetKey key, ParserLanguage language) {
-		return KeywordSets.getKeywords(key, language);
-	}
+    public static IParserLogService createDefaultLogService() {
+        return defaultLogService;
+    }
+
+    public static Set<String> getKeywordSet(KeywordSetKey key, ParserLanguage language) {
+        return KeywordSets.getKeywords(key, language);
+    }
 }

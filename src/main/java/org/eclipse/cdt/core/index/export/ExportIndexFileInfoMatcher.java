@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2013, 2014 QNX Software Systems and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2013, 2014 QNX Software Systems and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- * Doug Schaefer (QNX) - Initial Implementation
- *******************************************************************************/
+ *  Contributors:
+ *  Doug Schaefer (QNX) - Initial Implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.core.index.export;
 
 import org.eclipse.core.filesystem.IFileInfo;
@@ -30,39 +32,39 @@ import org.eclipse.core.runtime.Path;
  */
 public class ExportIndexFileInfoMatcher extends AbstractFileInfoMatcher {
 
-	public static String ID = "org.eclipse.cdt.core.exportIndexFileInfoMatcher"; //$NON-NLS-1$
+    //$NON-NLS-1$
+    public static String ID = "org.eclipse.cdt.core.exportIndexFileInfoMatcher";
 
-	private IProject project;
-	private IPath excludedFolder;
+    public IProject project;
 
-	public static FileInfoMatcherDescription getDescription(String excludePath) {
-		return new FileInfoMatcherDescription(ID, excludePath);
-	}
+    public IPath excludedFolder;
 
-	public ExportIndexFileInfoMatcher() {
-	}
+    public static FileInfoMatcherDescription getDescription(String excludePath) {
+        return new FileInfoMatcherDescription(ID, excludePath);
+    }
 
-	@Override
-	public boolean matches(IContainer parent, IFileInfo fileInfo) throws CoreException {
-		if (excludedFolder == null || project == null)
-			return false;
+    public ExportIndexFileInfoMatcher() {
+    }
 
-		if (!project.equals(parent.getProject()))
-			return false;
+    @Override
+    public boolean matches(IContainer parent, IFileInfo fileInfo) throws CoreException {
+        if (excludedFolder == null || project == null)
+            return false;
+        if (!project.equals(parent.getProject()))
+            return false;
+        // Remove the project and the linked folder from the path
+        IPath testPath = parent.getFullPath().removeFirstSegments(2).append(fileInfo.getName());
+        boolean matches = excludedFolder.isPrefixOf(testPath);
+        if (matches)
+            //$NON-NLS-1$
+            System.out.println("Filtering: " + testPath);
+        return matches;
+    }
 
-		// Remove the project and the linked folder from the path
-		IPath testPath = parent.getFullPath().removeFirstSegments(2).append(fileInfo.getName());
-		boolean matches = excludedFolder.isPrefixOf(testPath);
-		if (matches)
-			System.out.println("Filtering: " + testPath); //$NON-NLS-1$
-		return matches;
-	}
-
-	@Override
-	public void initialize(IProject project, Object arguments) throws CoreException {
-		this.project = project;
-		if (arguments instanceof String)
-			excludedFolder = new Path((String) arguments);
-	}
-
+    @Override
+    public void initialize(IProject project, Object arguments) throws CoreException {
+        this.project = project;
+        if (arguments instanceof String)
+            excludedFolder = new Path((String) arguments);
+    }
 }

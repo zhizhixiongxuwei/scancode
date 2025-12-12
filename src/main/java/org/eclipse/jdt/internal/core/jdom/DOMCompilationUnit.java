@@ -42,7 +42,7 @@ public class DOMCompilationUnit extends DOMNode implements IDOMCompilationUnit, 
      * first document fragment in this compilation
      * unit.
      */
-    protected String fHeader;
+    public String fHeader;
 
     /**
      * Creates a new empty COMPILATION_UNIT document fragment.

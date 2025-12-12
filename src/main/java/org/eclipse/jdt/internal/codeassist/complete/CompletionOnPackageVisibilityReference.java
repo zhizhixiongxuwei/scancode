@@ -1,18 +1,19 @@
-/*******************************************************************************
- * Copyright (c) 2016 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2016 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     IBM Corporation - initial API and implementation
+ *  Contributors:
+ *      IBM Corporation - initial API and implementation
  *
- *******************************************************************************/
-
+ * *****************************************************************************
+ */
 package org.eclipse.jdt.internal.codeassist.complete;
 
 import org.eclipse.jdt.core.compiler.CharOperation;
@@ -36,20 +37,20 @@ import org.eclipse.jdt.core.compiler.CharOperation;
  * The arguments of the allocation expression are all the arguments defined
  * before the cursor.
  */
-
 public class CompletionOnPackageVisibilityReference extends CompletionOnImportReference {
 
-	String pkgName;
-	public CompletionOnPackageVisibilityReference(char[][] ident, long[] pos) {
-		super(ident, pos, 0);
-		this.pkgName = new String(CharOperation.concatWith(ident, '.'));
-	}
+    public String pkgName;
 
-	@Override
-	public StringBuilder print(int indent, StringBuilder output) {
-		printIndent(indent, output).append("<CompleteOnPackageVisibilityReference:"); //$NON-NLS-1$
-		output.append(this.pkgName);
-		return output.append('>');
-	}
+    public CompletionOnPackageVisibilityReference(char[][] ident, long[] pos) {
+        super(ident, pos, 0);
+        this.pkgName = new String(CharOperation.concatWith(ident, '.'));
+    }
 
+    @Override
+    public StringBuilder print(int indent, StringBuilder output) {
+        //$NON-NLS-1$
+        printIndent(indent, output).append("<CompleteOnPackageVisibilityReference:");
+        output.append(this.pkgName);
+        return output.append('>');
+    }
 }

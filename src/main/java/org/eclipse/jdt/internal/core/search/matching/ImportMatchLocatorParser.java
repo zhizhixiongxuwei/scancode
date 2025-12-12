@@ -20,7 +20,7 @@ import org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 
 public class ImportMatchLocatorParser extends MatchLocatorParser {
 
-    boolean reportImportMatch;
+    public boolean reportImportMatch;
 
     protected ImportMatchLocatorParser(ProblemReporter problemReporter, MatchLocator locator) {
         super(problemReporter, locator);

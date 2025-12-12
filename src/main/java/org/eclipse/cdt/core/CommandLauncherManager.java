@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2017 Red Hat Inc. and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2017 Red Hat Inc. and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Red Hat Inc. - initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *      Red Hat Inc. - initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.core;
 
 import java.io.OutputStream;
@@ -19,7 +21,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-
 import org.eclipse.cdt.core.build.ICBuildConfiguration;
 import org.eclipse.cdt.core.settings.model.ICConfigurationDescription;
 import org.eclipse.cdt.core.settings.model.ICLanguageSettingEntry;
@@ -39,327 +40,329 @@ import org.eclipse.core.runtime.Platform;
  */
 public class CommandLauncherManager {
 
-	private static CommandLauncherManager instance;
+    static public CommandLauncherManager instance;
 
-	private List<ICommandLauncherFactory> factories = new ArrayList<>();
-	private Map<ICommandLauncherFactory, Integer> priorityMapping = new HashMap<>();
+    public List<ICommandLauncherFactory> factories = new ArrayList<>();
 
-	private CommandLauncherManager() {
-		loadCommandLauncherFactoryExtensions();
-	}
+    public Map<ICommandLauncherFactory, Integer> priorityMapping = new HashMap<>();
 
-	public static synchronized CommandLauncherManager getInstance() {
-		if (instance == null) {
-			instance = new CommandLauncherManager();
-		}
-		return instance;
-	}
+    private CommandLauncherManager() {
+        loadCommandLauncherFactoryExtensions();
+    }
 
-	public ICommandLauncher getCommandLauncher() {
-		return new CommandLauncherWrapper(this);
-	}
+    public static synchronized CommandLauncherManager getInstance() {
+        if (instance == null) {
+            instance = new CommandLauncherManager();
+        }
+        return instance;
+    }
 
-	private class CommandLauncherWrapper implements ICommandLauncher {
+    public ICommandLauncher getCommandLauncher() {
+        return new CommandLauncherWrapper(this);
+    }
 
-		private ICommandLauncher launcher;
-		private IProject fProject;
-		private boolean fShowCommand;
-		private String fErrorMessage;
-		private CommandLauncherManager manager;
+    private class CommandLauncherWrapper implements ICommandLauncher {
 
-		public CommandLauncherWrapper(CommandLauncherManager manager) {
-			this.manager = manager;
-		}
+        private ICommandLauncher launcher;
 
-		@Override
-		public void setProject(IProject project) {
-			fProject = project;
-			launcher = null;
-		}
+        private IProject fProject;
 
-		@Override
-		public IProject getProject() {
-			if (launcher != null) {
-				return launcher.getProject();
-			}
-			return fProject;
-		}
+        private boolean fShowCommand;
 
-		@Override
-		public void showCommand(boolean show) {
-			if (launcher != null) {
-				launcher.showCommand(show);
-			}
-			fShowCommand = show;
-		}
+        private String fErrorMessage;
 
-		@Override
-		public String getErrorMessage() {
-			if (launcher != null) {
-				return launcher.getErrorMessage();
-			}
-			return fErrorMessage;
-		}
+        private CommandLauncherManager manager;
 
-		@Override
-		public void setErrorMessage(String error) {
-			if (launcher != null) {
-				launcher.setErrorMessage(error);
-			}
-			fErrorMessage = error;
-		}
+        public CommandLauncherWrapper(CommandLauncherManager manager) {
+            this.manager = manager;
+        }
 
-		@Override
-		public String[] getCommandArgs() {
-			if (launcher != null) {
-				return launcher.getCommandArgs();
-			}
-			return new String[0];
-		}
+        @Override
+        public void setProject(IProject project) {
+            fProject = project;
+            launcher = null;
+        }
 
-		@Override
-		public Properties getEnvironment() {
-			if (launcher != null) {
-				return launcher.getEnvironment();
-			}
-			// for backwards compatibility to ensure path is set up
-			return EnvironmentReader.getEnvVars();
-		}
+        @Override
+        public IProject getProject() {
+            if (launcher != null) {
+                return launcher.getProject();
+            }
+            return fProject;
+        }
 
-		@Override
-		public String getCommandLine() {
-			if (launcher != null) {
-				return launcher.getCommandLine();
-			}
-			return null;
-		}
+        @Override
+        public void showCommand(boolean show) {
+            if (launcher != null) {
+                launcher.showCommand(show);
+            }
+            fShowCommand = show;
+        }
 
-		@Override
-		public Process execute(IPath commandPath, String[] args, String[] env, IPath workingDirectory,
-				IProgressMonitor monitor) throws CoreException {
-			if (launcher == null) {
-				launcher = manager.getCommandLauncher(fProject);
-				launcher.setProject(fProject);
-				launcher.showCommand(fShowCommand);
-				launcher.setErrorMessage(fErrorMessage);
-			}
-			return launcher.execute(commandPath, args, env, workingDirectory, monitor);
-		}
+        @Override
+        public String getErrorMessage() {
+            if (launcher != null) {
+                return launcher.getErrorMessage();
+            }
+            return fErrorMessage;
+        }
 
-		@SuppressWarnings("deprecation")
-		@Override
-		public int waitAndRead(OutputStream out, OutputStream err) {
-			if (launcher != null) {
-				return launcher.waitAndRead(out, err);
-			}
-			return 0;
-		}
+        @Override
+        public void setErrorMessage(String error) {
+            if (launcher != null) {
+                launcher.setErrorMessage(error);
+            }
+            fErrorMessage = error;
+        }
 
-		@Override
-		public int waitAndRead(OutputStream output, OutputStream err, IProgressMonitor monitor) {
-			if (launcher != null) {
-				return launcher.waitAndRead(output, err, monitor);
-			}
-			return 0;
-		}
+        @Override
+        public String[] getCommandArgs() {
+            if (launcher != null) {
+                return launcher.getCommandArgs();
+            }
+            return new String[0];
+        }
 
-	}
+        @Override
+        public Properties getEnvironment() {
+            if (launcher != null) {
+                return launcher.getEnvironment();
+            }
+            // for backwards compatibility to ensure path is set up
+            return EnvironmentReader.getEnvVars();
+        }
 
-	/**
-	 * Get a command launcher.
-	 *
-	 * @param project - IProject to determine launcher for.
-	 * @return an ICommandLauncher for running commands
-	 */
-	public ICommandLauncher getCommandLauncher(IProject project) {
-		// loop through list of factories and return launcher returned with
-		// highest priority
-		int highestPriority = -1;
-		ICommandLauncher bestLauncher = null;
-		for (ICommandLauncherFactory factory : factories) {
-			ICommandLauncher launcher = factory.getCommandLauncher(project);
-			if (launcher != null) {
-				int factoryPriority = priorityMapping.get(factory);
-				if (factoryPriority > highestPriority) {
-					bestLauncher = launcher;
-					highestPriority = factoryPriority;
-				}
-			}
-		}
-		if (bestLauncher != null) {
-			return bestLauncher;
-		}
-		// default to local CommandLauncher
-		return new CommandLauncher();
-	}
+        @Override
+        public String getCommandLine() {
+            if (launcher != null) {
+                return launcher.getCommandLine();
+            }
+            return null;
+        }
 
-	/**
-	 * Get a command launcher.
-	 *
-	 * @param config - ICBuildConfiguration to determine launcher for.
-	 * @return an ICommandLauncher for running commands
-	 * @since 6.5
-	 */
-	public ICommandLauncher getCommandLauncher(ICBuildConfiguration config) {
-		// loop through list of factories and return launcher returned with
-		// highest priority
-		int highestPriority = -1;
-		ICommandLauncher bestLauncher = null;
-		for (ICommandLauncherFactory factory : factories) {
-			if (factory instanceof ICommandLauncherFactory2) {
-				ICommandLauncher launcher = ((ICommandLauncherFactory2) factory).getCommandLauncher(config);
-				if (launcher != null) {
-					int factoryPriority = priorityMapping.get(factory);
-					if (factoryPriority > highestPriority) {
-						bestLauncher = launcher;
-						highestPriority = factoryPriority;
-					}
-				}
-			}
-		}
-		if (bestLauncher != null) {
-			return bestLauncher;
-		}
-		// default to local CommandLauncher
-		return new CommandLauncher();
-	}
+        @Override
+        public Process execute(IPath commandPath, String[] args, String[] env, IPath workingDirectory, IProgressMonitor monitor) throws CoreException {
+            if (launcher == null) {
+                launcher = manager.getCommandLauncher(fProject);
+                launcher.setProject(fProject);
+                launcher.showCommand(fShowCommand);
+                launcher.setErrorMessage(fErrorMessage);
+            }
+            return launcher.execute(commandPath, args, env, workingDirectory, monitor);
+        }
 
-	/**
-	 * Get a command launcher.
-	 *
-	 * @param cfgd - ICConfigurationDescription to get command launcher for.
-	 * @return an ICommandLauncher for running commands
-	 */
-	public ICommandLauncher getCommandLauncher(ICConfigurationDescription cfgd) {
-		// loop through list of factories and return launcher returned with
-		// highest priority
-		int highestPriority = -1;
-		ICommandLauncher bestLauncher = null;
-		for (ICommandLauncherFactory factory : factories) {
-			ICommandLauncher launcher = factory.getCommandLauncher(cfgd);
-			if (launcher != null) {
-				int factoryPriority = priorityMapping.get(factory);
-				if (factoryPriority > highestPriority) {
-					bestLauncher = launcher;
-					highestPriority = factoryPriority;
-				}
-			}
-		}
-		if (bestLauncher != null) {
-			return bestLauncher;
-		}
-		// default to local CommandLauncher
-		return new CommandLauncher();
-	}
+        @SuppressWarnings("deprecation")
+        @Override
+        public int waitAndRead(OutputStream out, OutputStream err) {
+            if (launcher != null) {
+                return launcher.waitAndRead(out, err);
+            }
+            return 0;
+        }
 
-	/**
-	 * Load command launcher factory contributed extensions from extension registry.
-	 *
-	 */
-	private void loadCommandLauncherFactoryExtensions() {
-		IExtensionRegistry registry = Platform.getExtensionRegistry();
-		IExtensionPoint extension = registry.getExtensionPoint(CCorePlugin.PLUGIN_ID,
-				CCorePlugin.COMMAND_LAUNCHER_FACTORY_SIMPLE_ID);
-		if (extension != null) {
-			IExtension[] extensions = extension.getExtensions();
-			for (IExtension ext : extensions) {
-				try {
-					IConfigurationElement element[] = ext.getConfigurationElements();
-					for (IConfigurationElement element2 : element) {
-						if (element2.getName().equalsIgnoreCase("factory")) { //$NON-NLS-1$
-							ICommandLauncherFactory factory = (ICommandLauncherFactory) element2
-									.createExecutableExtension("class"); //$NON-NLS-1$
-							String priorityAttr = element2.getAttribute("priority"); //$NON-NLS-1$
-							int priority = Integer.valueOf(0);
-							if (priorityAttr != null) {
-								try {
-									priority = Integer.valueOf(priorityAttr);
-								} catch (NumberFormatException e) {
-									CCorePlugin.log(e);
-								}
-							}
-							factories.add(factory);
-							priorityMapping.put(factory, priority);
-						}
-					}
-				} catch (Exception e) {
-					CCorePlugin.log("Cannot load CommandLauncherFactory extension " + ext.getUniqueIdentifier(), e); //$NON-NLS-1$
-				}
-			}
-		}
-	}
+        @Override
+        public int waitAndRead(OutputStream output, OutputStream err, IProgressMonitor monitor) {
+            if (launcher != null) {
+                return launcher.waitAndRead(output, err, monitor);
+            }
+            return 0;
+        }
+    }
 
-	private ICommandLauncherFactory getBestFactory(IProject project) {
-		// loop through list of factories and return launcher returned with
-		// highest priority
-		int highestPriority = -1;
-		ICommandLauncherFactory bestLauncherFactory = null;
-		for (ICommandLauncherFactory factory : factories) {
-			ICommandLauncher launcher = factory.getCommandLauncher(project);
-			if (launcher != null) {
-				if (priorityMapping.get(factory) > highestPriority) {
-					bestLauncherFactory = factory;
-				}
-			}
-		}
-		return bestLauncherFactory;
-	}
+    /**
+     * Get a command launcher.
+     *
+     * @param project - IProject to determine launcher for.
+     * @return an ICommandLauncher for running commands
+     */
+    public ICommandLauncher getCommandLauncher(IProject project) {
+        // loop through list of factories and return launcher returned with
+        // highest priority
+        int highestPriority = -1;
+        ICommandLauncher bestLauncher = null;
+        for (ICommandLauncherFactory factory : factories) {
+            ICommandLauncher launcher = factory.getCommandLauncher(project);
+            if (launcher != null) {
+                int factoryPriority = priorityMapping.get(factory);
+                if (factoryPriority > highestPriority) {
+                    bestLauncher = launcher;
+                    highestPriority = factoryPriority;
+                }
+            }
+        }
+        if (bestLauncher != null) {
+            return bestLauncher;
+        }
+        // default to local CommandLauncher
+        return new CommandLauncher();
+    }
 
-	private ICommandLauncherFactory getBestFactory(ICBuildConfiguration config) {
-		// loop through list of factories and return launcher returned with
-		// highest priority
-		int highestPriority = -1;
-		ICommandLauncherFactory bestLauncherFactory = null;
-		for (ICommandLauncherFactory factory : factories) {
-			if (factory instanceof ICommandLauncherFactory2) {
-				ICommandLauncher launcher = ((ICommandLauncherFactory2) factory).getCommandLauncher(config);
-				if (launcher != null) {
-					if (priorityMapping.get(factory) > highestPriority) {
-						bestLauncherFactory = factory;
-					}
-				}
-			}
-		}
-		return bestLauncherFactory;
-	}
+    /**
+     * Get a command launcher.
+     *
+     * @param config - ICBuildConfiguration to determine launcher for.
+     * @return an ICommandLauncher for running commands
+     * @since 6.5
+     */
+    public ICommandLauncher getCommandLauncher(ICBuildConfiguration config) {
+        // loop through list of factories and return launcher returned with
+        // highest priority
+        int highestPriority = -1;
+        ICommandLauncher bestLauncher = null;
+        for (ICommandLauncherFactory factory : factories) {
+            if (factory instanceof ICommandLauncherFactory2) {
+                ICommandLauncher launcher = ((ICommandLauncherFactory2) factory).getCommandLauncher(config);
+                if (launcher != null) {
+                    int factoryPriority = priorityMapping.get(factory);
+                    if (factoryPriority > highestPriority) {
+                        bestLauncher = launcher;
+                        highestPriority = factoryPriority;
+                    }
+                }
+            }
+        }
+        if (bestLauncher != null) {
+            return bestLauncher;
+        }
+        // default to local CommandLauncher
+        return new CommandLauncher();
+    }
 
-	/**
-	 * @since 6.5
-	 */
-	public List<String> processIncludePaths(ICBuildConfiguration config, List<String> includePaths) {
-		ICommandLauncherFactory factory = getBestFactory(config);
-		if (factory != null && factory instanceof ICommandLauncherFactory2) {
-			return ((ICommandLauncherFactory2) factory).verifyIncludePaths(config, includePaths);
-		}
-		return includePaths;
-	}
+    /**
+     * Get a command launcher.
+     *
+     * @param cfgd - ICConfigurationDescription to get command launcher for.
+     * @return an ICommandLauncher for running commands
+     */
+    public ICommandLauncher getCommandLauncher(ICConfigurationDescription cfgd) {
+        // loop through list of factories and return launcher returned with
+        // highest priority
+        int highestPriority = -1;
+        ICommandLauncher bestLauncher = null;
+        for (ICommandLauncherFactory factory : factories) {
+            ICommandLauncher launcher = factory.getCommandLauncher(cfgd);
+            if (launcher != null) {
+                int factoryPriority = priorityMapping.get(factory);
+                if (factoryPriority > highestPriority) {
+                    bestLauncher = launcher;
+                    highestPriority = factoryPriority;
+                }
+            }
+        }
+        if (bestLauncher != null) {
+            return bestLauncher;
+        }
+        // default to local CommandLauncher
+        return new CommandLauncher();
+    }
 
-	/**
-	 * @since 7.0
-	 */
-	public boolean checkIfIncludesChanged(ICBuildConfiguration config) {
-		ICommandLauncherFactory factory = getBestFactory(config);
-		if (factory != null && factory instanceof ICommandLauncherFactory3) {
-			return ((ICommandLauncherFactory3) factory).checkIfIncludesChanged(config);
-		}
-		return false;
-	}
+    /**
+     * Load command launcher factory contributed extensions from extension registry.
+     */
+    private void loadCommandLauncherFactoryExtensions() {
+        IExtensionRegistry registry = Platform.getExtensionRegistry();
+        IExtensionPoint extension = registry.getExtensionPoint(CCorePlugin.PLUGIN_ID, CCorePlugin.COMMAND_LAUNCHER_FACTORY_SIMPLE_ID);
+        if (extension != null) {
+            IExtension[] extensions = extension.getExtensions();
+            for (IExtension ext : extensions) {
+                try {
+                    IConfigurationElement[] element = ext.getConfigurationElements();
+                    for (IConfigurationElement element2 : element) {
+                        if (element2.getName().equalsIgnoreCase("factory")) {
+                            //$NON-NLS-1$
+                            ICommandLauncherFactory factory = (ICommandLauncherFactory) element2.createExecutableExtension(//$NON-NLS-1$
+                            "class");
+                            //$NON-NLS-1$
+                            String priorityAttr = element2.getAttribute("priority");
+                            int priority = Integer.valueOf(0);
+                            if (priorityAttr != null) {
+                                try {
+                                    priority = Integer.valueOf(priorityAttr);
+                                } catch (NumberFormatException e) {
+                                    CCorePlugin.log(e);
+                                }
+                            }
+                            factories.add(factory);
+                            priorityMapping.put(factory, priority);
+                        }
+                    }
+                } catch (Exception e) {
+                    //$NON-NLS-1$
+                    CCorePlugin.log("Cannot load CommandLauncherFactory extension " + ext.getUniqueIdentifier(), e);
+                }
+            }
+        }
+    }
 
-	public void setLanguageSettingEntries(IProject project, List<? extends ICLanguageSettingEntry> entries) {
-		ICommandLauncherFactory factory = getBestFactory(project);
-		if (factory != null) {
-			factory.registerLanguageSettingEntries(project, entries);
-		}
-	}
+    private ICommandLauncherFactory getBestFactory(IProject project) {
+        // loop through list of factories and return launcher returned with
+        // highest priority
+        int highestPriority = -1;
+        ICommandLauncherFactory bestLauncherFactory = null;
+        for (ICommandLauncherFactory factory : factories) {
+            ICommandLauncher launcher = factory.getCommandLauncher(project);
+            if (launcher != null) {
+                if (priorityMapping.get(factory) > highestPriority) {
+                    bestLauncherFactory = factory;
+                }
+            }
+        }
+        return bestLauncherFactory;
+    }
 
-	public List<ICLanguageSettingEntry> getLanguageSettingEntries(IProject project,
-			List<ICLanguageSettingEntry> entries) {
-		List<ICLanguageSettingEntry> verifiedEntries = entries;
-		ICommandLauncherFactory factory = getBestFactory(project);
-		if (factory != null) {
-			verifiedEntries = factory.verifyLanguageSettingEntries(project, entries);
-		}
-		return verifiedEntries;
-	}
+    private ICommandLauncherFactory getBestFactory(ICBuildConfiguration config) {
+        // loop through list of factories and return launcher returned with
+        // highest priority
+        int highestPriority = -1;
+        ICommandLauncherFactory bestLauncherFactory = null;
+        for (ICommandLauncherFactory factory : factories) {
+            if (factory instanceof ICommandLauncherFactory2) {
+                ICommandLauncher launcher = ((ICommandLauncherFactory2) factory).getCommandLauncher(config);
+                if (launcher != null) {
+                    if (priorityMapping.get(factory) > highestPriority) {
+                        bestLauncherFactory = factory;
+                    }
+                }
+            }
+        }
+        return bestLauncherFactory;
+    }
 
+    /**
+     * @since 6.5
+     */
+    public List<String> processIncludePaths(ICBuildConfiguration config, List<String> includePaths) {
+        ICommandLauncherFactory factory = getBestFactory(config);
+        if (factory != null && factory instanceof ICommandLauncherFactory2) {
+            return ((ICommandLauncherFactory2) factory).verifyIncludePaths(config, includePaths);
+        }
+        return includePaths;
+    }
+
+    /**
+     * @since 7.0
+     */
+    public boolean checkIfIncludesChanged(ICBuildConfiguration config) {
+        ICommandLauncherFactory factory = getBestFactory(config);
+        if (factory != null && factory instanceof ICommandLauncherFactory3) {
+            return ((ICommandLauncherFactory3) factory).checkIfIncludesChanged(config);
+        }
+        return false;
+    }
+
+    public void setLanguageSettingEntries(IProject project, List<? extends ICLanguageSettingEntry> entries) {
+        ICommandLauncherFactory factory = getBestFactory(project);
+        if (factory != null) {
+            factory.registerLanguageSettingEntries(project, entries);
+        }
+    }
+
+    public List<ICLanguageSettingEntry> getLanguageSettingEntries(IProject project, List<ICLanguageSettingEntry> entries) {
+        List<ICLanguageSettingEntry> verifiedEntries = entries;
+        ICommandLauncherFactory factory = getBestFactory(project);
+        if (factory != null) {
+            verifiedEntries = factory.verifyLanguageSettingEntries(project, entries);
+        }
+        return verifiedEntries;
+    }
 }

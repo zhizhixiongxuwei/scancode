@@ -1,21 +1,22 @@
-/*******************************************************************************
- * Copyright (c) 2007, 2011 Intel Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2007, 2011 Intel Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- * Intel Corporation - Initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *  Intel Corporation - Initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.core.settings.model.util;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import org.eclipse.cdt.core.CCorePlugin;
 import org.eclipse.cdt.core.CProjectNature;
 import org.eclipse.core.resources.IProject;
@@ -31,171 +32,170 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 
 public abstract class ResourceChangeHandlerBase implements IResourceChangeListener {
-	public interface IResourceMoveHandler {
-		/**
-		 * Resource moved fromRc to toRc
-		 * @param fromRc
-		 * @param toRc
-		 * @return boolean indicating if children should be visited
-		 */
-		boolean handleResourceMove(IResource fromRc, IResource toRc);
 
-		/**
-		 * Handle a resource remove
-		 * @param rc Removed IResource
-		 * @return boolean indicating if children should be visited
-		 */
-		boolean handleResourceRemove(IResource rc);
+    public interface IResourceMoveHandler {
 
-		/**
-		 * Handle a project close
-		 */
-		void handleProjectClose(IProject project);
+        /**
+         * Resource moved fromRc to toRc
+         * @param fromRc
+         * @param toRc
+         * @return boolean indicating if children should be visited
+         */
+        boolean handleResourceMove(IResource fromRc, IResource toRc);
 
-		/**
-		 * Call-back ticked at end of a resource change event
-		 */
-		void done();
-	}
+        /**
+         * Handle a resource remove
+         * @param rc Removed IResource
+         * @return boolean indicating if children should be visited
+         */
+        boolean handleResourceRemove(IResource rc);
 
-	private IWorkspaceRoot fRoot = ResourcesPlugin.getWorkspace().getRoot();
+        /**
+         * Handle a project close
+         */
+        void handleProjectClose(IProject project);
 
-	private class DeltaVisitor implements IResourceDeltaVisitor {
-		//		private IResourceDelta fRootDelta;
-		private Map<IResource, IResource> fMoveMap = new HashMap<>();
-		private IResourceMoveHandler fHandler;
+        /**
+         * Call-back ticked at end of a resource change event
+         */
+        void done();
+    }
 
-		public DeltaVisitor(IResourceMoveHandler handler, IResourceDelta rootDelta) {
-			fHandler = handler;
-			//			fRootDelta = rootDelta;
-		}
+    public IWorkspaceRoot fRoot = ResourcesPlugin.getWorkspace().getRoot();
 
-		private IResource getResource(IPath path, IResource baseResource) {
-			switch (baseResource.getType()) {
-			case IResource.FILE:
-				return fRoot.getFile(path);
-			case IResource.FOLDER:
-				return fRoot.getFolder(path);
-			case IResource.PROJECT:
-				return fRoot.getProject(path.segment(0));
-			case IResource.ROOT:
-			default:
-				throw new IllegalArgumentException();
-			}
-		}
+    private class DeltaVisitor implements IResourceDeltaVisitor {
 
-		private boolean checkInitHandleResourceMove(IResource fromRc, IResource toRc) {
-			if (fMoveMap.put(fromRc, toRc) == null) {
-				return fHandler.handleResourceMove(fromRc, toRc);
-			}
+        //		private IResourceDelta fRootDelta;
+        private Map<IResource, IResource> fMoveMap = new HashMap<>();
 
-			return true;
-		}
+        private IResourceMoveHandler fHandler;
 
-		@Override
-		public boolean visit(IResourceDelta delta) throws CoreException {
-			IResource dResource = delta.getResource();
+        public DeltaVisitor(IResourceMoveHandler handler, IResourceDelta rootDelta) {
+            fHandler = handler;
+            //			fRootDelta = rootDelta;
+        }
 
-			if (dResource.getType() == IResource.PROJECT && !shouldVisit((IProject) dResource))
-				return false;
+        private IResource getResource(IPath path, IResource baseResource) {
+            switch(baseResource.getType()) {
+                case IResource.FILE:
+                    return fRoot.getFile(path);
+                case IResource.FOLDER:
+                    return fRoot.getFolder(path);
+                case IResource.PROJECT:
+                    return fRoot.getProject(path.segment(0));
+                case IResource.ROOT:
+                default:
+                    throw new IllegalArgumentException();
+            }
+        }
 
-			boolean resume = true;
-			boolean removed = false;
+        private boolean checkInitHandleResourceMove(IResource fromRc, IResource toRc) {
+            if (fMoveMap.put(fromRc, toRc) == null) {
+                return fHandler.handleResourceMove(fromRc, toRc);
+            }
+            return true;
+        }
 
-			switch (delta.getKind()) {
-			case IResourceDelta.REMOVED:
-				removed = true;
-				//$FALL-THROUGH$
-			case IResourceDelta.CHANGED:
-				int flags = delta.getFlags();
-				if ((flags & IResourceDelta.MOVED_TO) != 0) {
-					IPath path = delta.getMovedToPath();
-					if (path != null) {
-						IResource toRc = getResource(path, dResource);
-						resume = checkInitHandleResourceMove(dResource, toRc);
-					}
-					break;
-				} else if ((flags & IResourceDelta.MOVED_FROM) != 0) {
-					IPath path = delta.getMovedFromPath();
-					if (path != null) {
-						IResource fromRc = getResource(path, dResource);
-						resume = checkInitHandleResourceMove(fromRc, dResource);
-					}
-					break;
-				} else if (removed) {
-					resume = fHandler.handleResourceRemove(dResource);
-				}
-				break;
-			default:
-				break;
-			}
+        @Override
+        public boolean visit(IResourceDelta delta) throws CoreException {
+            IResource dResource = delta.getResource();
+            if (dResource.getType() == IResource.PROJECT && !shouldVisit((IProject) dResource))
+                return false;
+            boolean resume = true;
+            boolean removed = false;
+            switch(delta.getKind()) {
+                case IResourceDelta.REMOVED:
+                    removed = true;
+                //$FALL-THROUGH$
+                case IResourceDelta.CHANGED:
+                    int flags = delta.getFlags();
+                    if ((flags & IResourceDelta.MOVED_TO) != 0) {
+                        IPath path = delta.getMovedToPath();
+                        if (path != null) {
+                            IResource toRc = getResource(path, dResource);
+                            resume = checkInitHandleResourceMove(dResource, toRc);
+                        }
+                        break;
+                    } else if ((flags & IResourceDelta.MOVED_FROM) != 0) {
+                        IPath path = delta.getMovedFromPath();
+                        if (path != null) {
+                            IResource fromRc = getResource(path, dResource);
+                            resume = checkInitHandleResourceMove(fromRc, dResource);
+                        }
+                        break;
+                    } else if (removed) {
+                        resume = fHandler.handleResourceRemove(dResource);
+                    }
+                    break;
+                default:
+                    break;
+            }
+            //  visit the children
+            return resume;
+        }
+    }
 
-			return resume; //  visit the children
-		}
-	}
-
-	/*
+    /*
 	 *  Handle the renaming and deletion of project resources
 	 *  This is necessary in order to update ResourceConfigurations and AdditionalInputs
 	 *
 	 * @see org.eclipse.core.resources.IResourceChangeListener#resourceChanged(org.eclipse.core.resources.IResourceChangeEvent)
 	 */
-	@Override
-	public void resourceChanged(IResourceChangeEvent event) {
-		if (event.getSource() instanceof IWorkspace) {
-			IResourceMoveHandler handler = createResourceMoveHandler(event);
-			doHandleResourceMove(event, handler);
-		}
-	}
+    @Override
+    public void resourceChanged(IResourceChangeEvent event) {
+        if (event.getSource() instanceof IWorkspace) {
+            IResourceMoveHandler handler = createResourceMoveHandler(event);
+            doHandleResourceMove(event, handler);
+        }
+    }
 
-	protected boolean shouldVisit(IProject project) {
-		try {
-			return project.isOpen() ? project.hasNature(CProjectNature.C_NATURE_ID) : true;
-		} catch (CoreException e) {
-			CCorePlugin.log(e);
-			return false;
-		}
-	}
+    protected boolean shouldVisit(IProject project) {
+        try {
+            return project.isOpen() ? project.hasNature(CProjectNature.C_NATURE_ID) : true;
+        } catch (CoreException e) {
+            CCorePlugin.log(e);
+            return false;
+        }
+    }
 
-	/**
-	 * @nooverride This method is not intended to be re-implemented or extended by clients.
-	 * @noreference This method is not intended to be referenced by clients.
-	 */
-	protected void doHahdleResourceMove(IResourceChangeEvent event, IResourceMoveHandler handler) {
-		doHandleResourceMove(event, handler);
-	}
+    /**
+     * @nooverride This method is not intended to be re-implemented or extended by clients.
+     * @noreference This method is not intended to be referenced by clients.
+     */
+    protected void doHahdleResourceMove(IResourceChangeEvent event, IResourceMoveHandler handler) {
+        doHandleResourceMove(event, handler);
+    }
 
-	/**
-	 * @since 5.1
-	 */
-	protected void doHandleResourceMove(IResourceChangeEvent event, IResourceMoveHandler handler) {
-		switch (event.getType()) {
-		case IResourceChangeEvent.PRE_CLOSE:
-			IProject project = (IProject) event.getResource();
-			if (shouldVisit(project))
-				handler.handleProjectClose(project);
-			break;
-		//				case IResourceChangeEvent.PRE_DELETE :
-		//					handler.handleResourceRemove(event.getResource());
-		//					break;
-		case IResourceChangeEvent.POST_CHANGE:
-			IResourceDelta resDelta = event.getDelta();
-			if (resDelta == null) {
-				break;
-			}
-			try {
-				DeltaVisitor rcChecker = new DeltaVisitor(handler, resDelta);
-				resDelta.accept(rcChecker);
-			} catch (CoreException e) {
-				CCorePlugin.log(e);
-			}
-			break;
-		default:
-			break;
-		}
+    /**
+     * @since 5.1
+     */
+    protected void doHandleResourceMove(IResourceChangeEvent event, IResourceMoveHandler handler) {
+        switch(event.getType()) {
+            case IResourceChangeEvent.PRE_CLOSE:
+                IProject project = (IProject) event.getResource();
+                if (shouldVisit(project))
+                    handler.handleProjectClose(project);
+                break;
+            //				case IResourceChangeEvent.PRE_DELETE :
+            //					handler.handleResourceRemove(event.getResource());
+            //					break;
+            case IResourceChangeEvent.POST_CHANGE:
+                IResourceDelta resDelta = event.getDelta();
+                if (resDelta == null) {
+                    break;
+                }
+                try {
+                    DeltaVisitor rcChecker = new DeltaVisitor(handler, resDelta);
+                    resDelta.accept(rcChecker);
+                } catch (CoreException e) {
+                    CCorePlugin.log(e);
+                }
+                break;
+            default:
+                break;
+        }
+        handler.done();
+    }
 
-		handler.done();
-	}
-
-	protected abstract IResourceMoveHandler createResourceMoveHandler(IResourceChangeEvent event);
+    protected abstract IResourceMoveHandler createResourceMoveHandler(IResourceChangeEvent event);
 }

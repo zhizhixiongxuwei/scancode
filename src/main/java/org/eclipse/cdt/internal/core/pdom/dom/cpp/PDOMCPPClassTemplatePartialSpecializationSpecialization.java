@@ -36,16 +36,16 @@ import org.eclipse.core.runtime.CoreException;
  */
 public class PDOMCPPClassTemplatePartialSpecializationSpecialization extends PDOMCPPClassTemplateSpecialization implements IPDOMPartialSpecialization, ICPPClassTemplatePartialSpecializationSpecialization {
 
-    private static final int PRIMARY_TEMPLATE = PDOMCPPClassTemplateSpecialization.RECORD_SIZE;
+    static final public int PRIMARY_TEMPLATE = PDOMCPPClassTemplateSpecialization.RECORD_SIZE;
 
-    private static final int ARGUMENTS = PDOMCPPClassTemplateSpecialization.RECORD_SIZE + 4;
+    static final public int ARGUMENTS = PDOMCPPClassTemplateSpecialization.RECORD_SIZE + 4;
 
-    private static final int NEXT_PARTIAL = PDOMCPPClassTemplateSpecialization.RECORD_SIZE + 8;
+    static final public int NEXT_PARTIAL = PDOMCPPClassTemplateSpecialization.RECORD_SIZE + 8;
 
     @SuppressWarnings("hiding")
-    protected static final int RECORD_SIZE = PDOMCPPClassTemplateSpecialization.RECORD_SIZE + 12;
+    static final public int RECORD_SIZE = PDOMCPPClassTemplateSpecialization.RECORD_SIZE + 12;
 
-    private volatile ICPPClassTemplate fPrimaryTemplate;
+    volatile public ICPPClassTemplate fPrimaryTemplate;
 
     public PDOMCPPClassTemplatePartialSpecializationSpecialization(PDOMCPPLinkage linkage, PDOMNode parent, PDOMBinding specialized, ICPPClassTemplatePartialSpecialization partial, PDOMCPPClassTemplateSpecialization primary) throws CoreException {
         super(linkage, parent, partial, specialized);

@@ -1,19 +1,21 @@
-/*******************************************************************************
- * Copyright (c) 2004, 2014 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2004, 2014 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     IBM - Initial API and implementation
- *     Markus Schorn (Wind River Systems)
- *     Sergey Prigogin (Google)
- *     Thomas Corbat (IFS)
- *******************************************************************************/
+ *  Contributors:
+ *      IBM - Initial API and implementation
+ *      Markus Schorn (Wind River Systems)
+ *      Sergey Prigogin (Google)
+ *      Thomas Corbat (IFS)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.parser.c;
 
 import org.eclipse.cdt.core.dom.ast.ASTVisitor;
@@ -31,98 +33,101 @@ import org.eclipse.cdt.internal.core.dom.parser.IASTInternalScope;
 import org.eclipse.cdt.internal.core.dom.parser.cpp.ICPPASTInternalScope;
 
 public class CASTAmbiguousStatement extends ASTAmbiguousNode implements IASTAmbiguousStatement {
-	private IASTStatement[] stmts = new IASTStatement[2];
-	private int stmtsPos = -1;
-	private IScope fScope;
-	private IASTDeclaration fDeclaration;
 
-	public CASTAmbiguousStatement(IASTStatement... statements) {
-		for (IASTStatement s : statements)
-			addStatement(s);
-	}
+    public IASTStatement[] stmts = new IASTStatement[2];
 
-	@Override
-	protected void beforeResolution() {
-		// Populate containing scope, so that it will not be affected by the alternative
-		// branches.
-		fScope = CVisitor.getContainingScope(this);
-		if (fScope instanceof ICPPASTInternalScope) {
-			((ICPPASTInternalScope) fScope).populateCache();
-		}
-	}
+    public int stmtsPos = -1;
 
-	@Override
-	protected void beforeAlternative(IASTNode alternative) {
-		cleanupScope();
-		if (alternative instanceof IASTDeclarationStatement) {
-			if (fScope instanceof CScope) {
-				fDeclaration = ((IASTDeclarationStatement) alternative).getDeclaration();
-				((CScope) fScope).collectNames(fDeclaration);
-			}
-		}
-	}
+    public IScope fScope;
 
-	private void cleanupScope() {
-		if (fScope instanceof IASTInternalScope && fDeclaration != null) {
-			((IASTInternalScope) fScope).removeNestedFromCache(fDeclaration);
-		}
-	}
+    public IASTDeclaration fDeclaration;
 
-	@Override
-	protected void afterResolution(ASTVisitor resolver, IASTNode best) {
-		beforeAlternative(best);
-		fDeclaration = null;
-		fScope = null;
-	}
+    public CASTAmbiguousStatement(IASTStatement... statements) {
+        for (IASTStatement s : statements) addStatement(s);
+    }
 
-	@Override
-	public void addStatement(IASTStatement s) {
-		assertNotFrozen();
-		if (s != null) {
-			stmts = ArrayUtil.appendAt(IASTStatement.class, stmts, ++stmtsPos, s);
-			s.setParent(this);
-			s.setPropertyInParent(STATEMENT);
-		}
-	}
+    @Override
+    protected void beforeResolution() {
+        // Populate containing scope, so that it will not be affected by the alternative
+        // branches.
+        fScope = CVisitor.getContainingScope(this);
+        if (fScope instanceof ICPPASTInternalScope) {
+            ((ICPPASTInternalScope) fScope).populateCache();
+        }
+    }
 
-	@Override
-	public IASTStatement[] getStatements() {
-		stmts = ArrayUtil.trimAt(IASTStatement.class, stmts, stmtsPos);
-		return stmts;
-	}
+    @Override
+    protected void beforeAlternative(IASTNode alternative) {
+        cleanupScope();
+        if (alternative instanceof IASTDeclarationStatement) {
+            if (fScope instanceof CScope) {
+                fDeclaration = ((IASTDeclarationStatement) alternative).getDeclaration();
+                ((CScope) fScope).collectNames(fDeclaration);
+            }
+        }
+    }
 
-	@Override
-	public IASTAttribute[] getAttributes() {
-		return IASTAttribute.EMPTY_ATTRIBUTE_ARRAY;
-	}
+    private void cleanupScope() {
+        if (fScope instanceof IASTInternalScope && fDeclaration != null) {
+            ((IASTInternalScope) fScope).removeNestedFromCache(fDeclaration);
+        }
+    }
 
-	@Override
-	public void addAttribute(IASTAttribute attribute) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    protected void afterResolution(ASTVisitor resolver, IASTNode best) {
+        beforeAlternative(best);
+        fDeclaration = null;
+        fScope = null;
+    }
 
-	@Override
-	public IASTAttributeSpecifier[] getAttributeSpecifiers() {
-		return IASTAttributeSpecifier.EMPTY_ATTRIBUTE_SPECIFIER_ARRAY;
-	}
+    @Override
+    public void addStatement(IASTStatement s) {
+        assertNotFrozen();
+        if (s != null) {
+            stmts = ArrayUtil.appendAt(IASTStatement.class, stmts, ++stmtsPos, s);
+            s.setParent(this);
+            s.setPropertyInParent(STATEMENT);
+        }
+    }
 
-	@Override
-	public void addAttributeSpecifier(IASTAttributeSpecifier attributeSpecifier) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public IASTStatement[] getStatements() {
+        stmts = ArrayUtil.trimAt(IASTStatement.class, stmts, stmtsPos);
+        return stmts;
+    }
 
-	@Override
-	public IASTNode[] getNodes() {
-		return getStatements();
-	}
+    @Override
+    public IASTAttribute[] getAttributes() {
+        return IASTAttribute.EMPTY_ATTRIBUTE_ARRAY;
+    }
 
-	@Override
-	public IASTStatement copy() {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public void addAttribute(IASTAttribute attribute) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public IASTStatement copy(CopyStyle style) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public IASTAttributeSpecifier[] getAttributeSpecifiers() {
+        return IASTAttributeSpecifier.EMPTY_ATTRIBUTE_SPECIFIER_ARRAY;
+    }
+
+    @Override
+    public void addAttributeSpecifier(IASTAttributeSpecifier attributeSpecifier) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public IASTNode[] getNodes() {
+        return getStatements();
+    }
+
+    @Override
+    public IASTStatement copy() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public IASTStatement copy(CopyStyle style) {
+        throw new UnsupportedOperationException();
+    }
 }

@@ -7,7 +7,7 @@ import org.eclipse.cdt.core.dom.ast.IMacroBinding;
 
 public class ASTIfdef extends ASTDirectiveWithCondition implements IASTPreprocessorIfdefStatement {
 
-    private ASTMacroReferenceName fMacroRef;
+    public ASTMacroReferenceName fMacroRef;
 
     public ASTIfdef(IASTTranslationUnit parent, int startNumber, int condNumber, int condEndNumber, boolean taken, IMacroBinding macro) {
         super(parent, startNumber, condNumber, condEndNumber, taken);

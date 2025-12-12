@@ -47,13 +47,13 @@ DOMType extends DOMMember implements IDOMType {
      * The 'class' or 'interface' keyword if altered
      * from the documents contents, otherwise <code>null</code>.
      */
-    protected String fTypeKeyword;
+    public String fTypeKeyword;
 
     /**
      * The original inclusive source range of the 'class'
      * or 'interface' keyword in the document.
      */
-    protected int[] fTypeRange;
+    public int[] fTypeRange;
 
     /**
      * The superclass name for the class declaration
@@ -61,21 +61,21 @@ DOMType extends DOMMember implements IDOMType {
      * <code>null</code>. Also <code>null</code> when this
      * type represents an interface.
      */
-    protected String fSuperclass;
+    public String fSuperclass;
 
     /**
      * The original inclusive source range of the superclass
      * name in the document, or -1's of no superclass was
      * specified in the document.
      */
-    protected int[] fSuperclassRange;
+    public int[] fSuperclassRange;
 
     /**
      * The original inclusive souce range of the 'extends' keyword
      * in the document, including surrounding whitespace, or -1's if
      * the keyword was not present in the document.
      */
-    protected int[] fExtendsRange;
+    public int[] fExtendsRange;
 
     /**
      * The original inclusive souce range of the 'implements' keyword

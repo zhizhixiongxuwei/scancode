@@ -23,9 +23,9 @@ import java.util.Set;
 
 public class OnDemandComputer {
 
-    private final int typeOnDemandThreshold;
+    final public int typeOnDemandThreshold;
 
-    private final int staticOnDemandThreshold;
+    final public int staticOnDemandThreshold;
 
     OnDemandComputer(int typeOnDemandThreshold, int staticOnDemandThreshold) {
         this.typeOnDemandThreshold = typeOnDemandThreshold;

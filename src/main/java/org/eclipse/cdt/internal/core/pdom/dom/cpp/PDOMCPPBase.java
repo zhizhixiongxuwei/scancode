@@ -36,15 +36,15 @@ import org.eclipse.core.runtime.CoreException;
  */
 public class PDOMCPPBase implements ICPPBase, ICPPInternalBase {
 
-    static final int CLASS_DEFINITION = 0;
+    static final public int CLASS_DEFINITION = 0;
 
-    private static final int BASECLASS_TYPE = CLASS_DEFINITION + Database.PTR_SIZE;
+    static final public int BASECLASS_TYPE = CLASS_DEFINITION + Database.PTR_SIZE;
 
-    private static final int NEXTBASE = BASECLASS_TYPE + Database.TYPE_SIZE;
+    static final public int NEXTBASE = BASECLASS_TYPE + Database.TYPE_SIZE;
 
-    private static final int FLAGS = NEXTBASE + Database.PTR_SIZE;
+    static final public int FLAGS = NEXTBASE + Database.PTR_SIZE;
 
-    protected static final int RECORD_SIZE = FLAGS + 1;
+    static final public int RECORD_SIZE = FLAGS + 1;
 
     private static final int FLAGS_VISIBILITY_MASK = 0x03;
 

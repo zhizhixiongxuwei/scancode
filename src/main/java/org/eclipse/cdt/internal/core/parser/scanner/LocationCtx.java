@@ -28,24 +28,24 @@ import org.eclipse.cdt.core.dom.ast.IASTTranslationUnit.IDependencyTree.IASTIncl
  */
 abstract public class LocationCtx implements ILocationCtx {
 
-    final LocationCtxContainer fParent;
+    final public LocationCtxContainer fParent;
 
     /**
      * The first sequence number used by this context.
      */
-    final int fSequenceNumber;
+    final public int fSequenceNumber;
 
     /**
      * The offset of the denotation of this context in the parent's source. This is no sequence
      * number.
      */
-    final int fOffsetInParent;
+    final public int fOffsetInParent;
 
     /**
      * The end-offset of the denotation of this context in the parent's source. This is no sequence
      * number.
      */
-    final int fEndOffsetInParent;
+    final public int fEndOffsetInParent;
 
     public LocationCtx(LocationCtxContainer parent, int parentOffset, int parentEndOffset, int sequenceNumber) {
         fParent = parent;

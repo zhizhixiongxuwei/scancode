@@ -1,21 +1,22 @@
-/*******************************************************************************
- * Copyright (c) 2000, 2021 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2000, 2021 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     IBM Corporation - initial API and implementation
- *     Microsoft Corporation - contribution for bug 575562 - improve completion search performance
- *******************************************************************************/
+ *  Contributors:
+ *      IBM Corporation - initial API and implementation
+ *      Microsoft Corporation - contribution for bug 575562 - improve completion search performance
+ * *****************************************************************************
+ */
 package org.eclipse.jdt.internal.core.search;
 
 import static org.eclipse.jdt.internal.core.JavaModelManager.trace;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,307 +52,331 @@ import org.eclipse.jdt.internal.core.util.Util;
 
 public class PatternSearchJob implements IJob {
 
-protected final SearchPattern pattern;
-protected final IJavaSearchScope scope;
-protected final SearchParticipant participant;
-protected final IndexQueryRequestor requestor;
-protected final boolean resolveDocumentForJar;
-protected final boolean resolveDocumentForSourceFiles;
-protected volatile boolean areIndexesReady;
-protected final AtomicLong executionTime;
+    final public SearchPattern pattern;
 
-public static final String ENABLE_PARALLEL_SEARCH = "enableParallelJavaIndexSearch";//$NON-NLS-1$
-public static final boolean ENABLE_PARALLEL_SEARCH_DEFAULT = true;
+    final public IJavaSearchScope scope;
 
-public PatternSearchJob(SearchPattern pattern, SearchParticipant participant, IJavaSearchScope scope, IndexQueryRequestor requestor) {
-	this(pattern, participant, scope, true, true, requestor);
-}
+    final public SearchParticipant participant;
 
-/**
- * Create a search job with the specified search pattern.
- *
- * @param resolveDocumentForJar whether to resolve the document name of a result entry
- *                              if it comes to a JAR library.
- * @param resolveDocumentForSourceFiles whether to resolve the document name of a result entry
- *                                      if it comes from a project's source files.
- */
-public PatternSearchJob(SearchPattern pattern, SearchParticipant participant, IJavaSearchScope scope, final boolean resolveDocumentForJar, final boolean resolveDocumentForSourceFiles, IndexQueryRequestor requestor) {
-	this.executionTime = new AtomicLong(0);
-	this.pattern = pattern;
-	this.participant = participant;
-	this.scope = scope;
-	this.requestor = requestor;
-	this.resolveDocumentForJar = resolveDocumentForJar;
-	this.resolveDocumentForSourceFiles = resolveDocumentForSourceFiles;
-}
+    final public IndexQueryRequestor requestor;
 
-@Override
-public boolean belongsTo(String jobFamily) {
-	return true;
-}
-@Override
-public void cancel() {
-	// search job is cancelled through progress
-}
-@Override
-public void ensureReadyToRun() {
-	if (!this.areIndexesReady)
-		getIndexes(null/*progress*/); // may trigger some index recreation
-}
-@Override
-public boolean execute(IProgressMonitor progressMonitor) {
-	SubMonitor subMonitor = SubMonitor.convert(progressMonitor, 3);
+    final public boolean resolveDocumentForJar;
 
-	boolean isComplete = COMPLETE;
-	this.executionTime.set(0);
-	long startTime = System.currentTimeMillis();
+    protected final boolean resolveDocumentForSourceFiles;
 
-	Index[] indexes = getIndexes(subMonitor.split(1));
-	try {
-		int max = indexes.length;
-		SubMonitor loopMonitor = subMonitor.split(2).setWorkRemaining(max);
-		boolean parallel = canRunInParallel();
-		if(parallel) {
-			isComplete = performParallelSearch(indexes, loopMonitor);
-		} else {
-			for (int i = 0; i < max; i++) {
-				isComplete &= search(indexes[i], this.requestor, loopMonitor.split(1), parallel);
-			}
-		}
+    protected volatile boolean areIndexesReady;
 
-		if (JobManager.VERBOSE) {
-			if (parallel) {
-				long wallClockTime = System.currentTimeMillis() - startTime;
-				trace("-> execution time: " + wallClockTime + "ms - " + this);//$NON-NLS-1$//$NON-NLS-2$
-				trace("-> cumulative execution time (" + ForkJoinPool.getCommonPoolParallelism() + "): " //$NON-NLS-1$//$NON-NLS-2$
-						+ this.executionTime.get() + "ms - " + this);//$NON-NLS-1$
-			} else {
-				trace("-> execution time: " + this.executionTime.get() + "ms - " + this);//$NON-NLS-1$//$NON-NLS-2$
-			}
-		}
-		return isComplete;
-	} finally {
-		SubMonitor.done(progressMonitor);
-	}
-}
-private boolean performParallelSearch(Index[] indexes, SubMonitor loopMonitor) {
-	boolean isComplete = true;
-	List<Future<IndexResult>> futures = new ArrayList<>(indexes.length);
-	ForkJoinPool commonPool = ForkJoinPool.commonPool();
-	ParallelSearchMonitor monitor = new ParallelSearchMonitor(loopMonitor);
+    protected final AtomicLong executionTime;
 
-	try {
-		if (this.scope instanceof IParallelizable) {
-			((IParallelizable) this.scope).initBeforeSearch(monitor);
-		}
-		for (Index index : indexes) {
-			futures.add(commonPool.submit(() -> search(index, monitor, true)));
-		}
+    //$NON-NLS-1$
+    public static final String ENABLE_PARALLEL_SEARCH = "enableParallelJavaIndexSearch";
 
-		for (Future<IndexResult> future : futures) {
-			loopMonitor.split(1);
-			try {
-				IndexResult result = future.get();
-				isComplete &= result.complete;
-				result.matches.forEach(m -> {
-					boolean continueSearch = this.requestor.acceptIndexMatch(m.documentPath, m.indexRecord, this.participant, m.access);
-					if(!continueSearch) {
-						throw new OperationCanceledException();
-					}
-				});
-			} catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-				throw new OperationCanceledException();
-			} catch (ExecutionException e) {
-				if(e.getCause() instanceof RuntimeException) {
-					throw (RuntimeException) e.getCause();
-				}
-				throw new RuntimeException(e);
-			}
-		}
-	} catch (JavaModelException e) {
-		monitor.setCanceled(true);
-		throw new RuntimeException("Error initializing scope: " + this.scope, e); //$NON-NLS-1$
-	} catch (Exception e) {
-		monitor.setCanceled(true);
-		throw e;
-	}
-	return isComplete;
-}
-public Index[] getIndexes(IProgressMonitor progressMonitor) {
-	// acquire the in-memory indexes on the fly
-	IndexLocation[] indexLocations;
-	int length;
-	if (this.participant instanceof JavaSearchParticipant) {
-		indexLocations = ((JavaSearchParticipant)this.participant).selectIndexURLs(this.pattern, this.scope);
-		length = indexLocations.length;
-	} else {
-		IPath[] paths = this.participant.selectIndexes(this.pattern, this.scope);
-		length = paths.length;
-		indexLocations = new IndexLocation[paths.length];
-		for (int i = 0, len = paths.length; i < len; i++) {
-			indexLocations[i] = new FileIndexLocation(paths[i].toFile(), true);
-		}
-	}
-	Index[] indexes = JavaModelManager.getIndexManager().getIndexes(indexLocations, progressMonitor);
-	this.areIndexesReady = indexes.length == length;
-	return indexes;
-}
+    public static final boolean ENABLE_PARALLEL_SEARCH_DEFAULT = true;
 
-@Override
-public boolean waitNeeded() {
-	return true;
-}
-@Override
-public String getJobFamily() {
-	return ""; //$NON-NLS-1$
-}
+    public PatternSearchJob(SearchPattern pattern, SearchParticipant participant, IJavaSearchScope scope, IndexQueryRequestor requestor) {
+        this(pattern, participant, scope, true, true, requestor);
+    }
 
-private IndexResult search(Index index, IProgressMonitor progressMonitor, boolean parallel) {
-	List<IndexMatch> matches = new ArrayList<>();
-	boolean complete = search(index, collectTo(matches, progressMonitor), progressMonitor, parallel);
-	return new IndexResult(complete, matches);
-}
+    /**
+     * Create a search job with the specified search pattern.
+     *
+     * @param resolveDocumentForJar whether to resolve the document name of a result entry
+     *                              if it comes to a JAR library.
+     * @param resolveDocumentForSourceFiles whether to resolve the document name of a result entry
+     *                                      if it comes from a project's source files.
+     */
+    public PatternSearchJob(SearchPattern pattern, SearchParticipant participant, IJavaSearchScope scope, final boolean resolveDocumentForJar, final boolean resolveDocumentForSourceFiles, IndexQueryRequestor requestor) {
+        this.executionTime = new AtomicLong(0);
+        this.pattern = pattern;
+        this.participant = participant;
+        this.scope = scope;
+        this.requestor = requestor;
+        this.resolveDocumentForJar = resolveDocumentForJar;
+        this.resolveDocumentForSourceFiles = resolveDocumentForSourceFiles;
+    }
 
+    @Override
+    public boolean belongsTo(String jobFamily) {
+        return true;
+    }
 
-public boolean search(Index index, IndexQueryRequestor queryRequestor, IProgressMonitor progressMonitor, boolean parallel) {
-	if (index == null) return COMPLETE;
-	if (progressMonitor != null && progressMonitor.isCanceled()) throw new OperationCanceledException();
-	ReadWriteMonitor monitor = index.monitor;
-	if (monitor == null) return COMPLETE; // index got deleted since acquired
-	try {
-		monitor.enterRead(); // ask permission to read
-		long start = System.currentTimeMillis();
-		SearchPattern searchPattern = this.pattern;
-		IJavaSearchScope searchScope = this.scope;
-		if(parallel) {
-			searchPattern = clone(searchPattern);
-			searchScope = clone(searchScope);
-		}
+    @Override
+    public void cancel() {
+        // search job is cancelled through progress
+    }
 
-		boolean isFromJar = index.isIndexForJar();
-		boolean resolveDocumentName = (isFromJar && this.resolveDocumentForJar)
-			|| (!isFromJar && this.resolveDocumentForSourceFiles);
-		if (resolveDocumentName) {
-			// fall back to the default behavior in case some pattern implementation doesn't adapt to the new index search API.
-			MatchLocator.findIndexMatches(searchPattern, index, queryRequestor, this.participant, searchScope, progressMonitor);
-		} else {
-			MatchLocator.findIndexMatches(searchPattern, index, queryRequestor, this.participant, searchScope, false, progressMonitor);
-		}
-		this.executionTime.addAndGet(System.currentTimeMillis() - start);
-		return COMPLETE;
-	} catch (IOException e) {
-		if (e instanceof java.io.EOFException) {
-			if(JavaModelManager.VERBOSE) {
-				trace("", e); //$NON-NLS-1$
-			}
-		} else {
-			Throwable cause = e.getCause();
-			if (cause != null) {
-				Util.log(e, "Search failed for index " + index); //$NON-NLS-1$
-			}
-		}
-		return FAILED;
-	} finally {
-		monitor.exitRead(); // finished reading
-	}
-}
+    @Override
+    public void ensureReadyToRun() {
+        if (!this.areIndexesReady)
+            // may trigger some index recreation
+            getIndexes(null);
+    }
 
-private static IJavaSearchScope clone(IJavaSearchScope searchScope) {
-	if (searchScope instanceof AbstractSearchScope) {
-		try {
-			searchScope = ((AbstractSearchScope)searchScope).clone();
-		} catch (CloneNotSupportedException e) {
-			Util.log(new Status(IStatus.WARNING, JavaCore.PLUGIN_ID,
-					"PatternSearchJob could not clone " + searchScope, e));//$NON-NLS-1$
-		}
-	}
-	return searchScope;
-}
+    @Override
+    public boolean execute(IProgressMonitor progressMonitor) {
+        SubMonitor subMonitor = SubMonitor.convert(progressMonitor, 3);
+        boolean isComplete = COMPLETE;
+        this.executionTime.set(0);
+        long startTime = System.currentTimeMillis();
+        Index[] indexes = getIndexes(subMonitor.split(1));
+        try {
+            int max = indexes.length;
+            SubMonitor loopMonitor = subMonitor.split(2).setWorkRemaining(max);
+            boolean parallel = canRunInParallel();
+            if (parallel) {
+                isComplete = performParallelSearch(indexes, loopMonitor);
+            } else {
+                for (int i = 0; i < max; i++) {
+                    isComplete &= search(indexes[i], this.requestor, loopMonitor.split(1), parallel);
+                }
+            }
+            if (JobManager.VERBOSE) {
+                if (parallel) {
+                    long wallClockTime = System.currentTimeMillis() - startTime;
+                    //$NON-NLS-1$//$NON-NLS-2$
+                    trace("-> execution time: " + wallClockTime + "ms - " + this);
+                    trace(//$NON-NLS-1$//$NON-NLS-2$
+                    "-> cumulative execution time (" + ForkJoinPool.getCommonPoolParallelism() + "): " + this.executionTime.get() + "ms - " + //$NON-NLS-1$
+                    this);
+                } else {
+                    //$NON-NLS-1$//$NON-NLS-2$
+                    trace("-> execution time: " + this.executionTime.get() + "ms - " + this);
+                }
+            }
+            return isComplete;
+        } finally {
+            SubMonitor.done(progressMonitor);
+        }
+    }
 
-private static SearchPattern clone(SearchPattern searchPattern) {
-	if(searchPattern instanceof Cloneable) {
-		try {
-			searchPattern = searchPattern.clone();
-		} catch (CloneNotSupportedException e) {
-			Util.log(new Status(IStatus.WARNING, JavaCore.PLUGIN_ID,
-					"PatternSearchJob could not clone " + searchPattern, e));//$NON-NLS-1$
-		}
-	}
-	return searchPattern;
-}
+    private boolean performParallelSearch(Index[] indexes, SubMonitor loopMonitor) {
+        boolean isComplete = true;
+        List<Future<IndexResult>> futures = new ArrayList<>(indexes.length);
+        ForkJoinPool commonPool = ForkJoinPool.commonPool();
+        ParallelSearchMonitor monitor = new ParallelSearchMonitor(loopMonitor);
+        try {
+            if (this.scope instanceof IParallelizable) {
+                ((IParallelizable) this.scope).initBeforeSearch(monitor);
+            }
+            for (Index index : indexes) {
+                futures.add(commonPool.submit(() -> search(index, monitor, true)));
+            }
+            for (Future<IndexResult> future : futures) {
+                loopMonitor.split(1);
+                try {
+                    IndexResult result = future.get();
+                    isComplete &= result.complete;
+                    result.matches.forEach(m -> {
+                        boolean continueSearch = this.requestor.acceptIndexMatch(m.documentPath, m.indexRecord, this.participant, m.access);
+                        if (!continueSearch) {
+                            throw new OperationCanceledException();
+                        }
+                    });
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new OperationCanceledException();
+                } catch (ExecutionException e) {
+                    if (e.getCause() instanceof RuntimeException) {
+                        throw (RuntimeException) e.getCause();
+                    }
+                    throw new RuntimeException(e);
+                }
+            }
+        } catch (JavaModelException e) {
+            monitor.setCanceled(true);
+            //$NON-NLS-1$
+            throw new RuntimeException("Error initializing scope: " + this.scope, e);
+        } catch (Exception e) {
+            monitor.setCanceled(true);
+            throw e;
+        }
+        return isComplete;
+    }
 
-@Override
-public String toString() {
-	return "searching " + this.pattern.toString(); //$NON-NLS-1$
-}
+    public Index[] getIndexes(IProgressMonitor progressMonitor) {
+        // acquire the in-memory indexes on the fly
+        IndexLocation[] indexLocations;
+        int length;
+        if (this.participant instanceof JavaSearchParticipant) {
+            indexLocations = ((JavaSearchParticipant) this.participant).selectIndexURLs(this.pattern, this.scope);
+            length = indexLocations.length;
+        } else {
+            IPath[] paths = this.participant.selectIndexes(this.pattern, this.scope);
+            length = paths.length;
+            indexLocations = new IndexLocation[paths.length];
+            for (int i = 0, len = paths.length; i < len; i++) {
+                indexLocations[i] = new FileIndexLocation(paths[i].toFile(), true);
+            }
+        }
+        Index[] indexes = JavaModelManager.getIndexManager().getIndexes(indexLocations, progressMonitor);
+        this.areIndexesReady = indexes.length == length;
+        return indexes;
+    }
 
-private boolean canRunInParallel() {
-	return isParallelSearchEnabled() && IParallelizable.isParallelSearchSupported(this.scope)
-			&& IParallelizable.isParallelSearchSupported(this.participant)
-			&& IParallelizable.isParallelSearchSupported(this.pattern);
-}
+    @Override
+    public boolean waitNeeded() {
+        return true;
+    }
 
-private boolean isParallelSearchEnabled() {
-	IPreferencesService preferenceService = Platform.getPreferencesService();
-	if (preferenceService == null) {
-		return true;
-	}
-	return preferenceService.getBoolean(JavaCore.PLUGIN_ID, ENABLE_PARALLEL_SEARCH, ENABLE_PARALLEL_SEARCH_DEFAULT,
-			null);
-}
+    @Override
+    public String getJobFamily() {
+        //$NON-NLS-1$
+        return "";
+    }
 
-private static IndexQueryRequestor collectTo(final List<IndexMatch> collectTo, final IProgressMonitor monitor) {
-	return new IndexQueryRequestor() {
+    private IndexResult search(Index index, IProgressMonitor progressMonitor, boolean parallel) {
+        List<IndexMatch> matches = new ArrayList<>();
+        boolean complete = search(index, collectTo(matches, progressMonitor), progressMonitor, parallel);
+        return new IndexResult(complete, matches);
+    }
 
-		@Override
-		public boolean acceptIndexMatch(String documentPath, SearchPattern indexRecord, SearchParticipant participant,
-				AccessRuleSet access) {
-			collectTo.add(new IndexMatch(documentPath, indexRecord, access));
-			return !monitor.isCanceled();
-		}
-	};
-}
+    public boolean search(Index index, IndexQueryRequestor queryRequestor, IProgressMonitor progressMonitor, boolean parallel) {
+        if (index == null)
+            return COMPLETE;
+        if (progressMonitor != null && progressMonitor.isCanceled())
+            throw new OperationCanceledException();
+        ReadWriteMonitor monitor = index.monitor;
+        // index got deleted since acquired
+        if (monitor == null)
+            return COMPLETE;
+        try {
+            // ask permission to read
+            monitor.enterRead();
+            long start = System.currentTimeMillis();
+            SearchPattern searchPattern = this.pattern;
+            IJavaSearchScope searchScope = this.scope;
+            if (parallel) {
+                searchPattern = clone(searchPattern);
+                searchScope = clone(searchScope);
+            }
+            boolean isFromJar = index.isIndexForJar();
+            boolean resolveDocumentName = (isFromJar && this.resolveDocumentForJar) || (!isFromJar && this.resolveDocumentForSourceFiles);
+            if (resolveDocumentName) {
+                // fall back to the default behavior in case some pattern implementation doesn't adapt to the new index search API.
+                MatchLocator.findIndexMatches(searchPattern, index, queryRequestor, this.participant, searchScope, progressMonitor);
+            } else {
+                MatchLocator.findIndexMatches(searchPattern, index, queryRequestor, this.participant, searchScope, false, progressMonitor);
+            }
+            this.executionTime.addAndGet(System.currentTimeMillis() - start);
+            return COMPLETE;
+        } catch (IOException e) {
+            if (e instanceof java.io.EOFException) {
+                if (JavaModelManager.VERBOSE) {
+                    //$NON-NLS-1$
+                    trace("", e);
+                }
+            } else {
+                Throwable cause = e.getCause();
+                if (cause != null) {
+                    //$NON-NLS-1$
+                    Util.log(e, "Search failed for index " + index);
+                }
+            }
+            return FAILED;
+        } finally {
+            // finished reading
+            monitor.exitRead();
+        }
+    }
 
-static class IndexResult {
-	final boolean complete;
-	final List<IndexMatch> matches;
+    private static IJavaSearchScope clone(IJavaSearchScope searchScope) {
+        if (searchScope instanceof AbstractSearchScope) {
+            try {
+                searchScope = ((AbstractSearchScope) searchScope).clone();
+            } catch (CloneNotSupportedException e) {
+                Util.log(new Status(IStatus.WARNING, JavaCore.PLUGIN_ID, "PatternSearchJob could not clone " + searchScope, //$NON-NLS-1$
+                e));
+            }
+        }
+        return searchScope;
+    }
 
-	IndexResult(boolean complete, List<IndexMatch> matches) {
-		this.complete = complete;
-		this.matches = matches;
-	}
-}
+    private static SearchPattern clone(SearchPattern searchPattern) {
+        if (searchPattern instanceof Cloneable) {
+            try {
+                searchPattern = searchPattern.clone();
+            } catch (CloneNotSupportedException e) {
+                Util.log(new Status(IStatus.WARNING, JavaCore.PLUGIN_ID, "PatternSearchJob could not clone " + searchPattern, //$NON-NLS-1$
+                e));
+            }
+        }
+        return searchPattern;
+    }
 
-static class IndexMatch {
-	final String documentPath;
-	final SearchPattern indexRecord;
-	final AccessRuleSet access;
+    @Override
+    public String toString() {
+        //$NON-NLS-1$
+        return "searching " + this.pattern.toString();
+    }
 
-	IndexMatch(String documentPath, SearchPattern indexRecord, AccessRuleSet access) {
-		this.documentPath = documentPath;
-		this.indexRecord = indexRecord;
-		this.access = access;
-	}
-}
+    private boolean canRunInParallel() {
+        return isParallelSearchEnabled() && IParallelizable.isParallelSearchSupported(this.scope) && IParallelizable.isParallelSearchSupported(this.participant) && IParallelizable.isParallelSearchSupported(this.pattern);
+    }
 
-static class ParallelSearchMonitor extends NullProgressMonitor {
-	private volatile boolean canceled;
-	private final IProgressMonitor original;
+    private boolean isParallelSearchEnabled() {
+        IPreferencesService preferenceService = Platform.getPreferencesService();
+        if (preferenceService == null) {
+            return true;
+        }
+        return preferenceService.getBoolean(JavaCore.PLUGIN_ID, ENABLE_PARALLEL_SEARCH, ENABLE_PARALLEL_SEARCH_DEFAULT, null);
+    }
 
-	public ParallelSearchMonitor(IProgressMonitor original) {
-		this.original = original;
-	}
+    private static IndexQueryRequestor collectTo(final List<IndexMatch> collectTo, final IProgressMonitor monitor) {
+        return new IndexQueryRequestor() {
 
-	@Override
-	public boolean isCanceled() {
-		return this.canceled || this.original.isCanceled();
-	}
+            @Override
+            public boolean acceptIndexMatch(String documentPath, SearchPattern indexRecord, SearchParticipant participant, AccessRuleSet access) {
+                collectTo.add(new IndexMatch(documentPath, indexRecord, access));
+                return !monitor.isCanceled();
+            }
+        };
+    }
 
-	@Override
-	public void setCanceled(boolean canceled) {
-		this.canceled = canceled;
-	}
-}
+    static class IndexResult {
 
+        final boolean complete;
+
+        final List<IndexMatch> matches;
+
+        IndexResult(boolean complete, List<IndexMatch> matches) {
+            this.complete = complete;
+            this.matches = matches;
+        }
+    }
+
+    static class IndexMatch {
+
+        final String documentPath;
+
+        final SearchPattern indexRecord;
+
+        final AccessRuleSet access;
+
+        IndexMatch(String documentPath, SearchPattern indexRecord, AccessRuleSet access) {
+            this.documentPath = documentPath;
+            this.indexRecord = indexRecord;
+            this.access = access;
+        }
+    }
+
+    static class ParallelSearchMonitor extends NullProgressMonitor {
+
+        private volatile boolean canceled;
+
+        private final IProgressMonitor original;
+
+        public ParallelSearchMonitor(IProgressMonitor original) {
+            this.original = original;
+        }
+
+        @Override
+        public boolean isCanceled() {
+            return this.canceled || this.original.isCanceled();
+        }
+
+        @Override
+        public void setCanceled(boolean canceled) {
+            this.canceled = canceled;
+        }
+    }
 }

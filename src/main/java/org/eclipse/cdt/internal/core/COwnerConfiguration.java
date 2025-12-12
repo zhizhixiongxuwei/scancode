@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2000, 2006 QNX Software Systems and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2000, 2006 QNX Software Systems and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     QNX Software Systems - Initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *      QNX Software Systems - Initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core;
 
 import org.eclipse.cdt.core.ICOwner;
@@ -19,46 +21,50 @@ import org.eclipse.core.runtime.IConfigurationElement;
 
 public class COwnerConfiguration {
 
-	final IConfigurationElement fElement;
-	final String fOwnerID, fName;
+    final public IConfigurationElement fElement;
 
-	public COwnerConfiguration(IConfigurationElement element) {
-		fElement = element;
-		fOwnerID = fElement.getDeclaringExtension().getUniqueIdentifier();
-		fName = fElement.getDeclaringExtension().getLabel();
-	}
+    final public String fOwnerID, fName;
 
-	public COwnerConfiguration(String id, String name) {
-		fElement = null;
-		fOwnerID = id;
-		fName = name;
-	}
+    public COwnerConfiguration(IConfigurationElement element) {
+        fElement = element;
+        fOwnerID = fElement.getDeclaringExtension().getUniqueIdentifier();
+        fName = fElement.getDeclaringExtension().getLabel();
+    }
 
-	public String getOwnerID() {
-		return fOwnerID;
-	}
+    public COwnerConfiguration(String id, String name) {
+        fElement = null;
+        fOwnerID = id;
+        fName = name;
+    }
 
-	public String getName() {
-		return fName;
-	}
+    public String getOwnerID() {
+        return fOwnerID;
+    }
 
-	public String getPlatform() {
-		String platform = null;
-		if (fElement != null) {
-			platform = fElement.getAttribute("platform"); //$NON-NLS-1$
-		}
-		return platform == null ? "*" : platform; //$NON-NLS-1$
-	}
+    public String getName() {
+        return fName;
+    }
 
-	public ICOwner createOwner() throws CoreException {
-		if (fElement != null) {
-			return (ICOwner) fElement.createExecutableExtension("class"); //$NON-NLS-1$
-		}
-		return null;
-	}
+    public String getPlatform() {
+        String platform = null;
+        if (fElement != null) {
+            //$NON-NLS-1$
+            platform = fElement.getAttribute("platform");
+        }
+        //$NON-NLS-1$
+        return platform == null ? "*" : platform;
+    }
 
-	public String getNature() {
-		return fElement != null ? fElement.getAttribute("natureID") : null; //$NON-NLS-1$
-	}
+    public ICOwner createOwner() throws CoreException {
+        if (fElement != null) {
+            //$NON-NLS-1$
+            return (ICOwner) fElement.createExecutableExtension("class");
+        }
+        return null;
+    }
 
+    public String getNature() {
+        //$NON-NLS-1$
+        return fElement != null ? fElement.getAttribute("natureID") : null;
+    }
 }

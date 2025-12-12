@@ -1,25 +1,26 @@
-/*******************************************************************************
- * Copyright (c) 2008, 2014 Institute for Software, HSR Hochschule fuer Technik
- * Rapperswil, University of applied sciences and others
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2008, 2014 Institute for Software, HSR Hochschule fuer Technik
+ *  Rapperswil, University of applied sciences and others
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Institute for Software - initial API and implementation
- *     Markus Schorn (Wind River Systems)
- *     Sergey Prigogin (Google)
- *     Thomas Corbat (IFS)
- *******************************************************************************/
+ *  Contributors:
+ *      Institute for Software - initial API and implementation
+ *      Markus Schorn (Wind River Systems)
+ *      Sergey Prigogin (Google)
+ *      Thomas Corbat (IFS)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.rewrite.astwriter;
 
 import java.util.EnumSet;
 import java.util.List;
-
 import org.eclipse.cdt.core.dom.ast.ASTVisitor;
 import org.eclipse.cdt.core.dom.ast.IASTArrayModifier;
 import org.eclipse.cdt.core.dom.ast.IASTAttributeSpecifier;
@@ -59,337 +60,350 @@ import org.eclipse.cdt.internal.core.dom.rewrite.commenthandler.NodeCommentMap;
  * @author Emanuel Graf IFS
  */
 public class ASTWriterVisitor extends ASTVisitor {
-	protected final Scribe scribe = new Scribe();
-	protected NodeCommentMap commentMap;
-	protected ExpressionWriter expWriter;
-	protected DeclSpecWriter declSpecWriter;
-	protected StatementWriter statementWriter;
-	protected DeclaratorWriter declaratorWriter;
-	protected DeclarationWriter declarationWriter;
-	protected InitializerWriter initializerWriter;
-	protected NameWriter nameWriter;
-	protected TemplateParameterWriter tempParameterWriter;
-	protected AttributeWriter attributeWriter;
-	protected MacroExpansionHandler macroHandler;
-	private boolean insertLeadingBlankLine;
-	private boolean suppressLeadingBlankLine;
-	private boolean spaceNeededBeforeName;
 
-	{
-		shouldVisitArrayModifiers = true;
-		shouldVisitBaseSpecifiers = true;
-		shouldVisitDeclarations = true;
-		shouldVisitDeclarators = true;
-		shouldVisitDeclSpecifiers = true;
-		shouldVisitDecltypeSpecifiers = true;
-		shouldVisitExpressions = true;
-		shouldVisitInitializers = true;
-		shouldVisitNames = true;
-		shouldVisitNamespaces = true;
-		shouldVisitParameterDeclarations = true;
-		shouldVisitPointerOperators = true;
-		shouldVisitStatements = true;
-		shouldVisitTemplateParameters = true;
-		shouldVisitTranslationUnit = true;
-		shouldVisitTypeIds = true;
-		shouldVisitAttributes = true;
-	}
+    final public Scribe scribe = new Scribe();
 
-	/**
-	 * Creates a writer with an empty comment map.
-	 */
-	public ASTWriterVisitor() {
-		this(new NodeCommentMap());
-	}
+    public NodeCommentMap commentMap;
 
-	/**
-	 * Creates a writer with an empty comment map that uses const placement
-	 * properties of the project associated with the provided translation unit.
-	 */
-	public ASTWriterVisitor(ITranslationUnit tu) {
-		this();
-		configureForTU(tu);
-	}
+    public ExpressionWriter expWriter;
 
-	public ASTWriterVisitor(NodeCommentMap commentMap) {
-		super();
-		init(commentMap);
-		this.commentMap = commentMap;
-		this.suppressLeadingBlankLine = true;
-	}
+    public DeclSpecWriter declSpecWriter;
 
-	private void init(NodeCommentMap commentMap) {
-		macroHandler = new MacroExpansionHandler(scribe);
-		statementWriter = new StatementWriter(scribe, this, commentMap);
-		declaratorWriter = new DeclaratorWriter(scribe, this, commentMap);
-		declarationWriter = new DeclarationWriter(scribe, this, commentMap);
-		declSpecWriter = new DeclSpecWriter(scribe, this, commentMap);
-		expWriter = new ExpressionWriter(scribe, this, macroHandler, commentMap);
-		initializerWriter = new InitializerWriter(scribe, this, commentMap);
-		//		ppStmtWriter = new PreprocessorStatementWriter(scribe, this, commentMap);
-		nameWriter = new NameWriter(scribe, this, commentMap);
-		tempParameterWriter = new TemplateParameterWriter(scribe, this, commentMap);
-		attributeWriter = new AttributeWriter(scribe, this, commentMap);
-	}
+    public StatementWriter statementWriter;
 
-	public void configureForTU(ITranslationUnit tu) {
-		boolean placeConstRight = ConstPlacement.placeConstRight(tu);
-		declSpecWriter.setPlaceConstRight(placeConstRight);
-	}
+    protected DeclaratorWriter declaratorWriter;
 
-	@Override
-	public String toString() {
-		return scribe.toString();
-	}
+    protected DeclarationWriter declarationWriter;
 
-	@Override
-	public int leave(IASTTranslationUnit tu) {
-		for (IASTComment comment : commentMap.getFreestandingCommentsForNode(tu)) {
-			scribe.print(comment.getComment());
-			scribe.newLine();
-		}
-		return super.leave(tu);
-	}
+    protected InitializerWriter initializerWriter;
 
-	private void writeLeadingComments(IASTNode node) {
-		for (IASTComment comment : getLeadingComments(node)) {
-			scribe.print(comment.getComment());
-			scribe.newLine();
-		}
-	}
+    protected NameWriter nameWriter;
 
-	private List<IASTComment> getLeadingComments(IASTNode node) {
-		List<IASTComment> leadingComments = commentMap.getLeadingCommentsForNode(node);
-		IASTNode originalNode = node.getOriginalNode();
-		if (originalNode != node)
-			leadingComments.addAll(commentMap.getLeadingCommentsForNode(originalNode));
-		return leadingComments;
-	}
+    protected TemplateParameterWriter tempParameterWriter;
 
-	public void visit(ASTLiteralNode lit) {
-		insertBlankLineIfNeeded(lit);
-		scribe.print(lit.getRawSignature());
-	}
+    protected AttributeWriter attributeWriter;
 
-	@Override
-	public int visit(ICPPASTBaseSpecifier baseSpecifier) {
-		declSpecWriter.writeBaseSpecifiers(baseSpecifier);
-		return ASTVisitor.PROCESS_SKIP;
-	}
+    protected MacroExpansionHandler macroHandler;
 
-	@Override
-	public int visit(IASTName name) {
-		if (spaceNeededBeforeName && name.getSimpleID().length != 0) {
-			scribe.printSpace();
-			spaceNeededBeforeName = false;
-		}
-		writeLeadingComments(name);
-		if (!macroHandler.checkisMacroExpansionNode(name)) {
-			nameWriter.writeName(name);
-		}
-		return ASTVisitor.PROCESS_SKIP;
-	}
+    private boolean insertLeadingBlankLine;
 
-	@Override
-	public int visit(IASTDeclSpecifier declSpec) {
-		writeLeadingComments(declSpec);
-		declSpecWriter.writeDelcSpec(declSpec);
-		return ASTVisitor.PROCESS_SKIP;
-	}
+    private boolean suppressLeadingBlankLine;
 
-	@Override
-	public int visit(ICPPASTDecltypeSpecifier decltypeSpec) {
-		scribe.print(Keywords.DECLTYPE);
-		scribe.print('(');
-		decltypeSpec.getDecltypeExpression().accept(this);
-		scribe.print(')');
-		return ASTVisitor.PROCESS_SKIP;
-	}
+    private boolean spaceNeededBeforeName;
 
-	@Override
-	public int visit(IASTExpression expression) {
-		writeLeadingComments(expression);
-		if (!macroHandler.checkisMacroExpansionNode(expression)) {
-			if (expression instanceof IGNUASTCompoundStatementExpression) {
-				IGNUASTCompoundStatementExpression gnuCompStmtExp = (IGNUASTCompoundStatementExpression) expression;
-				gnuCompStmtExp.getCompoundStatement().accept(this);
-			} else {
-				expWriter.writeExpression(expression);
-			}
-		}
-		return ASTVisitor.PROCESS_SKIP;
-	}
+    {
+        shouldVisitArrayModifiers = true;
+        shouldVisitBaseSpecifiers = true;
+        shouldVisitDeclarations = true;
+        shouldVisitDeclarators = true;
+        shouldVisitDeclSpecifiers = true;
+        shouldVisitDecltypeSpecifiers = true;
+        shouldVisitExpressions = true;
+        shouldVisitInitializers = true;
+        shouldVisitNames = true;
+        shouldVisitNamespaces = true;
+        shouldVisitParameterDeclarations = true;
+        shouldVisitPointerOperators = true;
+        shouldVisitStatements = true;
+        shouldVisitTemplateParameters = true;
+        shouldVisitTranslationUnit = true;
+        shouldVisitTypeIds = true;
+        shouldVisitAttributes = true;
+    }
 
-	@Override
-	public int visit(IASTStatement statement) {
-		insertBlankLineIfNeeded(statement);
-		writeLeadingComments(statement);
-		try {
-			if (macroHandler.isStatementWithMixedLocation(statement) && !(statement instanceof IASTCompoundStatement)) {
-				return statementWriter.writeMixedStatement(statement);
-			}
-			if (macroHandler.checkisMacroExpansionNode(statement)) {
-				return ASTVisitor.PROCESS_SKIP;
-			}
-			return statementWriter.writeStatement(statement, true);
-		} finally {
-			setLeadingBlankLineFlags(statement);
-		}
-	}
+    /**
+     * Creates a writer with an empty comment map.
+     */
+    public ASTWriterVisitor() {
+        this(new NodeCommentMap());
+    }
 
-	@Override
-	public int visit(IASTDeclaration declaration) {
-		insertBlankLineIfNeeded(declaration);
-		writeLeadingComments(declaration);
-		if (!macroHandler.checkisMacroExpansionNode(declaration)) {
-			declarationWriter.writeDeclaration(declaration);
-			setLeadingBlankLineFlags(declaration);
-		}
-		return ASTVisitor.PROCESS_SKIP;
-	}
+    /**
+     * Creates a writer with an empty comment map that uses const placement
+     * properties of the project associated with the provided translation unit.
+     */
+    public ASTWriterVisitor(ITranslationUnit tu) {
+        this();
+        configureForTU(tu);
+    }
 
-	@Override
-	public int visit(IASTDeclarator declarator) {
-		writeLeadingComments(declarator);
-		if (!macroHandler.checkisMacroExpansionNode(declarator)) {
-			declaratorWriter.writeDeclarator(declarator);
-		}
-		return ASTVisitor.PROCESS_SKIP;
-	}
+    public ASTWriterVisitor(NodeCommentMap commentMap) {
+        super();
+        init(commentMap);
+        this.commentMap = commentMap;
+        this.suppressLeadingBlankLine = true;
+    }
 
-	@Override
-	public int visit(IASTArrayModifier amod) {
-		if (!macroHandler.checkisMacroExpansionNode(amod)) {
-			declaratorWriter.writeArrayModifier(amod);
-		}
-		return ASTVisitor.PROCESS_SKIP;
-	}
+    private void init(NodeCommentMap commentMap) {
+        macroHandler = new MacroExpansionHandler(scribe);
+        statementWriter = new StatementWriter(scribe, this, commentMap);
+        declaratorWriter = new DeclaratorWriter(scribe, this, commentMap);
+        declarationWriter = new DeclarationWriter(scribe, this, commentMap);
+        declSpecWriter = new DeclSpecWriter(scribe, this, commentMap);
+        expWriter = new ExpressionWriter(scribe, this, macroHandler, commentMap);
+        initializerWriter = new InitializerWriter(scribe, this, commentMap);
+        //		ppStmtWriter = new PreprocessorStatementWriter(scribe, this, commentMap);
+        nameWriter = new NameWriter(scribe, this, commentMap);
+        tempParameterWriter = new TemplateParameterWriter(scribe, this, commentMap);
+        attributeWriter = new AttributeWriter(scribe, this, commentMap);
+    }
 
-	@Override
-	public int visit(IASTInitializer initializer) {
-		writeLeadingComments(initializer);
-		if (!macroHandler.checkisMacroExpansionNode(initializer)) {
-			initializerWriter.writeInitializer(initializer);
-		}
-		return ASTVisitor.PROCESS_SKIP;
-	}
+    public void configureForTU(ITranslationUnit tu) {
+        boolean placeConstRight = ConstPlacement.placeConstRight(tu);
+        declSpecWriter.setPlaceConstRight(placeConstRight);
+    }
 
-	@Override
-	public int visit(IASTParameterDeclaration parameterDeclaration) {
-		writeLeadingComments(parameterDeclaration);
-		if (parameterDeclaration instanceof ICPPASTParameterDeclaration) {
-			attributeWriter.writeAttributes((ICPPASTParameterDeclaration) parameterDeclaration,
-					EnumSet.of(SpaceLocation.AFTER));
-		}
-		if (!macroHandler.checkisMacroExpansionNode(parameterDeclaration)) {
-			parameterDeclaration.getDeclSpecifier().accept(this);
-			IASTDeclarator declarator = getParameterDeclarator(parameterDeclaration);
+    @Override
+    public String toString() {
+        return scribe.toString();
+    }
 
-			spaceNeededBeforeName = true;
-			declarator.accept(this);
-		}
-		return ASTVisitor.PROCESS_SKIP;
-	}
+    @Override
+    public int leave(IASTTranslationUnit tu) {
+        for (IASTComment comment : commentMap.getFreestandingCommentsForNode(tu)) {
+            scribe.print(comment.getComment());
+            scribe.newLine();
+        }
+        return super.leave(tu);
+    }
 
-	@Override
-	public int visit(IASTPointerOperator pointerOperator) {
-		writeLeadingComments(pointerOperator);
-		if (!macroHandler.checkisMacroExpansionNode(pointerOperator)) {
-			declaratorWriter.writePointerOperator(pointerOperator);
-		}
-		return ASTVisitor.PROCESS_SKIP;
-	}
+    private void writeLeadingComments(IASTNode node) {
+        for (IASTComment comment : getLeadingComments(node)) {
+            scribe.print(comment.getComment());
+            scribe.newLine();
+        }
+    }
 
-	@Override
-	public int visit(IASTTypeId typeId) {
-		IASTDeclSpecifier declSpecifier = typeId.getDeclSpecifier();
-		if (declSpecifier != null)
-			declSpecifier.accept(this);
-		if (typeId instanceof ICPPASTTypeId) {
-			if (((ICPPASTTypeId) typeId).isPackExpansion()) {
-				scribe.print(Keywords.cpELLIPSIS);
-			}
-		}
-		IASTDeclarator declarator = typeId.getAbstractDeclarator();
-		if (declarator != null) {
-			declarator.accept(this);
-		}
-		return ASTVisitor.PROCESS_SKIP;
-	}
+    private List<IASTComment> getLeadingComments(IASTNode node) {
+        List<IASTComment> leadingComments = commentMap.getLeadingCommentsForNode(node);
+        IASTNode originalNode = node.getOriginalNode();
+        if (originalNode != node)
+            leadingComments.addAll(commentMap.getLeadingCommentsForNode(originalNode));
+        return leadingComments;
+    }
 
-	protected IASTName getParameterName(IASTDeclarator declarator) {
-		return declarator.getName();
-	}
+    public void visit(ASTLiteralNode lit) {
+        insertBlankLineIfNeeded(lit);
+        scribe.print(lit.getRawSignature());
+    }
 
-	protected IASTDeclarator getParameterDeclarator(IASTParameterDeclaration parameterDeclaration) {
-		return parameterDeclaration.getDeclarator();
-	}
+    @Override
+    public int visit(ICPPASTBaseSpecifier baseSpecifier) {
+        declSpecWriter.writeBaseSpecifiers(baseSpecifier);
+        return ASTVisitor.PROCESS_SKIP;
+    }
 
-	@Override
-	public int visit(ICPPASTNamespaceDefinition namespace) {
-		insertBlankLineIfNeeded(namespace);
-		writeLeadingComments(namespace);
-		if (!macroHandler.checkisMacroExpansionNode(namespace)) {
-			declarationWriter.writeDeclaration(namespace);
-			setLeadingBlankLineFlags(namespace);
-		}
-		return ASTVisitor.PROCESS_SKIP;
-	}
+    @Override
+    public int visit(IASTName name) {
+        if (spaceNeededBeforeName && name.getSimpleID().length != 0) {
+            scribe.printSpace();
+            spaceNeededBeforeName = false;
+        }
+        writeLeadingComments(name);
+        if (!macroHandler.checkisMacroExpansionNode(name)) {
+            nameWriter.writeName(name);
+        }
+        return ASTVisitor.PROCESS_SKIP;
+    }
 
-	@Override
-	public int visit(ICPPASTTemplateParameter parameter) {
-		writeLeadingComments(parameter);
-		if (!macroHandler.checkisMacroExpansionNode(parameter)) {
-			tempParameterWriter.writeTemplateParameter(parameter);
-		}
-		return ASTVisitor.PROCESS_SKIP;
-	}
+    @Override
+    public int visit(IASTDeclSpecifier declSpec) {
+        writeLeadingComments(declSpec);
+        declSpecWriter.writeDelcSpec(declSpec);
+        return ASTVisitor.PROCESS_SKIP;
+    }
 
-	@Override
-	public int visit(IASTAttributeSpecifier specifier) {
-		attributeWriter.writeAttributeSpecifier(specifier);
-		return ASTVisitor.PROCESS_SKIP;
-	}
+    @Override
+    public int visit(ICPPASTDecltypeSpecifier decltypeSpec) {
+        scribe.print(Keywords.DECLTYPE);
+        scribe.print('(');
+        decltypeSpec.getDecltypeExpression().accept(this);
+        scribe.print(')');
+        return ASTVisitor.PROCESS_SKIP;
+    }
 
-	public void cleanCache() {
-		scribe.cleanCache();
-		macroHandler.reset();
-	}
+    @Override
+    public int visit(IASTExpression expression) {
+        writeLeadingComments(expression);
+        if (!macroHandler.checkisMacroExpansionNode(expression)) {
+            if (expression instanceof IGNUASTCompoundStatementExpression) {
+                IGNUASTCompoundStatementExpression gnuCompStmtExp = (IGNUASTCompoundStatementExpression) expression;
+                gnuCompStmtExp.getCompoundStatement().accept(this);
+            } else {
+                expWriter.writeExpression(expression);
+            }
+        }
+        return ASTVisitor.PROCESS_SKIP;
+    }
 
-	private void insertBlankLineIfNeeded(IASTNode node) {
-		if (!suppressLeadingBlankLine && (insertLeadingBlankLine || ASTWriter.requiresLeadingBlankLine(node))) {
-			scribe.newLine();
-		}
-		insertLeadingBlankLine = false;
-		suppressLeadingBlankLine = false;
-	}
+    @Override
+    public int visit(IASTStatement statement) {
+        insertBlankLineIfNeeded(statement);
+        writeLeadingComments(statement);
+        try {
+            if (macroHandler.isStatementWithMixedLocation(statement) && !(statement instanceof IASTCompoundStatement)) {
+                return statementWriter.writeMixedStatement(statement);
+            }
+            if (macroHandler.checkisMacroExpansionNode(statement)) {
+                return ASTVisitor.PROCESS_SKIP;
+            }
+            return statementWriter.writeStatement(statement, true);
+        } finally {
+            setLeadingBlankLineFlags(statement);
+        }
+    }
 
-	private void setLeadingBlankLineFlags(IASTNode node) {
-		insertLeadingBlankLine = ASTWriter.requiresTrailingBlankLine(node);
-		suppressLeadingBlankLine = ASTWriter.suppressesTrailingBlankLine(node);
-	}
+    @Override
+    public int visit(IASTDeclaration declaration) {
+        insertBlankLineIfNeeded(declaration);
+        writeLeadingComments(declaration);
+        if (!macroHandler.checkisMacroExpansionNode(declaration)) {
+            declarationWriter.writeDeclaration(declaration);
+            setLeadingBlankLineFlags(declaration);
+        }
+        return ASTVisitor.PROCESS_SKIP;
+    }
 
-	public boolean isSuppressLeadingBlankLine() {
-		return suppressLeadingBlankLine;
-	}
+    @Override
+    public int visit(IASTDeclarator declarator) {
+        writeLeadingComments(declarator);
+        if (!macroHandler.checkisMacroExpansionNode(declarator)) {
+            declaratorWriter.writeDeclarator(declarator);
+        }
+        return ASTVisitor.PROCESS_SKIP;
+    }
 
-	public void setSuppressLeadingBlankLine(boolean value) {
-		this.suppressLeadingBlankLine = value;
-	}
+    @Override
+    public int visit(IASTArrayModifier amod) {
+        if (!macroHandler.checkisMacroExpansionNode(amod)) {
+            declaratorWriter.writeArrayModifier(amod);
+        }
+        return ASTVisitor.PROCESS_SKIP;
+    }
 
-	public boolean isSpaceNeededBeforeName() {
-		return spaceNeededBeforeName;
-	}
+    @Override
+    public int visit(IASTInitializer initializer) {
+        writeLeadingComments(initializer);
+        if (!macroHandler.checkisMacroExpansionNode(initializer)) {
+            initializerWriter.writeInitializer(initializer);
+        }
+        return ASTVisitor.PROCESS_SKIP;
+    }
 
-	public void setSpaceNeededBeforeName(boolean value) {
-		this.spaceNeededBeforeName = value;
-	}
+    @Override
+    public int visit(IASTParameterDeclaration parameterDeclaration) {
+        writeLeadingComments(parameterDeclaration);
+        if (parameterDeclaration instanceof ICPPASTParameterDeclaration) {
+            attributeWriter.writeAttributes((ICPPASTParameterDeclaration) parameterDeclaration, EnumSet.of(SpaceLocation.AFTER));
+        }
+        if (!macroHandler.checkisMacroExpansionNode(parameterDeclaration)) {
+            parameterDeclaration.getDeclSpecifier().accept(this);
+            IASTDeclarator declarator = getParameterDeclarator(parameterDeclaration);
+            spaceNeededBeforeName = true;
+            declarator.accept(this);
+        }
+        return ASTVisitor.PROCESS_SKIP;
+    }
 
-	public Scribe getScribe() {
-		return scribe;
-	}
+    @Override
+    public int visit(IASTPointerOperator pointerOperator) {
+        writeLeadingComments(pointerOperator);
+        if (!macroHandler.checkisMacroExpansionNode(pointerOperator)) {
+            declaratorWriter.writePointerOperator(pointerOperator);
+        }
+        return ASTVisitor.PROCESS_SKIP;
+    }
 
-	public void newLine() {
-		scribe.newLine();
-	}
+    @Override
+    public int visit(IASTTypeId typeId) {
+        IASTDeclSpecifier declSpecifier = typeId.getDeclSpecifier();
+        if (declSpecifier != null)
+            declSpecifier.accept(this);
+        if (typeId instanceof ICPPASTTypeId) {
+            if (((ICPPASTTypeId) typeId).isPackExpansion()) {
+                scribe.print(Keywords.cpELLIPSIS);
+            }
+        }
+        IASTDeclarator declarator = typeId.getAbstractDeclarator();
+        if (declarator != null) {
+            declarator.accept(this);
+        }
+        return ASTVisitor.PROCESS_SKIP;
+    }
+
+    protected IASTName getParameterName(IASTDeclarator declarator) {
+        return declarator.getName();
+    }
+
+    protected IASTDeclarator getParameterDeclarator(IASTParameterDeclaration parameterDeclaration) {
+        return parameterDeclaration.getDeclarator();
+    }
+
+    @Override
+    public int visit(ICPPASTNamespaceDefinition namespace) {
+        insertBlankLineIfNeeded(namespace);
+        writeLeadingComments(namespace);
+        if (!macroHandler.checkisMacroExpansionNode(namespace)) {
+            declarationWriter.writeDeclaration(namespace);
+            setLeadingBlankLineFlags(namespace);
+        }
+        return ASTVisitor.PROCESS_SKIP;
+    }
+
+    @Override
+    public int visit(ICPPASTTemplateParameter parameter) {
+        writeLeadingComments(parameter);
+        if (!macroHandler.checkisMacroExpansionNode(parameter)) {
+            tempParameterWriter.writeTemplateParameter(parameter);
+        }
+        return ASTVisitor.PROCESS_SKIP;
+    }
+
+    @Override
+    public int visit(IASTAttributeSpecifier specifier) {
+        attributeWriter.writeAttributeSpecifier(specifier);
+        return ASTVisitor.PROCESS_SKIP;
+    }
+
+    public void cleanCache() {
+        scribe.cleanCache();
+        macroHandler.reset();
+    }
+
+    private void insertBlankLineIfNeeded(IASTNode node) {
+        if (!suppressLeadingBlankLine && (insertLeadingBlankLine || ASTWriter.requiresLeadingBlankLine(node))) {
+            scribe.newLine();
+        }
+        insertLeadingBlankLine = false;
+        suppressLeadingBlankLine = false;
+    }
+
+    private void setLeadingBlankLineFlags(IASTNode node) {
+        insertLeadingBlankLine = ASTWriter.requiresTrailingBlankLine(node);
+        suppressLeadingBlankLine = ASTWriter.suppressesTrailingBlankLine(node);
+    }
+
+    public boolean isSuppressLeadingBlankLine() {
+        return suppressLeadingBlankLine;
+    }
+
+    public void setSuppressLeadingBlankLine(boolean value) {
+        this.suppressLeadingBlankLine = value;
+    }
+
+    public boolean isSpaceNeededBeforeName() {
+        return spaceNeededBeforeName;
+    }
+
+    public void setSpaceNeededBeforeName(boolean value) {
+        this.spaceNeededBeforeName = value;
+    }
+
+    public Scribe getScribe() {
+        return scribe;
+    }
+
+    public void newLine() {
+        scribe.newLine();
+    }
 }

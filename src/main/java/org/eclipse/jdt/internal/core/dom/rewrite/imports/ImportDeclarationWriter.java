@@ -17,7 +17,7 @@ package org.eclipse.jdt.internal.core.dom.rewrite.imports;
 
 final public class ImportDeclarationWriter {
 
-    private final boolean insertSpaceBeforeSemicolon;
+    final public boolean insertSpaceBeforeSemicolon;
 
     ImportDeclarationWriter(boolean insertSpaceBeforeSemicolon) {
         this.insertSpaceBeforeSemicolon = insertSpaceBeforeSemicolon;

@@ -1,22 +1,23 @@
-/*******************************************************************************
- * Copyright (c) 2007, 2013 Intel Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2007, 2013 Intel Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- * Intel Corporation - Initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *  Intel Corporation - Initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.settings.model;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 import org.eclipse.cdt.core.cdtvariables.ICdtVariable;
 import org.eclipse.cdt.core.cdtvariables.ICdtVariablesContributor;
 import org.eclipse.cdt.core.language.settings.providers.ILanguageSettingsProvider;
@@ -96,561 +97,546 @@ import org.eclipse.core.runtime.QualifiedName;
  * @see CConfigurationDescription
  * @see CProjectDescriptionEvent
  */
-public class CConfigurationDescriptionCache extends CDefaultConfigurationData
-		implements ICConfigurationDescription, IInternalCCfgInfo, ILanguageSettingsProvidersKeeper, ICachedData {
+public class CConfigurationDescriptionCache extends CDefaultConfigurationData implements ICConfigurationDescription, IInternalCCfgInfo, ILanguageSettingsProvidersKeeper, ICachedData {
 
-	private CProjectDescription fParent;
-	private PathSettingsContainer fPathSettingContainer = PathSettingsContainer.createRootContainer();
-	private ResourceDescriptionHolder fRcHolder = new ResourceDescriptionHolder(fPathSettingContainer, true);
-	private List<ICSettingObject> fChildList = new ArrayList<>();
-	private CConfigurationSpecSettings fSpecSettings;
-	private CConfigurationData fData;
-	private CConfigurationDescriptionCache fBaseCache;
-	private ICSourceEntry fProjSourceEntries[];
-	private StorableCdtVariables fMacros;
-	private boolean fDataLoadded;
-	private boolean fInitializing;
-	private ICConfigurationDescription fBaseDescription;
-	private ICSourceEntry[] fResolvedSourceEntries;
+    public CProjectDescription fParent;
 
-	CConfigurationDescriptionCache(ICStorageElement storage, CProjectDescription parent) throws CoreException {
-		super(null);
-		fInitializing = true;
-		fParent = parent;
-		fSpecSettings = new CConfigurationSpecSettings(this, storage);
+    public PathSettingsContainer fPathSettingContainer = PathSettingsContainer.createRootContainer();
 
-		fId = fSpecSettings.getId();
-		fName = fSpecSettings.getName();
+    public ResourceDescriptionHolder fRcHolder = new ResourceDescriptionHolder(fPathSettingContainer, true);
 
-		//		loadData();
-	}
+    public List<ICSettingObject> fChildList = new ArrayList<>();
 
-	public boolean isInitializing() {
-		return fInitializing;
-	}
+    public CConfigurationSpecSettings fSpecSettings;
 
-	void loadData() throws CoreException {
-		if (fDataLoadded)
-			return;
+    private CConfigurationData fData;
 
-		fDataLoadded = true;
+    private CConfigurationDescriptionCache fBaseCache;
 
-		CConfigurationDataProvider dataProvider = CProjectDescriptionManager.getInstance().getProvider(this);
-		fData = dataProvider.loadConfiguration(this, new NullProgressMonitor());
+    private ICSourceEntry[] fProjSourceEntries;
 
-		if (getDefaultLanguageSettingsProvidersIds() == null) {
-			// default ids would come from toolchain configuration, ensure sensible defaults
-			String[] defaultIds = ScannerDiscoveryLegacySupport.getDefaultProviderIdsLegacy(this);
-			setDefaultLanguageSettingsProvidersIds(defaultIds);
-		}
-		if (!fSpecSettings.isLanguageSettingProvidersLoaded()) {
-			// when loading - providers come from xml file, ensure defaults if no xml file present
-			String[] defaultIds = getDefaultLanguageSettingsProvidersIds();
-			List<ILanguageSettingsProvider> providers = LanguageSettingsManager
-					.createLanguageSettingsProviders(defaultIds);
-			setLanguageSettingProviders(providers);
-		}
+    private StorableCdtVariables fMacros;
 
-		copySettingsFrom(fData, true);
+    private boolean fDataLoadded;
 
-		fSpecSettings.reconcileExtensionSettings(true);
-		((CBuildSettingCache) fBuildData).initEnvironmentCache();
-		ICdtVariable vars[] = CdtVariableManager.getDefault().getVariables(this);
-		fMacros = new StorableCdtVariables(vars, true);
-		//		fInitializing = false;
-	}
+    private boolean fInitializing;
 
-	CConfigurationDescriptionCache(ICConfigurationDescription baseDescription, CConfigurationData base,
-			CConfigurationDescriptionCache baseCache, CConfigurationSpecSettings settingsBase,
-			CProjectDescription parent, ICStorageElement rootEl) throws CoreException {
-		super(base.getId(), base.getName(), null);
-		fInitializing = true;
-		fParent = parent;
-		fSpecSettings = new CConfigurationSpecSettings(this, settingsBase, rootEl);
-		fSpecSettings.setModified(settingsBase.isModified());
-		fBaseDescription = baseDescription;
-		if (base instanceof CConfigurationDescriptionCache) {
-			fData = ((CConfigurationDescriptionCache) base).getConfigurationData();
-			//			fData = CProjectDescriptionManager.getInstance().applyData(this, baseDescription, fData);
-		} else {
-			fData = base;
-			//			base = CProjectDescriptionManager.getInstance().applyData(this, baseDescription, base);
-			//			fData = base;
-		}
+    private ICConfigurationDescription fBaseDescription;
 
-		fBaseCache = baseCache;
-	}
+    private ICSourceEntry[] fResolvedSourceEntries;
 
-	CConfigurationDescriptionCache getBaseCache() {
-		return fBaseCache;
-	}
+    CConfigurationDescriptionCache(ICStorageElement storage, CProjectDescription parent) throws CoreException {
+        super(null);
+        fInitializing = true;
+        fParent = parent;
+        fSpecSettings = new CConfigurationSpecSettings(this, storage);
+        fId = fSpecSettings.getId();
+        fName = fSpecSettings.getName();
+        //		loadData();
+    }
 
-	boolean applyData(SettingsContext context) throws CoreException {
-		boolean modified = true;
-		if (fBaseDescription != null) {
-			context.init(this);
-			CConfigurationDataProvider dataProvider = CProjectDescriptionManager.getInstance().getProvider(this);
-			fData = dataProvider.applyConfiguration(this, fBaseDescription, fData, context, new NullProgressMonitor());
-			fDataLoadded = true;
-			fName = fData.getName();
-			fId = fData.getId();
+    public boolean isInitializing() {
+        return fInitializing;
+    }
 
-			if ((context.getAllConfigurationSettingsFlags() & IModificationContext.CFG_DATA_SETTINGS_UNMODIFIED) == 0
-					|| fBaseCache == null) {
-				copySettingsFrom(fData, true);
-			} else {
-				copySettingsFrom(fBaseCache, true);
-				modified = fSpecSettings.isModified();
-				if (!modified)
-					modified = (context.getAllConfigurationSettingsFlags()
-							& IModificationContext.CFG_DATA_STORAGE_UNMODIFIED) == 0;
-			}
+    void loadData() throws CoreException {
+        if (fDataLoadded)
+            return;
+        fDataLoadded = true;
+        CConfigurationDataProvider dataProvider = CProjectDescriptionManager.getInstance().getProvider(this);
+        fData = dataProvider.loadConfiguration(this, new NullProgressMonitor());
+        if (getDefaultLanguageSettingsProvidersIds() == null) {
+            // default ids would come from toolchain configuration, ensure sensible defaults
+            String[] defaultIds = ScannerDiscoveryLegacySupport.getDefaultProviderIdsLegacy(this);
+            setDefaultLanguageSettingsProvidersIds(defaultIds);
+        }
+        if (!fSpecSettings.isLanguageSettingProvidersLoaded()) {
+            // when loading - providers come from xml file, ensure defaults if no xml file present
+            String[] defaultIds = getDefaultLanguageSettingsProvidersIds();
+            List<ILanguageSettingsProvider> providers = LanguageSettingsManager.createLanguageSettingsProviders(defaultIds);
+            setLanguageSettingProviders(providers);
+        }
+        copySettingsFrom(fData, true);
+        fSpecSettings.reconcileExtensionSettings(true);
+        ((CBuildSettingCache) fBuildData).initEnvironmentCache();
+        ICdtVariable[] vars = CdtVariableManager.getDefault().getVariables(this);
+        fMacros = new StorableCdtVariables(vars, true);
+        //		fInitializing = false;
+    }
 
-			ICdtVariable vars[] = CdtVariableManager.getDefault().getVariables(this);
-			fMacros = new StorableCdtVariables(vars, true);
-			fSpecSettings.serialize();
-			fSpecSettings.setModified(false);
-		}
+    CConfigurationDescriptionCache(ICConfigurationDescription baseDescription, CConfigurationData base, CConfigurationDescriptionCache baseCache, CConfigurationSpecSettings settingsBase, CProjectDescription parent, ICStorageElement rootEl) throws CoreException {
+        super(base.getId(), base.getName(), null);
+        fInitializing = true;
+        fParent = parent;
+        fSpecSettings = new CConfigurationSpecSettings(this, settingsBase, rootEl);
+        fSpecSettings.setModified(settingsBase.isModified());
+        fBaseDescription = baseDescription;
+        if (base instanceof CConfigurationDescriptionCache) {
+            fData = ((CConfigurationDescriptionCache) base).getConfigurationData();
+            //			fData = CProjectDescriptionManager.getInstance().applyData(this, baseDescription, fData);
+        } else {
+            fData = base;
+            //			base = CProjectDescriptionManager.getInstance().applyData(this, baseDescription, base);
+            //			fData = base;
+        }
+        fBaseCache = baseCache;
+    }
 
-		fBaseDescription = null;
-		fBaseCache = null;
+    CConfigurationDescriptionCache getBaseCache() {
+        return fBaseCache;
+    }
 
-		return modified;
-	}
+    boolean applyData(SettingsContext context) throws CoreException {
+        boolean modified = true;
+        if (fBaseDescription != null) {
+            context.init(this);
+            CConfigurationDataProvider dataProvider = CProjectDescriptionManager.getInstance().getProvider(this);
+            fData = dataProvider.applyConfiguration(this, fBaseDescription, fData, context, new NullProgressMonitor());
+            fDataLoadded = true;
+            fName = fData.getName();
+            fId = fData.getId();
+            if ((context.getAllConfigurationSettingsFlags() & IModificationContext.CFG_DATA_SETTINGS_UNMODIFIED) == 0 || fBaseCache == null) {
+                copySettingsFrom(fData, true);
+            } else {
+                copySettingsFrom(fBaseCache, true);
+                modified = fSpecSettings.isModified();
+                if (!modified)
+                    modified = (context.getAllConfigurationSettingsFlags() & IModificationContext.CFG_DATA_STORAGE_UNMODIFIED) == 0;
+            }
+            ICdtVariable[] vars = CdtVariableManager.getDefault().getVariables(this);
+            fMacros = new StorableCdtVariables(vars, true);
+            fSpecSettings.serialize();
+            fSpecSettings.setModified(false);
+        }
+        fBaseDescription = null;
+        fBaseCache = null;
+        return modified;
+    }
 
-	public StorableCdtVariables getCachedVariables() {
-		return fMacros;
-	}
+    public StorableCdtVariables getCachedVariables() {
+        return fMacros;
+    }
 
-	protected void setId(String id) throws CoreException {
-		throw ExceptionFactory.createIsReadOnlyException();
-	}
+    protected void setId(String id) throws CoreException {
+        throw ExceptionFactory.createIsReadOnlyException();
+    }
 
-	@Override
-	public CFileData copyFileData(IPath path, CFileData base, boolean clone) {
-		return new CFileDescriptionCache(base, this);
-	}
+    @Override
+    public CFileData copyFileData(IPath path, CFileData base, boolean clone) {
+        return new CFileDescriptionCache(base, this);
+    }
 
-	@Override
-	protected CFileData copyFileData(IPath path, CFolderData base, CLanguageData langData) {
-		//should never be here
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    protected CFileData copyFileData(IPath path, CFolderData base, CLanguageData langData) {
+        //should never be here
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public CFolderData copyFolderData(IPath path, CFolderData base, boolean clone) {
-		return new CFolderDescriptionCache(base, this);
-	}
+    @Override
+    public CFolderData copyFolderData(IPath path, CFolderData base, boolean clone) {
+        return new CFolderDescriptionCache(base, this);
+    }
 
-	@Override
-	protected CBuildData copyBuildData(CBuildData data, boolean clone) {
-		return new CBuildSettingCache(data, this);
-	}
+    @Override
+    protected CBuildData copyBuildData(CBuildData data, boolean clone) {
+        return new CBuildSettingCache(data, this);
+    }
 
-	void addResourceDescription(ICResourceDescription des) {
-		fRcHolder.addResourceDescription(des.getPath(), des);
-		fChildList.add(des);
-	}
+    void addResourceDescription(ICResourceDescription des) {
+        fRcHolder.addResourceDescription(des.getPath(), des);
+        fChildList.add(des);
+    }
 
-	void addTargetPlatformSetting(ICTargetPlatformSetting tpS) {
-		fChildList.add(tpS);
-	}
+    void addTargetPlatformSetting(ICTargetPlatformSetting tpS) {
+        fChildList.add(tpS);
+    }
 
-	void addBuildSetting(ICBuildSetting bs) {
-		fChildList.add(bs);
-		fBuildData = (CBuildData) bs;
-	}
+    void addBuildSetting(ICBuildSetting bs) {
+        fChildList.add(bs);
+        fBuildData = (CBuildData) bs;
+    }
 
-	@Override
-	public ICProjectDescription getProjectDescription() {
-		return fParent;
-	}
+    @Override
+    public ICProjectDescription getProjectDescription() {
+        return fParent;
+    }
 
-	@Override
-	public ICResourceDescription getResourceDescription(IPath path, boolean exactPath) {
-		return fRcHolder.getResourceDescription(path, exactPath);
-	}
+    @Override
+    public ICResourceDescription getResourceDescription(IPath path, boolean exactPath) {
+        return fRcHolder.getResourceDescription(path, exactPath);
+    }
 
-	public ICResourceDescription[] getResourceDescriptions(int kind) {
-		return fRcHolder.getResourceDescriptions(kind);
-	}
+    public ICResourceDescription[] getResourceDescriptions(int kind) {
+        return fRcHolder.getResourceDescriptions(kind);
+    }
 
-	@Override
-	public ICFolderDescription getRootFolderDescription() {
-		return (ICFolderDescription) fRootFolderData;
-	}
+    @Override
+    public ICFolderDescription getRootFolderDescription() {
+        return (ICFolderDescription) fRootFolderData;
+    }
 
-	@Override
-	public boolean isActive() {
-		if (isPreferenceConfiguration())
-			return false;
-		return fParent.getActiveConfiguration() == this;
-	}
+    @Override
+    public boolean isActive() {
+        if (isPreferenceConfiguration())
+            return false;
+        return fParent.getActiveConfiguration() == this;
+    }
 
-	@Override
-	public void removeResourceDescription(ICResourceDescription des) throws CoreException {
-		throw new CoreException(
-				new DescriptionStatus(SettingsModelMessages.getString("CConfigurationDescriptionCache.0"))); //$NON-NLS-1$
-	}
+    @Override
+    public void removeResourceDescription(ICResourceDescription des) throws CoreException {
+        throw new CoreException(//$NON-NLS-1$
+        new DescriptionStatus(SettingsModelMessages.getString("CConfigurationDescriptionCache.0")));
+    }
 
-	@Override
-	public CFileData createFileData(IPath path, CFileData base) throws CoreException {
-		throw ExceptionFactory.createIsReadOnlyException();
-	}
+    @Override
+    public CFileData createFileData(IPath path, CFileData base) throws CoreException {
+        throw ExceptionFactory.createIsReadOnlyException();
+    }
 
-	@Override
-	public CFileData createFileData(IPath path, CFolderData base, CLanguageData baseLangData) throws CoreException {
-		throw ExceptionFactory.createIsReadOnlyException();
-	}
+    @Override
+    public CFileData createFileData(IPath path, CFolderData base, CLanguageData baseLangData) throws CoreException {
+        throw ExceptionFactory.createIsReadOnlyException();
+    }
 
-	@Override
-	public CFolderData createFolderData(IPath path, CFolderData base) throws CoreException {
-		throw ExceptionFactory.createIsReadOnlyException();
-	}
+    @Override
+    public CFolderData createFolderData(IPath path, CFolderData base) throws CoreException {
+        throw ExceptionFactory.createIsReadOnlyException();
+    }
 
-	@Override
-	public void removeResourceData(CResourceData data) throws CoreException {
-		throw ExceptionFactory.createIsReadOnlyException();
-	}
+    @Override
+    public void removeResourceData(CResourceData data) throws CoreException {
+        throw ExceptionFactory.createIsReadOnlyException();
+    }
 
-	@Override
-	public void setDescription(String description) throws WriteAccessException {
-		throw ExceptionFactory.createIsReadOnlyException();
-	}
+    @Override
+    public void setDescription(String description) throws WriteAccessException {
+        throw ExceptionFactory.createIsReadOnlyException();
+    }
 
-	@Override
-	public void setName(String name) throws WriteAccessException {
-		throw ExceptionFactory.createIsReadOnlyException();
-	}
+    @Override
+    public void setName(String name) throws WriteAccessException {
+        throw ExceptionFactory.createIsReadOnlyException();
+    }
 
-	@Override
-	public ICSettingObject[] getChildSettings() {
-		return fChildList.toArray(new ICSettingObject[fChildList.size()]);
-	}
+    @Override
+    public ICSettingObject[] getChildSettings() {
+        return fChildList.toArray(new ICSettingObject[fChildList.size()]);
+    }
 
-	@Override
-	public ICConfigurationDescription getConfiguration() {
-		return this;
-	}
+    @Override
+    public ICConfigurationDescription getConfiguration() {
+        return this;
+    }
 
-	@Override
-	public ICSettingContainer getParent() {
-		return fParent;
-	}
+    @Override
+    public ICSettingContainer getParent() {
+        return fParent;
+    }
 
-	@Override
-	public ICResourceDescription[] getResourceDescriptions() {
-		return fRcHolder.getResourceDescriptions();
-	}
+    @Override
+    public ICResourceDescription[] getResourceDescriptions() {
+        return fRcHolder.getResourceDescriptions();
+    }
 
-	@Override
-	public ICStorageElement getStorage(String id, boolean create) throws CoreException {
-		return getSpecSettings().getStorage(id, create);
-	}
+    @Override
+    public ICStorageElement getStorage(String id, boolean create) throws CoreException {
+        return getSpecSettings().getStorage(id, create);
+    }
 
-	@Override
-	public void removeStorage(String id) throws CoreException {
-		getSpecSettings().removeStorage(id);
-	}
+    @Override
+    public void removeStorage(String id) throws CoreException {
+        getSpecSettings().removeStorage(id);
+    }
 
-	@Override
-	public ICStorageElement importStorage(String id, ICStorageElement el)
-			throws UnsupportedOperationException, CoreException {
-		return getSpecSettings().importStorage(id, el);
-	}
+    @Override
+    public ICStorageElement importStorage(String id, ICStorageElement el) throws UnsupportedOperationException, CoreException {
+        return getSpecSettings().importStorage(id, el);
+    }
 
-	@Override
-	public CConfigurationSpecSettings getSpecSettings() /*throws CoreException*/ {
-		return fSpecSettings;
-	}
+    @Override
+    public CConfigurationSpecSettings getSpecSettings() /*throws CoreException*/
+    {
+        return fSpecSettings;
+    }
 
-	@Override
-	public String getBuildSystemId() {
-		return fSpecSettings.getBuildSystemId();
-	}
+    @Override
+    public String getBuildSystemId() {
+        return fSpecSettings.getBuildSystemId();
+    }
 
-	@Override
-	public CConfigurationData getConfigurationData() {
-		return fData;
-	}
+    @Override
+    public CConfigurationData getConfigurationData() {
+        return fData;
+    }
 
-	@Override
-	public void setConfigurationData(String bsId, CConfigurationData data) throws WriteAccessException {
-		throw ExceptionFactory.createIsReadOnlyException();
-	}
+    @Override
+    public void setConfigurationData(String bsId, CConfigurationData data) throws WriteAccessException {
+        throw ExceptionFactory.createIsReadOnlyException();
+    }
 
-	@Override
-	public boolean isModified() {
-		return false;
-	}
+    @Override
+    public boolean isModified() {
+        return false;
+    }
 
-	@Override
-	public CConfigurationData getConfigurationData(boolean write) throws WriteAccessException {
-		if (write)
-			throw ExceptionFactory.createIsReadOnlyException();
+    @Override
+    public CConfigurationData getConfigurationData(boolean write) throws WriteAccessException {
+        if (write)
+            throw ExceptionFactory.createIsReadOnlyException();
+        return this;
+    }
 
-		return this;
-	}
+    @Override
+    public void setActive() throws WriteAccessException {
+        throw ExceptionFactory.createIsReadOnlyException();
+    }
 
-	@Override
-	public void setActive() throws WriteAccessException {
-		throw ExceptionFactory.createIsReadOnlyException();
-	}
-
-	/*	public CConfigurationData getBaseData(){
+    /*	public CConfigurationData getBaseData(){
 			return fData;
 		}
 	*/
-	@Override
-	public ICFileDescription createFileDescription(IPath path, ICResourceDescription base)
-			throws CoreException, WriteAccessException {
-		throw ExceptionFactory.createIsReadOnlyException();
-	}
+    @Override
+    public ICFileDescription createFileDescription(IPath path, ICResourceDescription base) throws CoreException, WriteAccessException {
+        throw ExceptionFactory.createIsReadOnlyException();
+    }
 
-	@Override
-	public ICFolderDescription createFolderDescription(IPath path, ICFolderDescription base)
-			throws CoreException, WriteAccessException {
-		throw ExceptionFactory.createIsReadOnlyException();
-	}
+    @Override
+    public ICFolderDescription createFolderDescription(IPath path, ICFolderDescription base) throws CoreException, WriteAccessException {
+        throw ExceptionFactory.createIsReadOnlyException();
+    }
 
-	ResourceDescriptionHolder createHolderForRc(IPath path) {
-		return new ResourceDescriptionHolder(fPathSettingContainer.getChildContainer(path, true, true), false);
-	}
+    ResourceDescriptionHolder createHolderForRc(IPath path) {
+        return new ResourceDescriptionHolder(fPathSettingContainer.getChildContainer(path, true, true), false);
+    }
 
-	@Override
-	public boolean isReadOnly() {
-		return !fInitializing;
-	}
+    @Override
+    public boolean isReadOnly() {
+        return !fInitializing;
+    }
 
-	@Override
-	public void setReadOnly(boolean readOnly, boolean keepModify) {
-		if (readOnly)
-			throw ExceptionFactory.createIsReadOnlyException();
-	}
+    @Override
+    public void setReadOnly(boolean readOnly, boolean keepModify) {
+        if (readOnly)
+            throw ExceptionFactory.createIsReadOnlyException();
+    }
 
-	@Override
-	public ICTargetPlatformSetting getTargetPlatformSetting() {
-		return (ICTargetPlatformSetting) getTargetPlatformData();
-	}
+    @Override
+    public ICTargetPlatformSetting getTargetPlatformSetting() {
+        return (ICTargetPlatformSetting) getTargetPlatformData();
+    }
 
-	@Override
-	protected CTargetPlatformData copyTargetPlatformData(CTargetPlatformData base, boolean clone) {
-		return new CTargetPlatformSettingCache(base, this);
-	}
+    @Override
+    protected CTargetPlatformData copyTargetPlatformData(CTargetPlatformData base, boolean clone) {
+        return new CTargetPlatformSettingCache(base, this);
+    }
 
-	@Override
-	public ICFileDescription[] getFileDescriptions() {
-		return (ICFileDescription[]) fRcHolder.getResourceDescriptions(ICSettingBase.SETTING_FILE);
-	}
+    @Override
+    public ICFileDescription[] getFileDescriptions() {
+        return (ICFileDescription[]) fRcHolder.getResourceDescriptions(ICSettingBase.SETTING_FILE);
+    }
 
-	@Override
-	public ICFolderDescription[] getFolderDescriptions() {
-		return (ICFolderDescription[]) fRcHolder.getResourceDescriptions(ICSettingBase.SETTING_FOLDER);
-	}
+    @Override
+    public ICFolderDescription[] getFolderDescriptions() {
+        return (ICFolderDescription[]) fRcHolder.getResourceDescriptions(ICSettingBase.SETTING_FOLDER);
+    }
 
-	public void setSourcePaths(IPath[] paths) {
-		throw ExceptionFactory.createIsReadOnlyException();
-	}
+    public void setSourcePaths(IPath[] paths) {
+        throw ExceptionFactory.createIsReadOnlyException();
+    }
 
-	@Override
-	public ICSourceEntry[] getSourceEntries() {
-		initSourceEntries();
-		return fProjSourceEntries.clone();
-	}
+    @Override
+    public ICSourceEntry[] getSourceEntries() {
+        initSourceEntries();
+        return fProjSourceEntries.clone();
+    }
 
-	private void initSourceEntries() {
-		if (fProjSourceEntries == null) {
-			IProject project = getProject();
-			fProjSourceEntries = CDataUtil.adjustEntries(fSourceEntries, true, project);
-		}
-	}
+    private void initSourceEntries() {
+        if (fProjSourceEntries == null) {
+            IProject project = getProject();
+            fProjSourceEntries = CDataUtil.adjustEntries(fSourceEntries, true, project);
+        }
+    }
 
-	private IProject getProject() {
-		return isPreferenceConfiguration() ? null : getProjectDescription().getProject();
-	}
+    private IProject getProject() {
+        return isPreferenceConfiguration() ? null : getProjectDescription().getProject();
+    }
 
-	@Override
-	public void setSourceEntries(ICSourceEntry[] entries) {
-		throw ExceptionFactory.createIsReadOnlyException();
-	}
+    @Override
+    public void setSourceEntries(ICSourceEntry[] entries) {
+        throw ExceptionFactory.createIsReadOnlyException();
+    }
 
-	@Override
-	public Map<String, String> getReferenceInfo() {
-		return getSpecSettings().getReferenceInfo();
-	}
+    @Override
+    public Map<String, String> getReferenceInfo() {
+        return getSpecSettings().getReferenceInfo();
+    }
 
-	@Override
-	public void setReferenceInfo(Map<String, String> refs) {
-		throw ExceptionFactory.createIsReadOnlyException();
-	}
+    @Override
+    public void setReferenceInfo(Map<String, String> refs) {
+        throw ExceptionFactory.createIsReadOnlyException();
+    }
 
-	@Override
-	public ICExternalSetting createExternalSetting(String[] languageIDs, String[] contentTypeIds, String[] extensions,
-			ICSettingEntry[] entries) {
-		if (!fInitializing)
-			throw ExceptionFactory.createIsReadOnlyException();
+    @Override
+    public ICExternalSetting createExternalSetting(String[] languageIDs, String[] contentTypeIds, String[] extensions, ICSettingEntry[] entries) {
+        if (!fInitializing)
+            throw ExceptionFactory.createIsReadOnlyException();
+        return fSpecSettings.createExternalSetting(languageIDs, contentTypeIds, extensions, entries);
+    }
 
-		return fSpecSettings.createExternalSetting(languageIDs, contentTypeIds, extensions, entries);
-	}
+    @Override
+    public ICExternalSetting[] getExternalSettings() {
+        return fSpecSettings.getExternalSettings();
+    }
 
-	@Override
-	public ICExternalSetting[] getExternalSettings() {
-		return fSpecSettings.getExternalSettings();
-	}
+    @Override
+    public void removeExternalSetting(ICExternalSetting setting) {
+        if (!fInitializing)
+            throw ExceptionFactory.createIsReadOnlyException();
+        fSpecSettings.removeExternalSetting(setting);
+    }
 
-	@Override
-	public void removeExternalSetting(ICExternalSetting setting) {
-		if (!fInitializing)
-			throw ExceptionFactory.createIsReadOnlyException();
+    @Override
+    public void removeExternalSettings() {
+        if (!fInitializing)
+            throw ExceptionFactory.createIsReadOnlyException();
+        fSpecSettings.removeExternalSettings();
+    }
 
-		fSpecSettings.removeExternalSetting(setting);
-	}
+    @Override
+    public ICBuildSetting getBuildSetting() {
+        return (ICBuildSetting) getBuildData();
+    }
 
-	@Override
-	public void removeExternalSettings() {
-		if (!fInitializing)
-			throw ExceptionFactory.createIsReadOnlyException();
+    @Override
+    public void setSessionProperty(QualifiedName name, Object value) {
+        fSpecSettings.setSettionProperty(name, value);
+        //throw ExceptionFactory.createIsReadOnlyException();
+    }
 
-		fSpecSettings.removeExternalSettings();
-	}
+    @Override
+    public Object getSessionProperty(QualifiedName name) {
+        return fSpecSettings.getSettionProperty(name);
+    }
 
-	@Override
-	public ICBuildSetting getBuildSetting() {
-		return (ICBuildSetting) getBuildData();
-	}
+    @Override
+    public ICdtVariablesContributor getBuildVariablesContributor() {
+        return fData.getBuildVariablesContributor();
+    }
 
-	@Override
-	public void setSessionProperty(QualifiedName name, Object value) {
-		fSpecSettings.setSettionProperty(name, value);
-		//throw ExceptionFactory.createIsReadOnlyException();
-	}
+    @Override
+    public ICConfigExtensionReference create(String extensionPoint, String extension) throws CoreException {
+        if (!fInitializing)
+            throw ExceptionFactory.createIsReadOnlyException();
+        return fSpecSettings.create(extensionPoint, extension);
+    }
 
-	@Override
-	public Object getSessionProperty(QualifiedName name) {
-		return fSpecSettings.getSettionProperty(name);
-	}
+    @Override
+    public ICConfigExtensionReference[] get(String extensionPointID) {
+        return fSpecSettings.get(extensionPointID);
+    }
 
-	@Override
-	public ICdtVariablesContributor getBuildVariablesContributor() {
-		return fData.getBuildVariablesContributor();
-	}
+    @Override
+    public void remove(ICConfigExtensionReference ext) throws CoreException {
+        if (!fInitializing)
+            throw ExceptionFactory.createIsReadOnlyException();
+        fSpecSettings.remove(ext);
+    }
 
-	@Override
-	public ICConfigExtensionReference create(String extensionPoint, String extension) throws CoreException {
-		if (!fInitializing)
-			throw ExceptionFactory.createIsReadOnlyException();
-		return fSpecSettings.create(extensionPoint, extension);
-	}
+    @Override
+    public void remove(String extensionPoint) throws CoreException {
+        if (!fInitializing)
+            throw ExceptionFactory.createIsReadOnlyException();
+        fSpecSettings.remove(extensionPoint);
+    }
 
-	@Override
-	public ICConfigExtensionReference[] get(String extensionPointID) {
-		return fSpecSettings.get(extensionPointID);
-	}
+    @Override
+    public boolean isPreferenceConfiguration() {
+        return getProjectDescription() == null;
+    }
 
-	@Override
-	public void remove(ICConfigExtensionReference ext) throws CoreException {
-		if (!fInitializing)
-			throw ExceptionFactory.createIsReadOnlyException();
-		fSpecSettings.remove(ext);
-	}
+    void doneInitialization() {
+        CProjectDescriptionManager.getInstance().notifyCached(this, fData, null);
+        fInitializing = false;
+        fSpecSettings.doneInitialization();
+    }
 
-	@Override
-	public void remove(String extensionPoint) throws CoreException {
-		if (!fInitializing)
-			throw ExceptionFactory.createIsReadOnlyException();
-		fSpecSettings.remove(extensionPoint);
-	}
+    @Override
+    public ICLanguageSetting getLanguageSettingForFile(IPath path, boolean ignoreExcludeStatus) {
+        return CProjectDescriptionManager.getLanguageSettingForFile(this, path, ignoreExcludeStatus);
+    }
 
-	@Override
-	public boolean isPreferenceConfiguration() {
-		return getProjectDescription() == null;
-	}
+    @Override
+    protected CResourceData[] filterRcDatasToCopy(CConfigurationData base) {
+        if (!isPreferenceConfiguration())
+            CProjectDescriptionManager.removeNonCustomSettings(getProjectDescription().getProject(), base);
+        return super.filterRcDatasToCopy(base);
+    }
 
-	void doneInitialization() {
-		CProjectDescriptionManager.getInstance().notifyCached(this, fData, null);
-		fInitializing = false;
-		fSpecSettings.doneInitialization();
-	}
+    boolean isExcluded(IPath path) {
+        //		if(path.segmentCount() == 0)
+        //			return false;
+        initSourceEntries();
+        IProject project = getProject();
+        if (project != null)
+            path = project.getFullPath().append(path);
+        return CDataUtil.isExcluded(path, fProjSourceEntries);
+    }
 
-	@Override
-	public ICLanguageSetting getLanguageSettingForFile(IPath path, boolean ignoreExcludeStatus) {
-		return CProjectDescriptionManager.getLanguageSettingForFile(this, path, ignoreExcludeStatus);
-	}
+    @Override
+    public String[] getExternalSettingsProviderIds() {
+        return fSpecSettings.getExternalSettingsProviderIds();
+    }
 
-	@Override
-	protected CResourceData[] filterRcDatasToCopy(CConfigurationData base) {
-		if (!isPreferenceConfiguration())
-			CProjectDescriptionManager.removeNonCustomSettings(getProjectDescription().getProject(), base);
-		return super.filterRcDatasToCopy(base);
-	}
+    @Override
+    public void setExternalSettingsProviderIds(String[] ids) {
+        if (!fInitializing)
+            throw ExceptionFactory.createIsReadOnlyException();
+        fSpecSettings.setExternalSettingsProviderIds(ids);
+    }
 
-	boolean isExcluded(IPath path) {
-		//		if(path.segmentCount() == 0)
-		//			return false;
+    @Override
+    public void updateExternalSettingsProviders(String[] ids) {
+        if (!fInitializing)
+            throw ExceptionFactory.createIsReadOnlyException();
+        fSpecSettings.updateExternalSettingsProviders(ids);
+    }
 
-		initSourceEntries();
-		IProject project = getProject();
-		if (project != null)
-			path = project.getFullPath().append(path);
+    @Override
+    public ICSourceEntry[] getResolvedSourceEntries() {
+        if (fResolvedSourceEntries == null) {
+            ICSourceEntry[] entries = getSourceEntries();
+            fResolvedSourceEntries = CDataUtil.resolveEntries(entries, this);
+        }
+        return fResolvedSourceEntries;
+    }
 
-		return CDataUtil.isExcluded(path, fProjSourceEntries);
-	}
+    @Override
+    public CConfigurationStatus getConfigurationStatus() {
+        CConfigurationStatus status = getStatus();
+        return status != null ? status : CConfigurationStatus.CFG_STATUS_OK;
+    }
 
-	@Override
-	public String[] getExternalSettingsProviderIds() {
-		return fSpecSettings.getExternalSettingsProviderIds();
-	}
+    @Override
+    public void setLanguageSettingProviders(List<? extends ILanguageSettingsProvider> providers) {
+        if (!fInitializing)
+            throw ExceptionFactory.createIsReadOnlyException();
+        fSpecSettings.setLanguageSettingProviders(providers);
+    }
 
-	@Override
-	public void setExternalSettingsProviderIds(String[] ids) {
-		if (!fInitializing)
-			throw ExceptionFactory.createIsReadOnlyException();
-		fSpecSettings.setExternalSettingsProviderIds(ids);
-	}
+    @Override
+    public List<ILanguageSettingsProvider> getLanguageSettingProviders() {
+        return fSpecSettings.getLanguageSettingProviders();
+    }
 
-	@Override
-	public void updateExternalSettingsProviders(String[] ids) {
-		if (!fInitializing)
-			throw ExceptionFactory.createIsReadOnlyException();
-		fSpecSettings.updateExternalSettingsProviders(ids);
-	}
+    @Override
+    public void setDefaultLanguageSettingsProvidersIds(String[] ids) {
+        if (!fInitializing)
+            throw ExceptionFactory.createIsReadOnlyException();
+        fSpecSettings.setDefaultLanguageSettingsProvidersIds(ids);
+    }
 
-	@Override
-	public ICSourceEntry[] getResolvedSourceEntries() {
-		if (fResolvedSourceEntries == null) {
-			ICSourceEntry[] entries = getSourceEntries();
-			fResolvedSourceEntries = CDataUtil.resolveEntries(entries, this);
-		}
-		return fResolvedSourceEntries;
-	}
-
-	@Override
-	public CConfigurationStatus getConfigurationStatus() {
-		CConfigurationStatus status = getStatus();
-		return status != null ? status : CConfigurationStatus.CFG_STATUS_OK;
-	}
-
-	@Override
-	public void setLanguageSettingProviders(List<? extends ILanguageSettingsProvider> providers) {
-		if (!fInitializing)
-			throw ExceptionFactory.createIsReadOnlyException();
-		fSpecSettings.setLanguageSettingProviders(providers);
-	}
-
-	@Override
-	public List<ILanguageSettingsProvider> getLanguageSettingProviders() {
-		return fSpecSettings.getLanguageSettingProviders();
-	}
-
-	@Override
-	public void setDefaultLanguageSettingsProvidersIds(String[] ids) {
-		if (!fInitializing)
-			throw ExceptionFactory.createIsReadOnlyException();
-		fSpecSettings.setDefaultLanguageSettingsProvidersIds(ids);
-	}
-
-	@Override
-	public String[] getDefaultLanguageSettingsProvidersIds() {
-		return fSpecSettings.getDefaultLanguageSettingsProvidersIds();
-	}
+    @Override
+    public String[] getDefaultLanguageSettingsProvidersIds() {
+        return fSpecSettings.getDefaultLanguageSettingsProvidersIds();
+    }
 }

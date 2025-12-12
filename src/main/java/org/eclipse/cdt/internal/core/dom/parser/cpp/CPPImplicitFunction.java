@@ -1,18 +1,20 @@
-/*******************************************************************************
- * Copyright (c) 2005, 2014 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2005, 2014 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     IBM - Initial API and implementation
- *     Markus Schorn (Wind River Systems)
- *     Sergey Prigogin (Google)
- *******************************************************************************/
+ *  Contributors:
+ *      IBM - Initial API and implementation
+ *      Markus Schorn (Wind River Systems)
+ *      Sergey Prigogin (Google)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.parser.cpp;
 
 import org.eclipse.cdt.core.dom.ast.IBinding;
@@ -27,81 +29,87 @@ import org.eclipse.cdt.core.dom.ast.cpp.ICPPParameter;
  * An example is GCC built-in functions.
  */
 public class CPPImplicitFunction extends CPPFunction {
-	private ICPPParameter[] params;
-	private IScope scope;
-	private ICPPFunctionType functionType;
-	private final boolean isConstexpr;
-	private final boolean takesVarArgs;
-	private boolean isDeleted;
-	private final char[] name;
 
-	public CPPImplicitFunction(char[] name, IScope scope, ICPPFunctionType type, ICPPParameter[] params,
-			boolean isConstexpr, boolean takesVarArgs) {
-		super(null);
-		this.name = name;
-		this.scope = scope;
-		this.functionType = type;
-		this.params = params;
-		this.takesVarArgs = takesVarArgs;
-		this.isConstexpr = isConstexpr;
-	}
+    public ICPPParameter[] params;
 
-	@Override
-	public ICPPParameter[] getParameters() {
-		return params;
-	}
+    public IScope scope;
 
-	@Override
-	public ICPPFunctionType getType() {
-		return functionType;
-	}
+    public ICPPFunctionType functionType;
 
-	@Override
-	public ICPPFunctionType getDeclaredType() {
-		return functionType;
-	}
+    final public boolean isConstexpr;
 
-	@Override
-	public String getName() {
-		return String.valueOf(name);
-	}
+    final public boolean takesVarArgs;
 
-	@Override
-	public char[] getNameCharArray() {
-		return name;
-	}
+    private boolean isDeleted;
 
-	@Override
-	public IScope getScope() {
-		return scope;
-	}
+    private final char[] name;
 
-	@Override
-	public IScope getFunctionScope() {
-		return null;
-	}
+    public CPPImplicitFunction(char[] name, IScope scope, ICPPFunctionType type, ICPPParameter[] params, boolean isConstexpr, boolean takesVarArgs) {
+        super(null);
+        this.name = name;
+        this.scope = scope;
+        this.functionType = type;
+        this.params = params;
+        this.takesVarArgs = takesVarArgs;
+        this.isConstexpr = isConstexpr;
+    }
 
-	@Override
-	public boolean isConstexpr() {
-		return isConstexpr;
-	}
+    @Override
+    public ICPPParameter[] getParameters() {
+        return params;
+    }
 
-	@Override
-	public boolean takesVarArgs() {
-		return takesVarArgs;
-	}
+    @Override
+    public ICPPFunctionType getType() {
+        return functionType;
+    }
 
-	@Override
-	public boolean isDeleted() {
-		return isDeleted;
-	}
+    @Override
+    public ICPPFunctionType getDeclaredType() {
+        return functionType;
+    }
 
-	@Override
-	public IBinding getOwner() {
-		return null;
-	}
+    @Override
+    public String getName() {
+        return String.valueOf(name);
+    }
 
-	public void setDeleted(boolean val) {
-		isDeleted = val;
-	}
+    @Override
+    public char[] getNameCharArray() {
+        return name;
+    }
+
+    @Override
+    public IScope getScope() {
+        return scope;
+    }
+
+    @Override
+    public IScope getFunctionScope() {
+        return null;
+    }
+
+    @Override
+    public boolean isConstexpr() {
+        return isConstexpr;
+    }
+
+    @Override
+    public boolean takesVarArgs() {
+        return takesVarArgs;
+    }
+
+    @Override
+    public boolean isDeleted() {
+        return isDeleted;
+    }
+
+    @Override
+    public IBinding getOwner() {
+        return null;
+    }
+
+    public void setDeleted(boolean val) {
+        isDeleted = val;
+    }
 }

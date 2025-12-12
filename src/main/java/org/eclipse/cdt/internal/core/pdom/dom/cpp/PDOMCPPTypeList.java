@@ -27,7 +27,7 @@ import org.eclipse.core.runtime.CoreException;
  */
 public class PDOMCPPTypeList {
 
-    private static final int NODE_SIZE = Database.TYPE_SIZE;
+    static final public int NODE_SIZE = Database.TYPE_SIZE;
 
     /**
      * Stores the given types in the database.

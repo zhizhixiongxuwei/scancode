@@ -1,17 +1,19 @@
-/*******************************************************************************
- * Copyright (c) 2005, 2012 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2005, 2012 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Devin Steffler (IBM) - Initial API and implementation
- *     Markus Schorn (Wind River Systems)
- *******************************************************************************/
+ *  Contributors:
+ *      Devin Steffler (IBM) - Initial API and implementation
+ *      Markus Schorn (Wind River Systems)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.parser.cpp;
 
 import org.eclipse.cdt.core.dom.ast.IASTNode;
@@ -26,115 +28,115 @@ import org.eclipse.cdt.core.dom.ast.ITypedef;
  * An example is the GCC built-in typedef:  typedef char * __builtin_va_list;
  */
 public class CPPImplicitTypedef extends CPPTypedef {
-	private IType type;
-	private char[] name;
-	private IScope scope;
 
-	public CPPImplicitTypedef(IType type, char[] name, IScope scope) {
-		super(null);
-		this.type = type;
-		this.name = name;
-		this.scope = scope;
-	}
+    public IType type;
 
-	@Override
-	public IType getType() {
-		return type;
-	}
+    public char[] name;
 
-	@Override
-	public String getName() {
-		return String.valueOf(name);
-	}
+    public IScope scope;
 
-	@Override
-	public char[] getNameCharArray() {
-		return name;
-	}
+    public CPPImplicitTypedef(IType type, char[] name, IScope scope) {
+        super(null);
+        this.type = type;
+        this.name = name;
+        this.scope = scope;
+    }
 
-	@Override
-	public IScope getScope() {
-		return scope;
-	}
+    @Override
+    public IType getType() {
+        return type;
+    }
 
-	@Override
-	public boolean isSameType(IType t) {
-		if (t == this)
-			return true;
-		if (t instanceof ITypedef) {
-			IType temp = getType();
-			if (temp != null)
-				return temp.isSameType(((ITypedef) t).getType());
-			return false;
-		}
+    @Override
+    public String getName() {
+        return String.valueOf(name);
+    }
 
-		IType temp;
-		temp = getType();
-		if (temp != null)
-			return temp.isSameType(t);
-		return false;
-	}
+    @Override
+    public char[] getNameCharArray() {
+        return name;
+    }
 
-	@Override
-	public Object clone() {
-		IType t = null;
-		t = (IType) super.clone();
-		return t;
-	}
+    @Override
+    public IScope getScope() {
+        return scope;
+    }
 
-	/**
-	 * returns null
-	 */
-	@Override
-	public IASTNode[] getDeclarations() {
-		return null;
-	}
+    @Override
+    public boolean isSameType(IType t) {
+        if (t == this)
+            return true;
+        if (t instanceof ITypedef) {
+            IType temp = getType();
+            if (temp != null)
+                return temp.isSameType(((ITypedef) t).getType());
+            return false;
+        }
+        IType temp;
+        temp = getType();
+        if (temp != null)
+            return temp.isSameType(t);
+        return false;
+    }
 
-	/**
-	 * returns null
-	 */
-	@Override
-	public IASTNode getDefinition() {
-		return null;
-	}
+    @Override
+    public Object clone() {
+        IType t = null;
+        t = (IType) super.clone();
+        return t;
+    }
 
-	/**
-	 * does nothing
-	 */
-	@Override
-	public void addDefinition(IASTNode node) {
-		// do nothing
-	}
+    /**
+     * returns null
+     */
+    @Override
+    public IASTNode[] getDeclarations() {
+        return null;
+    }
 
-	/**
-	 * does nothing
-	 */
-	@Override
-	public void addDeclaration(IASTNode node) {
-		// do nothing
-	}
+    /**
+     * returns null
+     */
+    @Override
+    public IASTNode getDefinition() {
+        return null;
+    }
 
-	@Override
-	public String[] getQualifiedName() {
-		String[] temp = new String[1];
-		temp[0] = String.valueOf(name);
+    /**
+     * does nothing
+     */
+    @Override
+    public void addDefinition(IASTNode node) {
+        // do nothing
+    }
 
-		return temp;
-	}
+    /**
+     * does nothing
+     */
+    @Override
+    public void addDeclaration(IASTNode node) {
+        // do nothing
+    }
 
-	@Override
-	public char[][] getQualifiedNameCharArray() {
-		char[][] temp = new char[1][];
-		temp[0] = name;
+    @Override
+    public String[] getQualifiedName() {
+        String[] temp = new String[1];
+        temp[0] = String.valueOf(name);
+        return temp;
+    }
 
-		return temp;
-	}
+    @Override
+    public char[][] getQualifiedNameCharArray() {
+        char[][] temp = new char[1][];
+        temp[0] = name;
+        return temp;
+    }
 
-	/**
-	 * returns true
-	 */
-	@Override
-	public boolean isGloballyQualified() {
-		return true;
-	}
+    /**
+     * returns true
+     */
+    @Override
+    public boolean isGloballyQualified() {
+        return true;
+    }
 }

@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2007, 2011 Intel Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2007, 2011 Intel Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- * Intel Corporation - Initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *  Intel Corporation - Initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.settings.model;
 
 import org.eclipse.cdt.core.envvar.IEnvironmentContributor;
@@ -27,105 +29,103 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
 
 public class CBuildSettingCache extends CDefaultBuildData implements ICBuildSetting, ICachedData {
-	private CConfigurationDescriptionCache fCfgCache;
-	private StorableEnvironment fEnvironment;
-	private StorableEnvironment fResolvedEnvironment;
-	private ICOutputEntry[] fProjOutputEntries;
-	private ICOutputEntry[] fResolvedOutputEntries;
 
-	CBuildSettingCache(CBuildData base, CConfigurationDescriptionCache cfgCache) {
-		super(/*base.getId(), base*/);
+    public CConfigurationDescriptionCache fCfgCache;
 
-		fId = base.getId();
+    public StorableEnvironment fEnvironment;
 
-		fCfgCache = cfgCache;
+    public StorableEnvironment fResolvedEnvironment;
 
-		fCfgCache.addBuildSetting(this);
+    public ICOutputEntry[] fProjOutputEntries;
 
-		copySettingsFrom(base);
-	}
+    public ICOutputEntry[] fResolvedOutputEntries;
 
-	void initEnvironmentCache() {
-		fEnvironment = new StorableEnvironment(EnvironmentVariableManager.getDefault().getVariables(fCfgCache, false),
-				true);
-	}
+    CBuildSettingCache(CBuildData base, CConfigurationDescriptionCache cfgCache) {
+        super();
+        fId = base.getId();
+        fCfgCache = cfgCache;
+        fCfgCache.addBuildSetting(this);
+        copySettingsFrom(base);
+    }
 
-	public StorableEnvironment getCachedEnvironment() {
-		return fEnvironment;
-	}
+    void initEnvironmentCache() {
+        fEnvironment = new StorableEnvironment(EnvironmentVariableManager.getDefault().getVariables(fCfgCache, false), true);
+    }
 
-	public StorableEnvironment getResolvedEnvironment() {
-		if (fResolvedEnvironment == null) {
-			fResolvedEnvironment = new StorableEnvironment(
-					EnvironmentVariableManager.getDefault().getVariables(fCfgCache, true), true);
-		}
-		return fResolvedEnvironment;
-	}
+    public StorableEnvironment getCachedEnvironment() {
+        return fEnvironment;
+    }
 
-	@Override
-	public ICConfigurationDescription getConfiguration() {
-		return fCfgCache;
-	}
+    public StorableEnvironment getResolvedEnvironment() {
+        if (fResolvedEnvironment == null) {
+            fResolvedEnvironment = new StorableEnvironment(EnvironmentVariableManager.getDefault().getVariables(fCfgCache, true), true);
+        }
+        return fResolvedEnvironment;
+    }
 
-	@Override
-	public ICSettingContainer getParent() {
-		return fCfgCache;
-	}
+    @Override
+    public ICConfigurationDescription getConfiguration() {
+        return fCfgCache;
+    }
 
-	@Override
-	public boolean isReadOnly() {
-		return true;
-	}
+    @Override
+    public ICSettingContainer getParent() {
+        return fCfgCache;
+    }
 
-	@Override
-	public void setBuilderCWD(IPath path) {
-		throw ExceptionFactory.createIsReadOnlyException();
-	}
+    @Override
+    public boolean isReadOnly() {
+        return true;
+    }
 
-	@Override
-	public void setErrorParserIDs(String[] ids) {
-		throw ExceptionFactory.createIsReadOnlyException();
-	}
+    @Override
+    public void setBuilderCWD(IPath path) {
+        throw ExceptionFactory.createIsReadOnlyException();
+    }
 
-	public void setName(String name) {
-		throw ExceptionFactory.createIsReadOnlyException();
-	}
+    @Override
+    public void setErrorParserIDs(String[] ids) {
+        throw ExceptionFactory.createIsReadOnlyException();
+    }
 
-	@Override
-	public void setOutputDirectories(ICOutputEntry[] entries) {
-		throw ExceptionFactory.createIsReadOnlyException();
-	}
+    public void setName(String name) {
+        throw ExceptionFactory.createIsReadOnlyException();
+    }
 
-	@Override
-	public IEnvironmentContributor getBuildEnvironmentContributor() {
-		return fCfgCache.getConfigurationData().getBuildData().getBuildEnvironmentContributor();
-	}
+    @Override
+    public void setOutputDirectories(ICOutputEntry[] entries) {
+        throw ExceptionFactory.createIsReadOnlyException();
+    }
 
-	@Override
-	public ICOutputEntry[] getResolvedOutputDirectories() {
-		if (fResolvedOutputEntries == null) {
-			ICOutputEntry[] entries = getOutputDirectories();
-			return CDataUtil.resolveEntries(entries, getConfiguration());
-		}
-		return fResolvedOutputEntries;
-	}
+    @Override
+    public IEnvironmentContributor getBuildEnvironmentContributor() {
+        return fCfgCache.getConfigurationData().getBuildData().getBuildEnvironmentContributor();
+    }
 
-	@Override
-	public ICOutputEntry[] getOutputDirectories() {
-		initOutputEntries();
-		return fProjOutputEntries.clone();
-	}
+    @Override
+    public ICOutputEntry[] getResolvedOutputDirectories() {
+        if (fResolvedOutputEntries == null) {
+            ICOutputEntry[] entries = getOutputDirectories();
+            return CDataUtil.resolveEntries(entries, getConfiguration());
+        }
+        return fResolvedOutputEntries;
+    }
 
-	private void initOutputEntries() {
-		if (fProjOutputEntries == null) {
-			IProject project = getProject();
-			fProjOutputEntries = CDataUtil.adjustEntries(fOutputEntries, true, project);
-		}
-	}
+    @Override
+    public ICOutputEntry[] getOutputDirectories() {
+        initOutputEntries();
+        return fProjOutputEntries.clone();
+    }
 
-	private IProject getProject() {
-		ICConfigurationDescription cfg = getConfiguration();
-		return cfg.isPreferenceConfiguration() ? null : cfg.getProjectDescription().getProject();
-	}
+    private void initOutputEntries() {
+        if (fProjOutputEntries == null) {
+            IProject project = getProject();
+            fProjOutputEntries = CDataUtil.adjustEntries(fOutputEntries, true, project);
+        }
+    }
 
+    private IProject getProject() {
+        ICConfigurationDescription cfg = getConfiguration();
+        return cfg.isPreferenceConfiguration() ? null : cfg.getProjectDescription().getProject();
+    }
 }

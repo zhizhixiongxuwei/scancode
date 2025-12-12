@@ -31,15 +31,15 @@ import org.eclipse.core.runtime.IProgressMonitor;
  */
 public class SourceManipulationInfo extends CElementInfo {
 
-    protected int fStartPos;
+    public int fStartPos;
 
-    protected int fLength;
+    public int fLength;
 
-    protected int fIdStartPos;
+    public int fIdStartPos;
 
-    protected int fIdLength;
+    public int fIdLength;
 
-    protected int fStartLine;
+    public int fStartLine;
 
     protected int fEndLine;
 

@@ -33,12 +33,12 @@ import org.eclipse.core.runtime.CoreException;
 public class PDOMCPPAliasTemplateInstance extends PDOMCPPTypedefSpecialization implements ICPPAliasTemplateInstance {
 
     // Database.PTR_SIZE
-    private static final int TEMPLATE_ARGUMENTS = PDOMCPPTypedefSpecialization.RECORD_SIZE;
+    static final public int TEMPLATE_ARGUMENTS = PDOMCPPTypedefSpecialization.RECORD_SIZE;
 
     @SuppressWarnings("hiding")
-    protected static final int RECORD_SIZE = TEMPLATE_ARGUMENTS + Database.PTR_SIZE;
+    static final public int RECORD_SIZE = TEMPLATE_ARGUMENTS + Database.PTR_SIZE;
 
-    private volatile ICPPTemplateArgument[] fTemplateArguments;
+    volatile public ICPPTemplateArgument[] fTemplateArguments;
 
     public PDOMCPPAliasTemplateInstance(PDOMCPPLinkage linkage, PDOMNode parent, PDOMBinding aliasTemplate, ICPPAliasTemplateInstance astInstance) throws CoreException, DOMException {
         super(linkage, parent, astInstance, aliasTemplate);

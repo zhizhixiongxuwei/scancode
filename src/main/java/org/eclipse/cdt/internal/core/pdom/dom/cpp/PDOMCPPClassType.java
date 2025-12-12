@@ -55,17 +55,17 @@ import org.eclipse.core.runtime.CoreException;
  */
 public class PDOMCPPClassType extends PDOMCPPBinding implements IPDOMCPPClassType, IPDOMMemberOwner {
 
-    private static final int FIRSTBASE = PDOMCPPBinding.RECORD_SIZE;
+    static final public int FIRSTBASE = PDOMCPPBinding.RECORD_SIZE;
 
-    private static final int MEMBERLIST = FIRSTBASE + 4;
+    static final public int MEMBERLIST = FIRSTBASE + 4;
 
-    private static final int FIRSTFRIEND = MEMBERLIST + PDOMCPPMemberBlock.RECORD_SIZE;
-
-    // byte
-    private static final int KEY = FIRSTFRIEND + 4;
+    static final public int FIRSTFRIEND = MEMBERLIST + PDOMCPPMemberBlock.RECORD_SIZE;
 
     // byte
-    private static final int ANONYMOUS = KEY + 1;
+    static final public int KEY = FIRSTFRIEND + 4;
+
+    // byte
+    static final public int ANONYMOUS = KEY + 1;
 
     // byte
     private static final int FINAL = ANONYMOUS + 1;
@@ -146,9 +146,9 @@ public class PDOMCPPClassType extends PDOMCPPBinding implements IPDOMCPPClassTyp
 
     @Override
     public final void addChild(PDOMNode member) throws CoreException {
-        throw new UnsupportedOperationException(//$NON-NLS-1$
-        "addMember should be called instead to add " + (member instanceof IBinding ? ((IBinding) member).getName() : member.toString()) + " to " + //$NON-NLS-1$
-        getName());
+        throw new //$NON-NLS-1$
+        UnsupportedOperationException(//$NON-NLS-1$
+        "addMember should be called instead to add " + (member instanceof IBinding ? ((IBinding) member).getName() : member.toString()) + " to " + getName());
     }
 
     @Override

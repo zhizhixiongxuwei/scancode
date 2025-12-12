@@ -1,22 +1,24 @@
-/*******************************************************************************
- * Copyright (c) 2005, 2015 QNX Software Systems and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2005, 2015 QNX Software Systems and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Doug Schaefer (QNX) - Initial API and implementation
- *     Markus Schorn (Wind River Systems)
- *     IBM Corporation
- *     Andrew Ferguson (Symbian)
- *     Anton Leherbauer (Wind River Systems)
- *     Sergey Prigogin (Google)
- *     Jens Elmenthaler - http://bugs.eclipse.org/173458 (camel case completion)
- *******************************************************************************/
+ *  Contributors:
+ *      Doug Schaefer (QNX) - Initial API and implementation
+ *      Markus Schorn (Wind River Systems)
+ *      IBM Corporation
+ *      Andrew Ferguson (Symbian)
+ *      Anton Leherbauer (Wind River Systems)
+ *      Sergey Prigogin (Google)
+ *      Jens Elmenthaler - http://bugs.eclipse.org/173458 (camel case completion)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.pdom;
 
 import java.io.File;
@@ -33,7 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
-
 import org.eclipse.cdt.core.CCorePlugin;
 import org.eclipse.cdt.core.dom.ILinkage;
 import org.eclipse.cdt.core.dom.IPDOMNode;
@@ -111,19 +112,26 @@ import org.eclipse.core.runtime.Status;
  * Database for storing semantic information for one project.
  */
 public class PDOM extends PlatformObject implements IPDOM {
-	private static final int CANCELLATION_CHECK_INTERVAL = 500;
-	private static final int BLOCKED_WRITE_LOCK_OUTPUT_INTERVAL = 30000;
-	private static final int LONG_WRITE_LOCK_REPORT_THRESHOLD = 1000;
-	private static final int LONG_READ_LOCK_WAIT_REPORT_THRESHOLD = 1000;
-	static boolean sDEBUG_LOCKS; // Initialized in the PDOMManager, because IBM needs PDOM independent of runtime plugin.
 
-	/**
-	 * Identifier for PDOM format
-	 * @see IIndexFragment#PROPERTY_FRAGMENT_FORMAT_ID
-	 */
-	public static final String FRAGMENT_PROPERTY_VALUE_FORMAT_ID = "org.eclipse.cdt.internal.core.pdom.PDOM"; //$NON-NLS-1$
+    static final public int CANCELLATION_CHECK_INTERVAL = 500;
 
-	/*
+    static final public int BLOCKED_WRITE_LOCK_OUTPUT_INTERVAL = 30000;
+
+    static final public int LONG_WRITE_LOCK_REPORT_THRESHOLD = 1000;
+
+    static final public int LONG_READ_LOCK_WAIT_REPORT_THRESHOLD = 1000;
+
+    // Initialized in the PDOMManager, because IBM needs PDOM independent of runtime plugin.
+    static public boolean sDEBUG_LOCKS;
+
+    /**
+     * Identifier for PDOM format
+     * @see IIndexFragment#PROPERTY_FRAGMENT_FORMAT_ID
+     */
+    //$NON-NLS-1$
+    public static final String FRAGMENT_PROPERTY_VALUE_FORMAT_ID = "org.eclipse.cdt.internal.core.pdom.PDOM";
+
+    /*
 	 * PDOM internal format history
 	 *
 	 *    #x# = the version was used in an official release
@@ -312,1641 +320,1623 @@ public class PDOM extends PlatformObject implements IPDOM {
 	 *  CDT 10.4 development
 	 *  220.0 - Changed marshalling of CPPBasicType to store new "from literal" flag, bug 573764
 	 */
-	private static final int MIN_SUPPORTED_VERSION = version(220, 0);
-	private static final int MAX_SUPPORTED_VERSION = version(220, Short.MAX_VALUE);
-	private static final int DEFAULT_VERSION = version(220, 0);
-
-	private static int version(int major, int minor) {
-		return (major << 16) + minor;
-	}
-
-	/**
-	 * Returns the version that shall be used when creating new databases.
-	 */
-	public static int getDefaultVersion() {
-		return DEFAULT_VERSION;
-	}
-
-	public static boolean isSupportedVersion(int vers) {
-		return vers >= MIN_SUPPORTED_VERSION && vers <= MAX_SUPPORTED_VERSION;
-	}
-
-	public static int getMinSupportedVersion() {
-		return MIN_SUPPORTED_VERSION;
-	}
-
-	public static int getMaxSupportedVersion() {
-		return MAX_SUPPORTED_VERSION;
-	}
-
-	public static String versionString(int version) {
-		final int major = version >> 16;
-		final int minor = version & 0xffff;
-		return "" + major + '.' + minor; //$NON-NLS-1$
-	}
-
-	public static final int LINKAGES = Database.DATA_AREA;
-	public static final int FILE_INDEX = Database.DATA_AREA + 4;
-	public static final int INDEX_OF_DEFECTIVE_FILES = Database.DATA_AREA + 8;
-	public static final int INDEX_OF_FILES_WITH_UNRESOLVED_INCLUDES = Database.DATA_AREA + 12;
-	public static final int PROPERTIES = Database.DATA_AREA + 16;
-	public static final int TAG_INDEX = Database.DATA_AREA + 20;
-	public static final int END = Database.DATA_AREA + 24;
-	static {
-		assert END <= Database.CHUNK_SIZE;
-	}
-
-	public static class ChangeEvent {
-		public Set<IIndexFileLocation> fClearedFiles = new HashSet<>();
-		public Set<IIndexFileLocation> fFilesWritten = new HashSet<>();
-		private boolean fCleared;
-		private boolean fReloaded;
-		private boolean fNewFiles;
-
-		private void setCleared() {
-			fCleared = true;
-			fReloaded = false;
-			fNewFiles = false;
-
-			fClearedFiles.clear();
-			fFilesWritten.clear();
-		}
-
-		public boolean isCleared() {
-			return fCleared;
-		}
-
-		public void setReloaded() {
-			fReloaded = true;
-		}
-
-		public boolean isReloaded() {
-			return fReloaded;
-		}
-
-		public void setHasNewFiles() {
-			fNewFiles = true;
-		}
-
-		public boolean hasNewFiles() {
-			return fNewFiles;
-		}
-
-		public boolean isTrivial() {
-			return !fCleared && !fReloaded && !fNewFiles && fClearedFiles.isEmpty() && fFilesWritten.isEmpty();
-		}
-	}
-
-	public static interface IListener {
-		public void handleChange(PDOM pdom, ChangeEvent event);
-	}
-
-	// Primitive comparator that compares database offsets of two records.
-	private static final IBTreeComparator offsetComparator = new IBTreeComparator() {
-		@Override
-		public int compare(long record1, long record2) throws CoreException {
-			return record1 < record2 ? -1 : record1 == record2 ? 0 : 1;
-		}
-	};
-
-	// Local caches
-	protected Database db;
-	private BTree fileIndex;
-	private PDOMTagIndex tagIndex;
-	private BTree indexOfDefectiveFiles;
-	private BTree indexOfFiledWithUnresolvedIncludes;
-	private final Map<Integer, PDOMLinkage> fLinkageIDCache = new HashMap<>();
-	private File fPath;
-	private final IIndexLocationConverter locationConverter;
-	private final Map<String, IPDOMLinkageFactory> fPDOMLinkageFactoryCache;
-	private final HashMap<Object, Object> fResultCache = new HashMap<>();
-	private final Map<Long, WeakReference<IValue>> fVariableResultCache = new HashMap<>();
-	private List<IListener> listeners;
-	protected ChangeEvent fEvent = new ChangeEvent();
-
-	public PDOM(File dbPath, IIndexLocationConverter locationConverter,
-			Map<String, IPDOMLinkageFactory> linkageFactoryMappings) throws CoreException {
-		this(dbPath, locationConverter, ChunkCache.getSharedInstance(), linkageFactoryMappings);
-	}
-
-	public PDOM(File dbPath, IIndexLocationConverter locationConverter, ChunkCache cache,
-			Map<String, IPDOMLinkageFactory> linkageFactoryMappings) throws CoreException {
-		fPDOMLinkageFactoryCache = linkageFactoryMappings;
-		loadDatabase(dbPath, cache);
-		this.locationConverter = locationConverter;
-		if (sDEBUG_LOCKS) {
-			fLockDebugging = new HashMap<>();
-			System.out.println("Debugging PDOM Locks"); //$NON-NLS-1$
-		}
-	}
-
-	/**
-	 * Returns whether this PDOM can never be written to. Writable subclasses should return false.
-	 */
-	protected boolean isPermanentlyReadOnly() {
-		return true;
-	}
-
-	private void loadDatabase(File dbPath, ChunkCache cache) throws CoreException {
-		fPath = dbPath;
-		final boolean lockDB = db == null || lockCount != 0;
-
-		clearCaches();
-		db = new Database(fPath, cache, getDefaultVersion(), isPermanentlyReadOnly());
-
-		db.setLocked(lockDB);
-		try {
-			if (isSupportedVersion()) {
-				readLinkages();
-			}
-		} finally {
-			db.setLocked(lockCount != 0);
-		}
-	}
-
-	public IIndexLocationConverter getLocationConverter() {
-		return locationConverter;
-	}
-
-	public boolean isSupportedVersion() throws CoreException {
-		final int version = db.getVersion();
-		return version >= MIN_SUPPORTED_VERSION && version <= MAX_SUPPORTED_VERSION;
-	}
-
-	private void readLinkages() throws CoreException {
-		long record = getFirstLinkageRecord();
-		while (record != 0) {
-			String linkageID = PDOMLinkage.getLinkageID(this, record).getString();
-			IPDOMLinkageFactory factory = fPDOMLinkageFactoryCache.get(linkageID);
-			if (factory != null) {
-				PDOMLinkage linkage = factory.getLinkage(this, record);
-				fLinkageIDCache.put(linkage.getLinkageID(), linkage);
-			}
-			record = PDOMLinkage.getNextLinkageRecord(this, record);
-		}
-	}
-
-	protected PDOMLinkage createLinkage(int linkageID) throws CoreException {
-		PDOMLinkage pdomLinkage = fLinkageIDCache.get(linkageID);
-		if (pdomLinkage == null) {
-			final String linkageName = Linkage.getLinkageName(linkageID);
-			IPDOMLinkageFactory factory = fPDOMLinkageFactoryCache.get(linkageName);
-			if (factory != null) {
-				return factory.createLinkage(this);
-			}
-		}
-		return pdomLinkage;
-	}
-
-	public PDOMLinkage getLinkage(int linkageID) throws CoreException {
-		return fLinkageIDCache.get(linkageID);
-	}
-
-	private Collection<PDOMLinkage> getLinkageList() {
-		return fLinkageIDCache.values();
-	}
-
-	public void accept(IPDOMVisitor visitor) throws CoreException {
-		for (PDOMLinkage linkage : getLinkageList()) {
-			linkage.accept(visitor);
-		}
-	}
-
-	@Override
-	public void addListener(IListener listener) {
-		if (listeners == null)
-			listeners = new LinkedList<>();
-		listeners.add(listener);
-	}
-
-	@Override
-	public void removeListener(IListener listener) {
-		if (listeners == null)
-			return;
-		listeners.remove(listener);
-	}
-
-	private void fireChange(ChangeEvent event) {
-		if (listeners == null || event.isTrivial())
-			return;
-
-		Iterator<IListener> i = listeners.iterator();
-		while (i.hasNext())
-			i.next().handleChange(this, event);
-	}
-
-	public Database getDB() {
-		return db;
-	}
-
-	public BTree getFileIndex() throws CoreException {
-		if (fileIndex == null)
-			fileIndex = new BTree(getDB(), FILE_INDEX, new PDOMFile.Comparator(getDB()));
-		return fileIndex;
-	}
-
-	public PDOMTagIndex getTagIndex() throws CoreException {
-		if (tagIndex == null) {
-			tagIndex = new PDOMTagIndex(db, TAG_INDEX);
-		}
-		return tagIndex;
-	}
-
-	/**
-	 * Returns the index of files that were read with I/O errors.
-	 */
-	public BTree getIndexOfDefectiveFiles() throws CoreException {
-		if (indexOfDefectiveFiles == null)
-			indexOfDefectiveFiles = new BTree(getDB(), INDEX_OF_DEFECTIVE_FILES, offsetComparator);
-		return indexOfDefectiveFiles;
-	}
-
-	/**
-	 * Returns the index of files containing unresolved includes.
-	 */
-	public BTree getIndexOfFilesWithUnresolvedIncludes() throws CoreException {
-		if (indexOfFiledWithUnresolvedIncludes == null) {
-			indexOfFiledWithUnresolvedIncludes = new BTree(getDB(), INDEX_OF_FILES_WITH_UNRESOLVED_INCLUDES,
-					offsetComparator);
-		}
-		return indexOfFiledWithUnresolvedIncludes;
-	}
-
-	@Deprecated
-	@Override
-	public PDOMFile getFile(int linkageID, IIndexFileLocation location) throws CoreException {
-		PDOMLinkage linkage = getLinkage(linkageID);
-		if (linkage == null)
-			return null;
-		return PDOMFile.findFile(linkage, getFileIndex(), location, locationConverter);
-	}
-
-	@Override
-	public PDOMFile getFile(int linkageID, IIndexFileLocation location, ISignificantMacros macroDictionary)
-			throws CoreException {
-		PDOMLinkage linkage = getLinkage(linkageID);
-		if (linkage == null)
-			return null;
-		return PDOMFile.findFile(linkage, getFileIndex(), location, locationConverter, macroDictionary);
-	}
-
-	public PDOMFile getFile(PDOMLinkage linkage, IIndexFileLocation location, ISignificantMacros macroDictionary)
-			throws CoreException {
-		return PDOMFile.findFile(linkage, getFileIndex(), location, locationConverter, macroDictionary);
-	}
-
-	@Override
-	public IIndexFragmentFile[] getFiles(int linkageID, IIndexFileLocation location) throws CoreException {
-		PDOMLinkage linkage = getLinkage(linkageID);
-		if (linkage == null)
-			return IIndexFragmentFile.EMPTY_ARRAY;
-		return PDOMFile.findFiles(linkage, getFileIndex(), location, locationConverter);
-	}
-
-	@Override
-	public IIndexFragmentFile[] getFiles(IIndexFileLocation location) throws CoreException {
-		return PDOMFile.findFiles(this, getFileIndex(), location, locationConverter);
-	}
-
-	@Override
-	public IIndexFragmentFile[] getAllFiles() throws CoreException {
-		return getFiles(getFileIndex());
-	}
-
-	@Override
-	public IIndexFragmentFile[] getDefectiveFiles() throws CoreException {
-		return getFiles(getIndexOfDefectiveFiles());
-	}
-
-	@Override
-	public IIndexFragmentFile[] getFilesWithUnresolvedIncludes() throws CoreException {
-		return getFiles(getIndexOfFilesWithUnresolvedIncludes());
-	}
-
-	private IIndexFragmentFile[] getFiles(BTree index) throws CoreException {
-		final List<PDOMFile> files = new ArrayList<>();
-		index.accept(new IBTreeVisitor() {
-			@Override
-			public int compare(long record) throws CoreException {
-				return 0;
-			}
-
-			@Override
-			public boolean visit(long record) throws CoreException {
-				PDOMFile file = PDOMFile.recreateFile(PDOM.this, record);
-				files.add(file);
-				return true;
-			}
-		});
-		return files.toArray(new IIndexFragmentFile[files.size()]);
-	}
-
-	protected IIndexFragmentFile addFile(int linkageID, IIndexFileLocation location, ISignificantMacros sigMacros)
-			throws CoreException {
-		PDOMLinkage linkage = createLinkage(linkageID);
-		IIndexFragmentFile file = getFile(linkage, location, sigMacros);
-		if (file == null) {
-			PDOMFile pdomFile = new PDOMFile(linkage, location, linkageID, sigMacros);
-			getFileIndex().insert(pdomFile.getRecord());
-			file = pdomFile;
-			fEvent.setHasNewFiles();
-		}
-		return file;
-	}
-
-	protected void clearFileIndex() throws CoreException {
-		db.putRecPtr(FILE_INDEX, 0);
-		fileIndex = null;
-	}
-
-	protected void clear() throws CoreException {
-		assert lockCount < 0; // needs write-lock.
-
-		// Clear out the database, everything is set to zero.
-		int vers = getDefaultVersion();
-		db.clear(vers);
-		clearCaches();
-		fEvent.setCleared();
-	}
-
-	void reloadFromFile(File file) throws CoreException {
-		assert lockCount < 0; // must have write lock.
-		File oldFile = fPath;
-		clearCaches();
-		try {
-			db.close();
-		} catch (CoreException e) {
-			CCorePlugin.log(e);
-		}
-		loadDatabase(file, db.getChunkCache());
-		db.setExclusiveLock();
-		oldFile.delete();
-		fEvent.fReloaded = true;
-	}
-
-	public boolean isEmpty() throws CoreException {
-		return getFirstLinkageRecord() == 0;
-	}
-
-	@Override
-	public IIndexFragmentBinding findBinding(IASTName name) throws CoreException {
-		IBinding binding = name.resolveBinding();
-		if (binding != null) {
-			PDOMLinkage linkage = adaptLinkage(name.getLinkage());
-			if (linkage != null) {
-				return findBindingInLinkage(linkage, binding, true);
-			}
-		} else if (name.getPropertyInParent() == IASTPreprocessorStatement.MACRO_NAME) {
-			PDOMLinkage linkage = adaptLinkage(name.getLinkage());
-			if (linkage != null) {
-				return linkage.findMacroContainer(name.getSimpleID());
-			}
-		}
-		return null;
-	}
-
-	private static class BindingFinder implements IPDOMVisitor {
-		private final Pattern[] pattern;
-		private final IProgressMonitor monitor;
-
-		private final ArrayList<PDOMNamedNode> currentPath = new ArrayList<>();
-		private final ArrayList<BitSet> matchStack = new ArrayList<>();
-		private final List<PDOMNamedNode> bindings = new ArrayList<>();
-		private final boolean isFullyQualified;
-		private BitSet matchesUpToLevel;
-		private final IndexFilter filter;
-
-		public BindingFinder(Pattern[] pattern, boolean isFullyQualified, IndexFilter filter,
-				IProgressMonitor monitor) {
-			this.pattern = pattern;
-			this.monitor = monitor;
-			this.isFullyQualified = isFullyQualified;
-			this.filter = filter;
-			matchesUpToLevel = new BitSet();
-			matchesUpToLevel.set(0);
-			matchStack.add(matchesUpToLevel);
-		}
-
-		@Override
-		public boolean visit(IPDOMNode node) throws CoreException {
-			if (monitor.isCanceled())
-				throw new CoreException(Status.OK_STATUS);
-
-			if (node instanceof PDOMNamedNode) {
-				PDOMNamedNode nnode = (PDOMNamedNode) node;
-				String name = new String(nnode.getNameCharArray());
-
-				// check if we have a complete match.
-				final int lastIdx = pattern.length - 1;
-				if (matchesUpToLevel.get(lastIdx) && pattern[lastIdx].matcher(name).matches()) {
-					if (nnode instanceof IBinding && filter.acceptBinding((IBinding) nnode)) {
-						bindings.add(nnode);
-					}
-				}
-
-				// check if we have a partial match
-				if (nnode.mayHaveChildren()) {
-					// Avoid visiting unscoped enumerator items twice
-					if (pattern.length == 1 && nnode instanceof ICPPEnumeration
-							&& !((ICPPEnumeration) nnode).isScoped()) {
-						return false;
-					}
-					boolean visitNextLevel = false;
-					BitSet updatedMatchesUpToLevel = new BitSet();
-					if (!isFullyQualified) {
-						updatedMatchesUpToLevel.set(0);
-						visitNextLevel = true;
-					}
-					for (int i = 0; i < lastIdx; i++) {
-						if (matchesUpToLevel.get(i) && pattern[i].matcher(name).matches()) {
-							updatedMatchesUpToLevel.set(i + 1);
-							visitNextLevel = true;
-						}
-					}
-					if (visitNextLevel) {
-						matchStack.add(matchesUpToLevel);
-						matchesUpToLevel = updatedMatchesUpToLevel;
-						currentPath.add(nnode);
-						return true;
-					}
-				}
-				return false;
-			}
-			return false;
-		}
-
-		@Override
-		public void leave(IPDOMNode node) throws CoreException {
-			final int idx = currentPath.size() - 1;
-			if (idx >= 0 && currentPath.get(idx) == node) {
-				currentPath.remove(idx);
-				matchesUpToLevel = matchStack.remove(matchStack.size() - 1);
-			}
-		}
-
-		public IIndexFragmentBinding[] getBindings() {
-			return bindings.toArray(new IIndexFragmentBinding[bindings.size()]);
-		}
-	}
-
-	public IIndexBinding[] findBindings(Pattern pattern, boolean isFullyQualified, IndexFilter filter,
-			IProgressMonitor monitor) throws CoreException {
-		return findBindings(new Pattern[] { pattern }, isFullyQualified, filter, monitor);
-	}
-
-	@Override
-	public IIndexFragmentBinding[] findBindings(Pattern[] patterns, boolean isFullyQualified, IndexFilter filter,
-			IProgressMonitor monitor) throws CoreException {
-		if (monitor == null) {
-			monitor = new NullProgressMonitor();
-		}
-		// check for some easy cases
-		Boolean caseSensitive = getCaseSensitive(patterns);
-		if (caseSensitive != null) {
-			char[][] simpleNames = extractSimpleNames(patterns);
-			if (simpleNames != null) {
-				if (simpleNames.length == 1) {
-					return findBindings(simpleNames[0], isFullyQualified, caseSensitive, filter, monitor);
-				} else if (isFullyQualified) {
-					return findBindings(simpleNames, caseSensitive, filter, monitor);
-				}
-			}
-
-			char[] prefix = extractPrefix(patterns);
-			if (prefix != null) {
-				return findBindingsForPrefix(prefix, isFullyQualified, caseSensitive, filter, monitor);
-			}
-		}
-
-		BindingFinder finder = new BindingFinder(patterns, isFullyQualified, filter, monitor);
-		for (PDOMLinkage linkage : getLinkageList()) {
-			if (filter.acceptLinkage(linkage)) {
-				try {
-					linkage.accept(finder);
-				} catch (CoreException e) {
-					if (e.getStatus() != Status.OK_STATUS)
-						throw e;
-					return IIndexFragmentBinding.EMPTY_INDEX_BINDING_ARRAY;
-				}
-			}
-		}
-		return finder.getBindings();
-	}
-
-	private Boolean getCaseSensitive(Pattern[] patterns) {
-		Boolean caseSensitive = null;
-		for (Pattern p : patterns) {
-			switch (p.flags()) {
-			case 0:
-				if (caseSensitive == Boolean.FALSE) {
-					return null;
-				}
-				caseSensitive = Boolean.TRUE;
-				break;
-			case Pattern.CASE_INSENSITIVE:
-				if (caseSensitive == Boolean.TRUE) {
-					return null;
-				}
-				caseSensitive = Boolean.FALSE;
-				break;
-			default:
-				return null;
-			}
-		}
-		return caseSensitive;
-	}
-
-	private char[][] extractSimpleNames(Pattern[] pattern) {
-		char[][] result = new char[pattern.length][];
-		int i = 0;
-		for (Pattern p : pattern) {
-			char[] input = p.pattern().toCharArray();
-			for (char c : input) {
-				if (!Character.isLetterOrDigit(c) && c != '_') {
-					return null;
-				}
-			}
-			result[i++] = input;
-		}
-		return result;
-	}
-
-	private char[] extractPrefix(Pattern[] pattern) {
-		if (pattern.length != 1)
-			return null;
-
-		String p = pattern[0].pattern();
-		if (p.endsWith(".*")) { //$NON-NLS-1$
-			char[] input = p.substring(0, p.length() - 2).toCharArray();
-			for (char c : input) {
-				if (!Character.isLetterOrDigit(c) && c != '_') {
-					return null;
-				}
-			}
-			return input;
-		}
-		return null;
-	}
-
-	@Override
-	public IIndexFragmentBinding[] findMacroContainers(Pattern pattern, IndexFilter filter, IProgressMonitor monitor)
-			throws CoreException {
-		if (monitor == null) {
-			monitor = new NullProgressMonitor();
-		}
-
-		Pattern[] patterns = new Pattern[] { pattern };
-		Boolean caseSensitive = getCaseSensitive(patterns);
-		if (caseSensitive != null) {
-			char[][] simpleNames = extractSimpleNames(patterns);
-			if (simpleNames != null && simpleNames.length == 1) {
-				return findMacroContainers(simpleNames[0], false, caseSensitive, filter, monitor);
-			}
-
-			char[] prefix = extractPrefix(patterns);
-			if (prefix != null) {
-				return findMacroContainers(prefix, true, caseSensitive, filter, monitor);
-			}
-		}
-
-		List<IIndexFragmentBinding> result = new ArrayList<>();
-		for (PDOMLinkage linkage : getLinkageList()) {
-			if (filter.acceptLinkage(linkage)) {
-				try {
-					MacroContainerPatternCollector finder = new MacroContainerPatternCollector(linkage, pattern,
-							monitor);
-					linkage.getMacroIndex().accept(finder);
-					result.addAll(Arrays.asList(finder.getMacroContainers()));
-				} catch (CoreException e) {
-					if (e.getStatus() != Status.OK_STATUS)
-						throw e;
-					return IIndexFragmentBinding.EMPTY_INDEX_BINDING_ARRAY;
-				}
-			}
-		}
-		return result.toArray(new IIndexFragmentBinding[result.size()]);
-	}
-
-	@Override
-	public IIndexFragmentBinding[] findBindings(char[][] names, IndexFilter filter, IProgressMonitor monitor)
-			throws CoreException {
-		return findBindings(names, true, filter, monitor);
-	}
-
-	public IIndexFragmentBinding[] findBindings(char[][] names, boolean caseSensitive, IndexFilter filter,
-			IProgressMonitor monitor) throws CoreException {
-		if (names.length == 0) {
-			return IIndexFragmentBinding.EMPTY_INDEX_BINDING_ARRAY;
-		}
-		if (names.length == 1) {
-			return findBindings(names[0], true, caseSensitive, filter, monitor);
-		}
-
-		IIndexFragmentBinding[] candidates = findBindings(names[names.length - 1], false, caseSensitive, filter,
-				monitor);
-		int j = 0;
-		for (int i = 0; i < candidates.length; i++) {
-			IIndexFragmentBinding cand = candidates[i];
-			if (matches(cand, names, caseSensitive)) {
-				candidates[j++] = cand;
-			}
-		}
-		return ArrayUtil.trimAt(IIndexFragmentBinding.class, candidates, j - 1);
-	}
-
-	private boolean matches(IIndexFragmentBinding cand, char[][] names, boolean caseSensitive) {
-		for (int i = names.length; --i >= 0; cand = cand.getOwner()) {
-			if (cand == null)
-				return false;
-
-			char[] name = cand.getNameCharArray();
-			if (!CharArrayUtils.equals(name, 0, name.length, names[i], !caseSensitive)) {
-				if (cand instanceof IEnumeration) {
-					if (cand instanceof ICPPEnumeration && ((ICPPEnumeration) cand).isScoped())
-						return false;
-					// Unscoped enumerations are not part of the qualified name.
-					i++;
-				} else if (cand instanceof ICPPNamespace && name.length == 0) {
-					// Anonymous namespaces are not part of the qualified name.
-					i++;
-				} else {
-					return false;
-				}
-			}
-		}
-		// Toplevel anonymous namespaces are not part of the qualified name either.
-		return cand == null || (cand instanceof ICPPNamespace && cand.getNameCharArray().length == 0);
-	}
-
-	private long getFirstLinkageRecord() throws CoreException {
-		return db.getRecPtr(LINKAGES);
-	}
-
-	@Override
-	public IIndexLinkage[] getLinkages() {
-		Collection<PDOMLinkage> values = getLinkageList();
-		return values.toArray(new IIndexLinkage[values.size()]);
-	}
-
-	@Override
-	public PDOMLinkage[] getLinkageImpls() {
-		Collection<PDOMLinkage> values = getLinkageList();
-		return values.toArray(new PDOMLinkage[values.size()]);
-	}
-
-	public void insertLinkage(PDOMLinkage linkage) throws CoreException {
-		linkage.setNext(db.getRecPtr(LINKAGES));
-		db.putRecPtr(LINKAGES, linkage.getRecord());
-		fLinkageIDCache.put(linkage.getLinkageID(), linkage);
-	}
-
-	// Read-write lock rules. Readers don't conflict with other readers,
-	// Writers conflict with readers, and everyone conflicts with writers.
-	private final Object mutex = new Object();
-	private int lockCount;
-	private int waitingReaders;
-	private long lastWriteAccess = 0;
-	private long lastReadAccess = 0;
-	private long timeWriteLockAcquired;
-
-	@Override
-	public void acquireReadLock() throws InterruptedException {
-		long t = sDEBUG_LOCKS ? System.nanoTime() : 0;
-		synchronized (mutex) {
-			++waitingReaders;
-			try {
-				while (lockCount < 0)
-					mutex.wait();
-			} finally {
-				--waitingReaders;
-			}
-			++lockCount;
-			db.setLocked(true);
-
-			if (sDEBUG_LOCKS) {
-				t = (System.nanoTime() - t) / 1000000;
-				if (t >= LONG_READ_LOCK_WAIT_REPORT_THRESHOLD) {
-					System.out.println("Acquired index read lock after " + t + " ms wait."); //$NON-NLS-1$//$NON-NLS-2$
-				}
-				incReadLock(fLockDebugging);
-			}
-		}
-	}
-
-	@Override
-	public void releaseReadLock() {
-		synchronized (mutex) {
-			assert lockCount > 0 : "No lock to release"; //$NON-NLS-1$
-			if (sDEBUG_LOCKS) {
-				decReadLock(fLockDebugging);
-			}
-
-			lastReadAccess = System.currentTimeMillis();
-			if (lockCount > 0)
-				--lockCount;
-			mutex.notifyAll();
-			db.setLocked(lockCount != 0);
-		}
-		// A lock release probably means that some AST is going away. The result cache has to be
-		// cleared since it may contain objects belonging to the AST that is going away. A failure
-		// to release an AST object would cause a memory leak since the whole AST would remain
-		// pinned to memory.
-		// TODO(sprigogin): It would be more efficient to replace the global result cache with
-		// separate caches for each AST.
-		clearResultCache();
-	}
-
-	/**
-	 * Acquire a write lock on this PDOM. Blocks until any existing read/write locks are released.
-	 * @throws InterruptedException
-	 * @throws IllegalStateException if this PDOM is not writable
-	 */
-	public void acquireWriteLock(IProgressMonitor monitor) throws InterruptedException {
-		acquireWriteLock(0, monitor);
-	}
-
-	/**
-	 * Acquire a write lock on this PDOM, giving up the specified number of read locks first. Blocks
-	 * until any existing read/write locks are released.
-	 * @throws InterruptedException
-	 * @throws IllegalStateException if this PDOM is not writable
-	 */
-	public void acquireWriteLock(int giveupReadLocks, IProgressMonitor monitor) throws InterruptedException {
-		assert !isPermanentlyReadOnly();
-		synchronized (mutex) {
-			if (sDEBUG_LOCKS) {
-				incWriteLock(giveupReadLocks);
-			}
-
-			if (giveupReadLocks > 0) {
-				// give up on read locks
-				assert lockCount >= giveupReadLocks : "Not enough locks to release"; //$NON-NLS-1$
-				if (lockCount < giveupReadLocks) {
-					giveupReadLocks = lockCount;
-				}
-			} else {
-				giveupReadLocks = 0;
-			}
-
-			// Let the readers go first
-			long start = sDEBUG_LOCKS ? System.currentTimeMillis() : 0;
-			int count = 0;
-			while (lockCount > giveupReadLocks || waitingReaders > 0) {
-				mutex.wait(CANCELLATION_CHECK_INTERVAL);
-				if (monitor != null && monitor.isCanceled()) {
-					throw new OperationCanceledException();
-				}
-				count++;
-				if (monitor != null && count == LONG_WRITE_LOCK_REPORT_THRESHOLD / CANCELLATION_CHECK_INTERVAL) {
-					monitor.subTask(Messages.PDOM_waitingForWriteLock);
-				}
-				if (sDEBUG_LOCKS) {
-					start = reportBlockedWriteLock(start, giveupReadLocks);
-				}
-			}
-			lockCount = -1;
-			if (sDEBUG_LOCKS)
-				timeWriteLockAcquired = System.currentTimeMillis();
-			db.setExclusiveLock();
-		}
-		if (monitor != null)
-			monitor.subTask(""); //$NON-NLS-1$
-	}
-
-	final public void releaseWriteLock() {
-		releaseWriteLock(0, true);
-	}
-
-	@SuppressWarnings("nls")
-	public void releaseWriteLock(int establishReadLocks, boolean flush) {
-		// When all locks are released we can clear the result cache.
-		if (establishReadLocks == 0) {
-			clearResultCache();
-		}
-		try {
-			db.giveUpExclusiveLock(flush);
-		} catch (CoreException e) {
-			CCorePlugin.log(e);
-		}
-		assert lockCount == -1;
-		if (!fEvent.isTrivial())
-			lastWriteAccess = System.currentTimeMillis();
-		final ChangeEvent event = fEvent;
-		fEvent = new ChangeEvent();
-		synchronized (mutex) {
-			if (sDEBUG_LOCKS) {
-				long timeHeld = lastWriteAccess - timeWriteLockAcquired;
-				if (timeHeld >= LONG_WRITE_LOCK_REPORT_THRESHOLD) {
-					System.out.println("Index write lock held for " + timeHeld + " ms");
-				}
-				decWriteLock(establishReadLocks);
-			}
-
-			if (lockCount < 0)
-				lockCount = establishReadLocks;
-			mutex.notifyAll();
-			db.setLocked(lockCount != 0);
-		}
-		fireChange(event);
-	}
-
-	@Override
-	public boolean hasWaitingReaders() {
-		synchronized (mutex) {
-			return waitingReaders > 0;
-		}
-	}
-
-	@Override
-	public long getLastWriteAccess() {
-		return lastWriteAccess;
-	}
-
-	public long getLastReadAccess() {
-		return lastReadAccess;
-	}
-
-	protected PDOMLinkage adaptLinkage(ILinkage linkage) throws CoreException {
-		return fLinkageIDCache.get(linkage.getLinkageID());
-	}
-
-	private ThreadLocal<IBinding> inProgress = new ThreadLocal<>();
-
-	@Override
-	public IIndexFragmentBinding adaptBinding(IBinding binding) throws CoreException {
-		if (inProgress.get() == binding) {
-			// Detect if we're recursing during the adapt. That shouldn't happen and
-			// leads to stack overflow when it does.
-			return null;
-		}
-
-		inProgress.set(binding);
-		try {
-			return adaptBinding(binding, true);
-		} finally {
-			inProgress.set(null);
-		}
-	}
-
-	private IIndexFragmentBinding adaptBinding(IBinding binding, boolean includeLocal) throws CoreException {
-		if (binding == null) {
-			return null;
-		}
-		PDOMNode pdomNode = binding.getAdapter(PDOMNode.class);
-		if (pdomNode instanceof IIndexFragmentBinding && pdomNode.getPDOM() == this) {
-			return (IIndexFragmentBinding) pdomNode;
-		}
-
-		PDOMLinkage linkage = adaptLinkage(binding.getLinkage());
-		if (linkage != null) {
-			return findBindingInLinkage(linkage, binding, includeLocal);
-		}
-
-		if (binding instanceof IMacroBinding) {
-			for (PDOMLinkage linkage2 : fLinkageIDCache.values()) {
-				IIndexFragmentBinding pdomBinding = findBindingInLinkage(linkage2, binding, includeLocal);
-				if (pdomBinding != null)
-					return pdomBinding;
-			}
-		}
-		return null;
-	}
-
-	private IIndexFragmentBinding findBindingInLinkage(PDOMLinkage linkage, IBinding binding, boolean includeLocal)
-			throws CoreException {
-		if (binding instanceof IMacroBinding || binding instanceof IIndexMacroContainer) {
-			return linkage.findMacroContainer(binding.getNameCharArray());
-		}
-		return linkage.adaptBinding(binding, includeLocal);
-	}
-
-	public IIndexFragmentBinding findBinding(IIndexFragmentName indexName) throws CoreException {
-		if (indexName instanceof PDOMName) {
-			PDOMName pdomName = (PDOMName) indexName;
-			return pdomName.getBinding();
-		}
-		return null;
-	}
-
-	@Override
-	public IIndexFragmentName[] findNames(IBinding binding, int options) throws CoreException {
-		ArrayList<IIndexFragmentName> names = new ArrayList<>();
-		IIndexFragmentBinding myBinding = adaptBinding(binding);
-		if (myBinding instanceof PDOMBinding) {
-			PDOMBinding pdomBinding = (PDOMBinding) myBinding;
-			findNamesForMyBinding(pdomBinding, options, names);
-			if ((options & SEARCH_ACROSS_LANGUAGE_BOUNDARIES) != 0) {
-				PDOMBinding[] xlangBindings = getCrossLanguageBindings(binding);
-				for (PDOMBinding xlangBinding : xlangBindings) {
-					findNamesForMyBinding(xlangBinding, options, names);
-				}
-			}
-		} else if (myBinding instanceof PDOMMacroContainer) {
-			final PDOMMacroContainer macroContainer = (PDOMMacroContainer) myBinding;
-			findNamesForMyBinding(macroContainer, options, names);
-			if ((options & SEARCH_ACROSS_LANGUAGE_BOUNDARIES) != 0) {
-				PDOMMacroContainer[] xlangBindings = getCrossLanguageBindings(macroContainer);
-				for (PDOMMacroContainer xlangBinding : xlangBindings) {
-					findNamesForMyBinding(xlangBinding, options, names);
-				}
-			}
-		}
-		return names.toArray(new IIndexFragmentName[names.size()]);
-	}
-
-	private void findNamesForMyBinding(PDOMBinding pdomBinding, int options, ArrayList<IIndexFragmentName> names)
-			throws CoreException {
-		PDOMName name;
-		if ((options & FIND_DECLARATIONS) != 0) {
-			for (name = pdomBinding.getFirstDeclaration(); name != null; name = name.getNextInBinding()) {
-				if (isCommitted(name) && !name.isPotentialMatch()) {
-					names.add(name);
-				}
-			}
-		}
-		if ((options & FIND_DEFINITIONS) != 0) {
-			for (name = pdomBinding.getFirstDefinition(); name != null; name = name.getNextInBinding()) {
-				boolean findPotentialMatches = (options & FIND_POTENTIAL_MATCHES) != 0;
-				if (isCommitted(name) && (!name.isPotentialMatch() || findPotentialMatches)) {
-					names.add(name);
-				}
-			}
-		}
-		if ((options & FIND_REFERENCES) != 0) {
-			for (name = pdomBinding.getFirstReference(); name != null; name = name.getNextInBinding()) {
-				if (isCommitted(name) && !name.isPotentialMatch()) {
-					names.add(name);
-				}
-			}
-			for (IPDOMIterator<PDOMName> iterator = pdomBinding.getExternalReferences(); iterator.hasNext();) {
-				name = iterator.next();
-				if (isCommitted(name) && !name.isPotentialMatch())
-					names.add(name);
-			}
-		}
-	}
-
-	private void findNamesForMyBinding(PDOMMacroContainer container, int options, ArrayList<IIndexFragmentName> names)
-			throws CoreException {
-		if ((options & FIND_DEFINITIONS) != 0) {
-			for (PDOMMacro macro = container.getFirstDefinition(); macro != null; macro = macro.getNextInContainer()) {
-				final IIndexFragmentName name = macro.getDefinition();
-				if (name != null && isCommitted(macro)) {
-					names.add(name);
-				}
-			}
-		}
-		if ((options & FIND_REFERENCES) != 0) {
-			for (PDOMMacroReferenceName name = container.getFirstReference(); name != null; name = name
-					.getNextInContainer()) {
-				if (isCommitted(name)) {
-					names.add(name);
-				}
-			}
-		}
-	}
-
-	public IRecordIterator getDeclarationsDefintitionsRecordIterator(IIndexBinding binding) throws CoreException {
-		IIndexFragmentBinding myBinding = adaptBinding(binding);
-		if (myBinding instanceof PDOMBinding) {
-			PDOMBinding pdomBinding = (PDOMBinding) myBinding;
-			return new CompoundRecordIterator(pdomBinding.getDeclarationRecordIterator(),
-					pdomBinding.getDefinitionRecordIterator());
-		}
-		return IRecordIterator.EMPTY;
-	}
-
-	protected boolean isCommitted(PDOMName name) throws CoreException {
-		return true;
-	}
-
-	protected boolean isCommitted(PDOMMacro name) throws CoreException {
-		return true;
-	}
-
-	protected boolean isCommitted(PDOMMacroReferenceName name) throws CoreException {
-		return true;
-	}
-
-	@Override
-	public IIndexFragmentInclude[] findIncludedBy(IIndexFragmentFile file) throws CoreException {
-		PDOMFile pdomFile = adaptFile(file);
-		if (pdomFile != null) {
-			List<PDOMInclude> result = new ArrayList<>();
-			for (PDOMInclude i = pdomFile.getFirstIncludedBy(); i != null; i = i.getNextInIncludedBy()) {
-				if (i.getIncludedBy().getTimestamp() > 0) {
-					result.add(i);
-				}
-			}
-			return result.toArray(new PDOMInclude[result.size()]);
-		}
-		return new PDOMInclude[0];
-	}
-
-	public boolean hasFileForLocation(int linkageId, IIndexFileLocation location) throws CoreException {
-		PDOMFile pdomFile = getFile(linkageId, location, null);
-		return pdomFile != null;
-	}
-
-	private PDOMFile adaptFile(IIndexFragmentFile file) throws CoreException {
-		if (file.getIndexFragment() == this && file instanceof PDOMFile) {
-			return (PDOMFile) file;
-		}
-
-		return getFile(file.getLinkageID(), file.getLocation(), file.getSignificantMacros());
-	}
-
-	public File getPath() {
-		return fPath;
-	}
-
-	@Override
-	public IIndexFragmentBinding[] findBindingsForPrefix(char[] prefix, boolean filescope, IndexFilter filter,
-			IProgressMonitor monitor) throws CoreException {
-		return findBindingsForPrefix(prefix, filescope, false, filter, monitor);
-	}
-
-	public IIndexFragmentBinding[] findBindingsForPrefix(char[] prefix, boolean filescope, boolean caseSensitive,
-			IndexFilter filter, IProgressMonitor monitor) throws CoreException {
-		return findBindingsForPrefixOrContentAssist(prefix, filescope, false, caseSensitive, filter, monitor);
-	}
-
-	@Override
-	public IIndexFragmentBinding[] findBindingsForContentAssist(char[] prefix, boolean filescope, IndexFilter filter,
-			IProgressMonitor monitor) throws CoreException {
-		return findBindingsForPrefixOrContentAssist(prefix, filescope, true, false, filter, monitor);
-	}
-
-	private IIndexFragmentBinding[] findBindingsForPrefixOrContentAssist(char[] prefix, boolean filescope,
-			boolean isContentAssist, boolean caseSensitive, IndexFilter filter, IProgressMonitor monitor)
-			throws CoreException {
-		ArrayList<IIndexFragmentBinding> result = new ArrayList<>();
-		for (PDOMLinkage linkage : getLinkageList()) {
-			if (filter.acceptLinkage(linkage)) {
-				PDOMBinding[] bindings;
-				BindingCollector visitor = new BindingCollector(linkage, prefix, filter, !isContentAssist,
-						isContentAssist, caseSensitive);
-				visitor.setMonitor(monitor);
-				try {
-					linkage.accept(visitor);
-					if (!filescope) {
-						// Avoid adding unscoped enumerator items twice
-						visitor.setSkipGlobalEnumerators(true);
-						linkage.getNestedBindingsIndex().accept(visitor);
-					}
-				} catch (OperationCanceledException e) {
-				}
-				bindings = visitor.getBindings();
-
-				for (PDOMBinding binding : bindings) {
-					result.add(binding);
-				}
-			}
-		}
-		return result.toArray(new IIndexFragmentBinding[result.size()]);
-	}
-
-	@Override
-	public IIndexFragmentBinding[] findBindings(char[] name, boolean filescope, IndexFilter filter,
-			IProgressMonitor monitor) throws CoreException {
-		return findBindings(name, filescope, true, filter, monitor);
-	}
-
-	public IIndexFragmentBinding[] findBindings(char[] name, boolean filescope, boolean isCaseSensitive,
-			IndexFilter filter, IProgressMonitor monitor) throws CoreException {
-		ArrayList<IIndexFragmentBinding> result = new ArrayList<>();
-		HashSet<PDOMBinding> uniqueNodes = new HashSet<>();
-		try {
-			for (PDOMLinkage linkage : getLinkageList()) {
-				if (filter.acceptLinkage(linkage)) {
-					if (isCaseSensitive) {
-						PDOMBinding[] bindings = linkage.getBindingsViaCache(name, monitor);
-						for (PDOMBinding binding : bindings) {
-							if (filter.acceptBinding(binding)) {
-								if (uniqueNodes.add(binding)) {
-									result.add(binding);
-								}
-							}
-						}
-					}
-
-					if (!isCaseSensitive || !filescope) {
-						BindingCollector visitor = new BindingCollector(linkage, name, filter, false, false,
-								isCaseSensitive);
-						visitor.setMonitor(monitor);
-
-						if (!isCaseSensitive)
-							linkage.accept(visitor);
-
-						if (!filescope) {
-							// Avoid adding unscoped enumerator items twice
-							visitor.setSkipGlobalEnumerators(true);
-							linkage.getNestedBindingsIndex().accept(visitor);
-						}
-
-						PDOMBinding[] bindings = visitor.getBindings();
-						for (PDOMBinding binding : bindings) {
-							if (uniqueNodes.add(binding)) {
-								result.add(binding);
-							}
-						}
-					}
-				}
-			}
-		} catch (OperationCanceledException e) {
-		}
-		return result.toArray(new IIndexFragmentBinding[result.size()]);
-	}
-
-	public IIndexFragmentBinding[] findMacroContainers(char[] prefix, boolean isPrefix, boolean isCaseSensitive,
-			IndexFilter filter, IProgressMonitor monitor) throws CoreException {
-		ArrayList<IIndexFragmentBinding> result = new ArrayList<>();
-		try {
-			for (PDOMLinkage linkage : getLinkageList()) {
-				if (filter.acceptLinkage(linkage)) {
-					MacroContainerCollector visitor = new MacroContainerCollector(linkage, prefix, isPrefix, false,
-							isCaseSensitive);
-					visitor.setMonitor(monitor);
-					linkage.getMacroIndex().accept(visitor);
-					result.addAll(visitor.getMacroList());
-				}
-			}
-		} catch (OperationCanceledException e) {
-		}
-		return result.toArray(new IIndexFragmentBinding[result.size()]);
-	}
-
-	@Override
-	public IIndexMacro[] findMacros(char[] prefix, boolean isPrefix, boolean isCaseSensitive, IndexFilter filter,
-			IProgressMonitor monitor) throws CoreException {
-		ArrayList<IIndexMacro> result = new ArrayList<>();
-		try {
-			for (PDOMLinkage linkage : getLinkageList()) {
-				if (filter.acceptLinkage(linkage)) {
-					MacroContainerCollector visitor = new MacroContainerCollector(linkage, prefix, isPrefix, false,
-							isCaseSensitive);
-					visitor.setMonitor(monitor);
-					linkage.getMacroIndex().accept(visitor);
-					for (PDOMMacroContainer mcont : visitor.getMacroList()) {
-						result.addAll(Arrays.asList(mcont.getDefinitions()));
-					}
-				}
-			}
-		} catch (OperationCanceledException e) {
-		}
-		return result.toArray(new IIndexMacro[result.size()]);
-	}
-
-	@Override
-	public String getProperty(String propertyName) throws CoreException {
-		if (IIndexFragment.PROPERTY_FRAGMENT_FORMAT_ID.equals(propertyName)) {
-			return FRAGMENT_PROPERTY_VALUE_FORMAT_ID;
-		}
-		int version = db.getVersion();
-		if (IIndexFragment.PROPERTY_FRAGMENT_FORMAT_VERSION.equals(propertyName)) {
-			return PDOM.versionString(version);
-		}
-		// play it safe, properties are accessed before version checks.
-		if (PDOM.isSupportedVersion(version)) {
-			return new DBProperties(db, PROPERTIES).getProperty(propertyName);
-		}
-		if (IIndexFragment.PROPERTY_FRAGMENT_ID.equals(propertyName)) {
-			return "Unknown"; //$NON-NLS-1$
-		}
-		return null;
-	}
-
-	public void close() throws CoreException {
-		db.close();
-		clearCaches();
-	}
-
-	private void clearCaches() {
-		fileIndex = null;
-		tagIndex = null;
-		indexOfDefectiveFiles = null;
-		indexOfFiledWithUnresolvedIncludes = null;
-		fLinkageIDCache.clear();
-		clearResultCache();
-	}
-
-	@Override
-	public void clearResultCache() {
-		synchronized (fResultCache) {
-			fResultCache.clear();
-		}
-		synchronized (fVariableResultCache) {
-			fVariableResultCache.clear();
-		}
-	}
-
-	@Override
-	public long getCacheHits() {
-		return db.getCacheHits();
-	}
-
-	@Override
-	public long getCacheMisses() {
-		return db.getCacheMisses();
-	}
-
-	@Override
-	public void resetCacheCounters() {
-		db.resetCacheCounters();
-	}
-
-	protected void flush() throws CoreException {
-		db.flush();
-	}
-
-	@Override
-	public Object getCachedResult(Object key) {
-		synchronized (fResultCache) {
-			return fResultCache.get(key);
-		}
-	}
-
-	public void putCachedResult(Object key, Object result) {
-		putCachedResult(key, result, true);
-	}
-
-	@Override
-	public Object putCachedResult(Object key, Object result, boolean replace) {
-		synchronized (fResultCache) {
-			Object old = fResultCache.put(key, result);
-			if (old != null && !replace) {
-				fResultCache.put(key, old);
-				return old;
-			}
-			return result;
-		}
-	}
-
-	public void removeCachedResult(Object key) {
-		synchronized (fResultCache) {
-			fResultCache.remove(key);
-		}
-	}
-
-	public IValue getCachedVariableResult(Long key) {
-		synchronized (fVariableResultCache) {
-			WeakReference<IValue> variableResult = fVariableResultCache.get(key);
-			if (variableResult != null) {
-				return variableResult.get();
-			}
-			return null;
-		}
-	}
-
-	public void removeCachedVariableResult(Long key) {
-		synchronized (fVariableResultCache) {
-			fVariableResultCache.remove(key);
-		}
-	}
-
-	public void putCachedVariableResult(Long key, IValue result) {
-		synchronized (fVariableResultCache) {
-			fVariableResultCache.put(key, new WeakReference<>(result));
-		}
-	}
-
-	public String createKeyForCache(long record, char[] name) {
-		return new StringBuilder(name.length + 2).append((char) (record >> 16)).append((char) record).append(name)
-				.toString();
-	}
-
-	public boolean hasLastingDefinition(PDOMBinding binding) throws CoreException {
-		return binding.hasDefinition();
-	}
-
-	private PDOMBinding[] getCrossLanguageBindings(IBinding binding) throws CoreException {
-		switch (binding.getLinkage().getLinkageID()) {
-		case ILinkage.C_LINKAGE_ID:
-			return getCPPBindingForC(binding);
-		case ILinkage.CPP_LINKAGE_ID:
-			return getCBindingForCPP(binding);
-		}
-		return PDOMBinding.EMPTY_PDOMBINDING_ARRAY;
-	}
-
-	private PDOMMacroContainer[] getCrossLanguageBindings(PDOMMacroContainer binding) throws CoreException {
-		final int inputLinkage = binding.getLinkage().getLinkageID();
-		if (inputLinkage == ILinkage.C_LINKAGE_ID || inputLinkage == ILinkage.CPP_LINKAGE_ID) {
-			final char[] name = binding.getNameCharArray();
-			for (PDOMLinkage linkage : getLinkageList()) {
-				final int linkageID = linkage.getLinkageID();
-				if (linkageID != inputLinkage) {
-					if (linkageID == ILinkage.C_LINKAGE_ID || linkageID == ILinkage.CPP_LINKAGE_ID) {
-						PDOMMacroContainer container = linkage.findMacroContainer(name);
-						if (container != null) {
-							return new PDOMMacroContainer[] { container };
-						}
-					}
-				}
-			}
-		}
-		return new PDOMMacroContainer[0];
-	}
-
-	private PDOMBinding[] getCBindingForCPP(IBinding binding) throws CoreException {
-		PDOMBinding result = null;
-		PDOMLinkage c = getLinkage(ILinkage.C_LINKAGE_ID);
-		if (c == null) {
-			return PDOMBinding.EMPTY_PDOMBINDING_ARRAY;
-		}
-		if (binding instanceof ICPPFunction) {
-			ICPPFunction func = (ICPPFunction) binding;
-			if (func.isExternC()) {
-				result = FindBinding.findBinding(c.getIndex(), c, func.getNameCharArray(),
-						new int[] { IIndexCBindingConstants.CFUNCTION }, 0);
-			}
-		} else if (binding instanceof ICPPField) {
-			ICPPField field = (ICPPField) binding;
-			IBinding parent = field.getCompositeTypeOwner();
-			PDOMBinding[] cOwners = getCBindingForCPP(parent);
-			List<PDOMBinding> results = new ArrayList<>();
-			for (PDOMBinding cOwner : cOwners) {
-				result = FindBinding.findBinding(cOwner, c, field.getNameCharArray(),
-						new int[] { IIndexCBindingConstants.CFIELD }, 0);
-				if (result != null) {
-					results.add(result);
-				}
-			}
-			return results.isEmpty() ? PDOMBinding.EMPTY_PDOMBINDING_ARRAY
-					: results.toArray(new PDOMBinding[results.size()]);
-
-		} else if (binding instanceof ICPPVariable) {
-			ICPPVariable var = (ICPPVariable) binding;
-			if (var.isExternC()) {
-				result = FindBinding.findBinding(c.getIndex(), c, var.getNameCharArray(),
-						new int[] { IIndexCBindingConstants.CVARIABLE }, 0);
-			}
-		} else if (binding instanceof IEnumeration) {
-			result = FindBinding.findBinding(c.getIndex(), c, binding.getNameCharArray(),
-					new int[] { IIndexCBindingConstants.CENUMERATION }, 0);
-		} else if (binding instanceof IEnumerator) {
-			result = FindBinding.findBinding(c.getIndex(), c, binding.getNameCharArray(),
-					new int[] { IIndexCBindingConstants.CENUMERATOR }, 0);
-		} else if (binding instanceof ITypedef) {
-			result = FindBinding.findBinding(c.getIndex(), c, binding.getNameCharArray(),
-					new int[] { IIndexCBindingConstants.CTYPEDEF }, 0);
-		} else if (binding instanceof ICompositeType) {
-			final int key = ((ICompositeType) binding).getKey();
-			if (key == ICompositeType.k_struct || key == ICompositeType.k_union) {
-				result = FindBinding.findBinding(c.getIndex(), c, binding.getNameCharArray(),
-						new int[] { IIndexCBindingConstants.CSTRUCTURE }, 0);
-				if (result instanceof ICompositeType && ((ICompositeType) result).getKey() != key) {
-					result = null;
-				}
-			}
-		}
-		return result == null ? PDOMBinding.EMPTY_PDOMBINDING_ARRAY : new PDOMBinding[] { result };
-	}
-
-	private PDOMBinding[] getCPPBindingForC(IBinding binding) throws CoreException {
-		PDOMLinkage cpp = getLinkage(ILinkage.CPP_LINKAGE_ID);
-		if (cpp == null) {
-			return PDOMBinding.EMPTY_PDOMBINDING_ARRAY;
-		}
-		PDOMBinding[] cppOwners = null;
-		IndexFilter filter = null;
-		if (binding instanceof IFunction) {
-			filter = new IndexFilter() {
-				@Override
-				public boolean acceptBinding(IBinding binding) {
-					if (binding instanceof ICPPFunction) {
-						return ((ICPPFunction) binding).isExternC();
-					}
-					return false;
-				}
-			};
-		} else if (binding instanceof IField) {
-			IBinding compOwner = ((IField) binding).getCompositeTypeOwner();
-			cppOwners = getCPPBindingForC(compOwner);
-			if (cppOwners.length > 0) {
-				filter = IndexFilter.ALL;
-			}
-		} else if (binding instanceof IVariable) {
-			if (!(binding instanceof IField) && !(binding instanceof IParameter)) {
-				filter = new IndexFilter() {
-					@Override
-					public boolean acceptBinding(IBinding binding) {
-						if (binding instanceof ICPPVariable) {
-							return ((ICPPVariable) binding).isExternC();
-						}
-						return false;
-					}
-				};
-			}
-		} else if (binding instanceof IEnumeration) {
-			filter = new IndexFilter() {
-				@Override
-				public boolean acceptBinding(IBinding binding) {
-					return binding instanceof IEnumeration;
-				}
-			};
-		} else if (binding instanceof ITypedef) {
-			filter = new IndexFilter() {
-				@Override
-				public boolean acceptBinding(IBinding binding) {
-					return binding instanceof ITypedef;
-				}
-			};
-		} else if (binding instanceof IEnumerator) {
-			filter = new IndexFilter() {
-				@Override
-				public boolean acceptBinding(IBinding binding) {
-					return binding instanceof IEnumerator;
-				}
-			};
-		} else if (binding instanceof ICompositeType) {
-			final int key = ((ICompositeType) binding).getKey();
-			filter = new IndexFilter() {
-				@Override
-				public boolean acceptBinding(IBinding binding) {
-					if (binding instanceof ICompositeType) {
-						return ((ICompositeType) binding).getKey() == key;
-					}
-					return false;
-				}
-			};
-		}
-		if (filter != null) {
-			BindingCollector collector = new BindingCollector(cpp, binding.getNameCharArray(), filter, false, false,
-					true);
-			if (cppOwners != null) {
-				for (PDOMBinding owner : cppOwners) {
-					owner.accept(collector);
-				}
-			} else {
-				cpp.accept(collector);
-			}
-			return collector.getBindings();
-		}
-		return PDOMBinding.EMPTY_PDOMBINDING_ARRAY;
-	}
-
-	@Override
-	public IIndexFragmentFileSet createFileSet() {
-		return new PDOMFileSet();
-	}
-
-	// For debugging lock issues
-	static class DebugLockInfo {
-		int fReadLocks;
-		int fWriteLocks;
-		List<StackTraceElement[]> fTraces = new ArrayList<>();
-
-		public int addTrace() {
-			fTraces.add(Thread.currentThread().getStackTrace());
-			return fTraces.size();
-		}
-
-		@SuppressWarnings("nls")
-		public void write(String threadName) {
-			System.out.println(
-					"Thread: '" + threadName + "': " + fReadLocks + " readlocks, " + fWriteLocks + " writelocks");
-			for (StackTraceElement[] trace : fTraces) {
-				System.out.println("  Stacktrace:");
-				for (StackTraceElement ste : trace) {
-					System.out.println("    " + ste);
-				}
-			}
-		}
-
-		public void inc(DebugLockInfo val) {
-			fReadLocks += val.fReadLocks;
-			fWriteLocks += val.fWriteLocks;
-			fTraces.addAll(val.fTraces);
-		}
-	}
-
-	// For debugging lock issues
-	private Map<Thread, DebugLockInfo> fLockDebugging;
-
-	// For debugging lock issues
-	private static DebugLockInfo getLockInfo(Map<Thread, DebugLockInfo> lockDebugging) {
-		assert sDEBUG_LOCKS;
-
-		Thread key = Thread.currentThread();
-		DebugLockInfo result = lockDebugging.get(key);
-		if (result == null) {
-			result = new DebugLockInfo();
-			lockDebugging.put(key, result);
-		}
-		return result;
-	}
-
-	// For debugging lock issues
-	static void incReadLock(Map<Thread, DebugLockInfo> lockDebugging) {
-		DebugLockInfo info = getLockInfo(lockDebugging);
-		info.fReadLocks++;
-		if (info.addTrace() > 10) {
-			outputReadLocks(lockDebugging);
-		}
-	}
-
-	// For debugging lock issues
-	@SuppressWarnings("nls")
-	static void decReadLock(Map<Thread, DebugLockInfo> lockDebugging) throws AssertionError {
-		DebugLockInfo info = getLockInfo(lockDebugging);
-		if (info.fReadLocks <= 0) {
-			outputReadLocks(lockDebugging);
-			throw new AssertionError("Superfluous releaseReadLock");
-		}
-		if (info.fWriteLocks != 0) {
-			outputReadLocks(lockDebugging);
-			throw new AssertionError("Releasing readlock while holding write lock");
-		}
-		if (--info.fReadLocks == 0) {
-			lockDebugging.remove(Thread.currentThread());
-		} else {
-			info.addTrace();
-		}
-	}
-
-	// For debugging lock issues
-	@SuppressWarnings("nls")
-	private void incWriteLock(int giveupReadLocks) throws AssertionError {
-		DebugLockInfo info = getLockInfo(fLockDebugging);
-		if (info.fReadLocks != giveupReadLocks) {
-			outputReadLocks(fLockDebugging);
-			throw new AssertionError("write lock with " + giveupReadLocks + " readlocks, expected " + info.fReadLocks);
-		}
-		if (info.fWriteLocks != 0)
-			throw new AssertionError("Duplicate write lock");
-		info.fWriteLocks++;
-	}
-
-	// For debugging lock issues
-	private void decWriteLock(int establishReadLocks) throws AssertionError {
-		DebugLockInfo info = getLockInfo(fLockDebugging);
-		if (info.fReadLocks != establishReadLocks)
-			throw new AssertionError(
-					"release write lock with " + establishReadLocks + " readlocks, expected " + info.fReadLocks); //$NON-NLS-1$ //$NON-NLS-2$
-		if (info.fWriteLocks != 1)
-			throw new AssertionError("Wrong release write lock"); //$NON-NLS-1$
-		info.fWriteLocks = 0;
-		if (info.fReadLocks == 0) {
-			fLockDebugging.remove(Thread.currentThread());
-		}
-	}
-
-	// For debugging lock issues
-	@SuppressWarnings("nls")
-	private long reportBlockedWriteLock(long start, int giveupReadLocks) {
-		long now = System.currentTimeMillis();
-		if (now >= start + BLOCKED_WRITE_LOCK_OUTPUT_INTERVAL) {
-			System.out.println();
-			System.out.println("Blocked writeLock");
-			System.out.println("  lockcount= " + lockCount + ", giveupReadLocks=" + giveupReadLocks
-					+ ", waitingReaders=" + waitingReaders);
-			outputReadLocks(fLockDebugging);
-			start = now;
-		}
-		return start;
-	}
-
-	// For debugging lock issues
-	@SuppressWarnings("nls")
-	private static void outputReadLocks(Map<Thread, DebugLockInfo> lockDebugging) {
-		System.out.println("---------------------  Lock Debugging -------------------------");
-		for (Thread th : lockDebugging.keySet()) {
-			DebugLockInfo info = lockDebugging.get(th);
-			info.write(th.getName());
-		}
-		System.out.println("---------------------------------------------------------------");
-	}
-
-	// For debugging lock issues
-	public void adjustThreadForReadLock(Map<Thread, DebugLockInfo> lockDebugging) {
-		for (Thread th : lockDebugging.keySet()) {
-			DebugLockInfo val = lockDebugging.get(th);
-			if (val.fReadLocks > 0) {
-				DebugLockInfo myval = fLockDebugging.get(th);
-				if (myval == null) {
-					myval = new DebugLockInfo();
-					fLockDebugging.put(th, myval);
-				}
-				myval.inc(val);
-				for (int i = 0; i < val.fReadLocks; i++) {
-					decReadLock(fLockDebugging);
-				}
-			}
-		}
-	}
-
-	@Override
-	public IIndexScope[] getInlineNamespaces() throws CoreException {
-		PDOMLinkage linkage = getLinkage(ILinkage.CPP_LINKAGE_ID);
-		if (linkage == null) {
-			return IIndexScope.EMPTY_INDEX_SCOPE_ARRAY;
-		}
-		return linkage.getInlineNamespaces();
-	}
-
-	@Override
-	public boolean isFullyInitialized() {
-		return true;
-	}
+    private static final int MIN_SUPPORTED_VERSION = version(220, 0);
+
+    private static final int MAX_SUPPORTED_VERSION = version(220, Short.MAX_VALUE);
+
+    private static final int DEFAULT_VERSION = version(220, 0);
+
+    private static int version(int major, int minor) {
+        return (major << 16) + minor;
+    }
+
+    /**
+     * Returns the version that shall be used when creating new databases.
+     */
+    public static int getDefaultVersion() {
+        return DEFAULT_VERSION;
+    }
+
+    public static boolean isSupportedVersion(int vers) {
+        return vers >= MIN_SUPPORTED_VERSION && vers <= MAX_SUPPORTED_VERSION;
+    }
+
+    public static int getMinSupportedVersion() {
+        return MIN_SUPPORTED_VERSION;
+    }
+
+    public static int getMaxSupportedVersion() {
+        return MAX_SUPPORTED_VERSION;
+    }
+
+    public static String versionString(int version) {
+        final int major = version >> 16;
+        final int minor = version & 0xffff;
+        //$NON-NLS-1$
+        return "" + major + '.' + minor;
+    }
+
+    public static final int LINKAGES = Database.DATA_AREA;
+
+    public static final int FILE_INDEX = Database.DATA_AREA + 4;
+
+    public static final int INDEX_OF_DEFECTIVE_FILES = Database.DATA_AREA + 8;
+
+    public static final int INDEX_OF_FILES_WITH_UNRESOLVED_INCLUDES = Database.DATA_AREA + 12;
+
+    public static final int PROPERTIES = Database.DATA_AREA + 16;
+
+    public static final int TAG_INDEX = Database.DATA_AREA + 20;
+
+    public static final int END = Database.DATA_AREA + 24;
+
+    static {
+        assert END <= Database.CHUNK_SIZE;
+    }
+
+    public static class ChangeEvent {
+
+        public Set<IIndexFileLocation> fClearedFiles = new HashSet<>();
+
+        public Set<IIndexFileLocation> fFilesWritten = new HashSet<>();
+
+        private boolean fCleared;
+
+        private boolean fReloaded;
+
+        private boolean fNewFiles;
+
+        private void setCleared() {
+            fCleared = true;
+            fReloaded = false;
+            fNewFiles = false;
+            fClearedFiles.clear();
+            fFilesWritten.clear();
+        }
+
+        public boolean isCleared() {
+            return fCleared;
+        }
+
+        public void setReloaded() {
+            fReloaded = true;
+        }
+
+        public boolean isReloaded() {
+            return fReloaded;
+        }
+
+        public void setHasNewFiles() {
+            fNewFiles = true;
+        }
+
+        public boolean hasNewFiles() {
+            return fNewFiles;
+        }
+
+        public boolean isTrivial() {
+            return !fCleared && !fReloaded && !fNewFiles && fClearedFiles.isEmpty() && fFilesWritten.isEmpty();
+        }
+    }
+
+    public static interface IListener {
+
+        public void handleChange(PDOM pdom, ChangeEvent event);
+    }
+
+    // Primitive comparator that compares database offsets of two records.
+    private static final IBTreeComparator offsetComparator = new IBTreeComparator() {
+
+        @Override
+        public int compare(long record1, long record2) throws CoreException {
+            return record1 < record2 ? -1 : record1 == record2 ? 0 : 1;
+        }
+    };
+
+    // Local caches
+    protected Database db;
+
+    private BTree fileIndex;
+
+    private PDOMTagIndex tagIndex;
+
+    private BTree indexOfDefectiveFiles;
+
+    private BTree indexOfFiledWithUnresolvedIncludes;
+
+    private final Map<Integer, PDOMLinkage> fLinkageIDCache = new HashMap<>();
+
+    private File fPath;
+
+    private final IIndexLocationConverter locationConverter;
+
+    private final Map<String, IPDOMLinkageFactory> fPDOMLinkageFactoryCache;
+
+    private final HashMap<Object, Object> fResultCache = new HashMap<>();
+
+    private final Map<Long, WeakReference<IValue>> fVariableResultCache = new HashMap<>();
+
+    private List<IListener> listeners;
+
+    protected ChangeEvent fEvent = new ChangeEvent();
+
+    public PDOM(File dbPath, IIndexLocationConverter locationConverter, Map<String, IPDOMLinkageFactory> linkageFactoryMappings) throws CoreException {
+        this(dbPath, locationConverter, ChunkCache.getSharedInstance(), linkageFactoryMappings);
+    }
+
+    public PDOM(File dbPath, IIndexLocationConverter locationConverter, ChunkCache cache, Map<String, IPDOMLinkageFactory> linkageFactoryMappings) throws CoreException {
+        fPDOMLinkageFactoryCache = linkageFactoryMappings;
+        loadDatabase(dbPath, cache);
+        this.locationConverter = locationConverter;
+        if (sDEBUG_LOCKS) {
+            fLockDebugging = new HashMap<>();
+            //$NON-NLS-1$
+            System.out.println("Debugging PDOM Locks");
+        }
+    }
+
+    /**
+     * Returns whether this PDOM can never be written to. Writable subclasses should return false.
+     */
+    protected boolean isPermanentlyReadOnly() {
+        return true;
+    }
+
+    private void loadDatabase(File dbPath, ChunkCache cache) throws CoreException {
+        fPath = dbPath;
+        final boolean lockDB = db == null || lockCount != 0;
+        clearCaches();
+        db = new Database(fPath, cache, getDefaultVersion(), isPermanentlyReadOnly());
+        db.setLocked(lockDB);
+        try {
+            if (isSupportedVersion()) {
+                readLinkages();
+            }
+        } finally {
+            db.setLocked(lockCount != 0);
+        }
+    }
+
+    public IIndexLocationConverter getLocationConverter() {
+        return locationConverter;
+    }
+
+    public boolean isSupportedVersion() throws CoreException {
+        final int version = db.getVersion();
+        return version >= MIN_SUPPORTED_VERSION && version <= MAX_SUPPORTED_VERSION;
+    }
+
+    private void readLinkages() throws CoreException {
+        long record = getFirstLinkageRecord();
+        while (record != 0) {
+            String linkageID = PDOMLinkage.getLinkageID(this, record).getString();
+            IPDOMLinkageFactory factory = fPDOMLinkageFactoryCache.get(linkageID);
+            if (factory != null) {
+                PDOMLinkage linkage = factory.getLinkage(this, record);
+                fLinkageIDCache.put(linkage.getLinkageID(), linkage);
+            }
+            record = PDOMLinkage.getNextLinkageRecord(this, record);
+        }
+    }
+
+    protected PDOMLinkage createLinkage(int linkageID) throws CoreException {
+        PDOMLinkage pdomLinkage = fLinkageIDCache.get(linkageID);
+        if (pdomLinkage == null) {
+            final String linkageName = Linkage.getLinkageName(linkageID);
+            IPDOMLinkageFactory factory = fPDOMLinkageFactoryCache.get(linkageName);
+            if (factory != null) {
+                return factory.createLinkage(this);
+            }
+        }
+        return pdomLinkage;
+    }
+
+    public PDOMLinkage getLinkage(int linkageID) throws CoreException {
+        return fLinkageIDCache.get(linkageID);
+    }
+
+    private Collection<PDOMLinkage> getLinkageList() {
+        return fLinkageIDCache.values();
+    }
+
+    public void accept(IPDOMVisitor visitor) throws CoreException {
+        for (PDOMLinkage linkage : getLinkageList()) {
+            linkage.accept(visitor);
+        }
+    }
+
+    @Override
+    public void addListener(IListener listener) {
+        if (listeners == null)
+            listeners = new LinkedList<>();
+        listeners.add(listener);
+    }
+
+    @Override
+    public void removeListener(IListener listener) {
+        if (listeners == null)
+            return;
+        listeners.remove(listener);
+    }
+
+    private void fireChange(ChangeEvent event) {
+        if (listeners == null || event.isTrivial())
+            return;
+        Iterator<IListener> i = listeners.iterator();
+        while (i.hasNext()) i.next().handleChange(this, event);
+    }
+
+    public Database getDB() {
+        return db;
+    }
+
+    public BTree getFileIndex() throws CoreException {
+        if (fileIndex == null)
+            fileIndex = new BTree(getDB(), FILE_INDEX, new PDOMFile.Comparator(getDB()));
+        return fileIndex;
+    }
+
+    public PDOMTagIndex getTagIndex() throws CoreException {
+        if (tagIndex == null) {
+            tagIndex = new PDOMTagIndex(db, TAG_INDEX);
+        }
+        return tagIndex;
+    }
+
+    /**
+     * Returns the index of files that were read with I/O errors.
+     */
+    public BTree getIndexOfDefectiveFiles() throws CoreException {
+        if (indexOfDefectiveFiles == null)
+            indexOfDefectiveFiles = new BTree(getDB(), INDEX_OF_DEFECTIVE_FILES, offsetComparator);
+        return indexOfDefectiveFiles;
+    }
+
+    /**
+     * Returns the index of files containing unresolved includes.
+     */
+    public BTree getIndexOfFilesWithUnresolvedIncludes() throws CoreException {
+        if (indexOfFiledWithUnresolvedIncludes == null) {
+            indexOfFiledWithUnresolvedIncludes = new BTree(getDB(), INDEX_OF_FILES_WITH_UNRESOLVED_INCLUDES, offsetComparator);
+        }
+        return indexOfFiledWithUnresolvedIncludes;
+    }
+
+    @Deprecated
+    @Override
+    public PDOMFile getFile(int linkageID, IIndexFileLocation location) throws CoreException {
+        PDOMLinkage linkage = getLinkage(linkageID);
+        if (linkage == null)
+            return null;
+        return PDOMFile.findFile(linkage, getFileIndex(), location, locationConverter);
+    }
+
+    @Override
+    public PDOMFile getFile(int linkageID, IIndexFileLocation location, ISignificantMacros macroDictionary) throws CoreException {
+        PDOMLinkage linkage = getLinkage(linkageID);
+        if (linkage == null)
+            return null;
+        return PDOMFile.findFile(linkage, getFileIndex(), location, locationConverter, macroDictionary);
+    }
+
+    public PDOMFile getFile(PDOMLinkage linkage, IIndexFileLocation location, ISignificantMacros macroDictionary) throws CoreException {
+        return PDOMFile.findFile(linkage, getFileIndex(), location, locationConverter, macroDictionary);
+    }
+
+    @Override
+    public IIndexFragmentFile[] getFiles(int linkageID, IIndexFileLocation location) throws CoreException {
+        PDOMLinkage linkage = getLinkage(linkageID);
+        if (linkage == null)
+            return IIndexFragmentFile.EMPTY_ARRAY;
+        return PDOMFile.findFiles(linkage, getFileIndex(), location, locationConverter);
+    }
+
+    @Override
+    public IIndexFragmentFile[] getFiles(IIndexFileLocation location) throws CoreException {
+        return PDOMFile.findFiles(this, getFileIndex(), location, locationConverter);
+    }
+
+    @Override
+    public IIndexFragmentFile[] getAllFiles() throws CoreException {
+        return getFiles(getFileIndex());
+    }
+
+    @Override
+    public IIndexFragmentFile[] getDefectiveFiles() throws CoreException {
+        return getFiles(getIndexOfDefectiveFiles());
+    }
+
+    @Override
+    public IIndexFragmentFile[] getFilesWithUnresolvedIncludes() throws CoreException {
+        return getFiles(getIndexOfFilesWithUnresolvedIncludes());
+    }
+
+    private IIndexFragmentFile[] getFiles(BTree index) throws CoreException {
+        final List<PDOMFile> files = new ArrayList<>();
+        index.accept(new IBTreeVisitor() {
+
+            @Override
+            public int compare(long record) throws CoreException {
+                return 0;
+            }
+
+            @Override
+            public boolean visit(long record) throws CoreException {
+                PDOMFile file = PDOMFile.recreateFile(PDOM.this, record);
+                files.add(file);
+                return true;
+            }
+        });
+        return files.toArray(new IIndexFragmentFile[files.size()]);
+    }
+
+    protected IIndexFragmentFile addFile(int linkageID, IIndexFileLocation location, ISignificantMacros sigMacros) throws CoreException {
+        PDOMLinkage linkage = createLinkage(linkageID);
+        IIndexFragmentFile file = getFile(linkage, location, sigMacros);
+        if (file == null) {
+            PDOMFile pdomFile = new PDOMFile(linkage, location, linkageID, sigMacros);
+            getFileIndex().insert(pdomFile.getRecord());
+            file = pdomFile;
+            fEvent.setHasNewFiles();
+        }
+        return file;
+    }
+
+    protected void clearFileIndex() throws CoreException {
+        db.putRecPtr(FILE_INDEX, 0);
+        fileIndex = null;
+    }
+
+    protected void clear() throws CoreException {
+        // needs write-lock.
+        assert lockCount < 0;
+        // Clear out the database, everything is set to zero.
+        int vers = getDefaultVersion();
+        db.clear(vers);
+        clearCaches();
+        fEvent.setCleared();
+    }
+
+    void reloadFromFile(File file) throws CoreException {
+        // must have write lock.
+        assert lockCount < 0;
+        File oldFile = fPath;
+        clearCaches();
+        try {
+            db.close();
+        } catch (CoreException e) {
+            CCorePlugin.log(e);
+        }
+        loadDatabase(file, db.getChunkCache());
+        db.setExclusiveLock();
+        oldFile.delete();
+        fEvent.fReloaded = true;
+    }
+
+    public boolean isEmpty() throws CoreException {
+        return getFirstLinkageRecord() == 0;
+    }
+
+    @Override
+    public IIndexFragmentBinding findBinding(IASTName name) throws CoreException {
+        IBinding binding = name.resolveBinding();
+        if (binding != null) {
+            PDOMLinkage linkage = adaptLinkage(name.getLinkage());
+            if (linkage != null) {
+                return findBindingInLinkage(linkage, binding, true);
+            }
+        } else if (name.getPropertyInParent() == IASTPreprocessorStatement.MACRO_NAME) {
+            PDOMLinkage linkage = adaptLinkage(name.getLinkage());
+            if (linkage != null) {
+                return linkage.findMacroContainer(name.getSimpleID());
+            }
+        }
+        return null;
+    }
+
+    private static class BindingFinder implements IPDOMVisitor {
+
+        private final Pattern[] pattern;
+
+        private final IProgressMonitor monitor;
+
+        private final ArrayList<PDOMNamedNode> currentPath = new ArrayList<>();
+
+        private final ArrayList<BitSet> matchStack = new ArrayList<>();
+
+        private final List<PDOMNamedNode> bindings = new ArrayList<>();
+
+        private final boolean isFullyQualified;
+
+        private BitSet matchesUpToLevel;
+
+        private final IndexFilter filter;
+
+        public BindingFinder(Pattern[] pattern, boolean isFullyQualified, IndexFilter filter, IProgressMonitor monitor) {
+            this.pattern = pattern;
+            this.monitor = monitor;
+            this.isFullyQualified = isFullyQualified;
+            this.filter = filter;
+            matchesUpToLevel = new BitSet();
+            matchesUpToLevel.set(0);
+            matchStack.add(matchesUpToLevel);
+        }
+
+        @Override
+        public boolean visit(IPDOMNode node) throws CoreException {
+            if (monitor.isCanceled())
+                throw new CoreException(Status.OK_STATUS);
+            if (node instanceof PDOMNamedNode) {
+                PDOMNamedNode nnode = (PDOMNamedNode) node;
+                String name = new String(nnode.getNameCharArray());
+                // check if we have a complete match.
+                final int lastIdx = pattern.length - 1;
+                if (matchesUpToLevel.get(lastIdx) && pattern[lastIdx].matcher(name).matches()) {
+                    if (nnode instanceof IBinding && filter.acceptBinding((IBinding) nnode)) {
+                        bindings.add(nnode);
+                    }
+                }
+                // check if we have a partial match
+                if (nnode.mayHaveChildren()) {
+                    // Avoid visiting unscoped enumerator items twice
+                    if (pattern.length == 1 && nnode instanceof ICPPEnumeration && !((ICPPEnumeration) nnode).isScoped()) {
+                        return false;
+                    }
+                    boolean visitNextLevel = false;
+                    BitSet updatedMatchesUpToLevel = new BitSet();
+                    if (!isFullyQualified) {
+                        updatedMatchesUpToLevel.set(0);
+                        visitNextLevel = true;
+                    }
+                    for (int i = 0; i < lastIdx; i++) {
+                        if (matchesUpToLevel.get(i) && pattern[i].matcher(name).matches()) {
+                            updatedMatchesUpToLevel.set(i + 1);
+                            visitNextLevel = true;
+                        }
+                    }
+                    if (visitNextLevel) {
+                        matchStack.add(matchesUpToLevel);
+                        matchesUpToLevel = updatedMatchesUpToLevel;
+                        currentPath.add(nnode);
+                        return true;
+                    }
+                }
+                return false;
+            }
+            return false;
+        }
+
+        @Override
+        public void leave(IPDOMNode node) throws CoreException {
+            final int idx = currentPath.size() - 1;
+            if (idx >= 0 && currentPath.get(idx) == node) {
+                currentPath.remove(idx);
+                matchesUpToLevel = matchStack.remove(matchStack.size() - 1);
+            }
+        }
+
+        public IIndexFragmentBinding[] getBindings() {
+            return bindings.toArray(new IIndexFragmentBinding[bindings.size()]);
+        }
+    }
+
+    public IIndexBinding[] findBindings(Pattern pattern, boolean isFullyQualified, IndexFilter filter, IProgressMonitor monitor) throws CoreException {
+        return findBindings(new Pattern[] { pattern }, isFullyQualified, filter, monitor);
+    }
+
+    @Override
+    public IIndexFragmentBinding[] findBindings(Pattern[] patterns, boolean isFullyQualified, IndexFilter filter, IProgressMonitor monitor) throws CoreException {
+        if (monitor == null) {
+            monitor = new NullProgressMonitor();
+        }
+        // check for some easy cases
+        Boolean caseSensitive = getCaseSensitive(patterns);
+        if (caseSensitive != null) {
+            char[][] simpleNames = extractSimpleNames(patterns);
+            if (simpleNames != null) {
+                if (simpleNames.length == 1) {
+                    return findBindings(simpleNames[0], isFullyQualified, caseSensitive, filter, monitor);
+                } else if (isFullyQualified) {
+                    return findBindings(simpleNames, caseSensitive, filter, monitor);
+                }
+            }
+            char[] prefix = extractPrefix(patterns);
+            if (prefix != null) {
+                return findBindingsForPrefix(prefix, isFullyQualified, caseSensitive, filter, monitor);
+            }
+        }
+        BindingFinder finder = new BindingFinder(patterns, isFullyQualified, filter, monitor);
+        for (PDOMLinkage linkage : getLinkageList()) {
+            if (filter.acceptLinkage(linkage)) {
+                try {
+                    linkage.accept(finder);
+                } catch (CoreException e) {
+                    if (e.getStatus() != Status.OK_STATUS)
+                        throw e;
+                    return IIndexFragmentBinding.EMPTY_INDEX_BINDING_ARRAY;
+                }
+            }
+        }
+        return finder.getBindings();
+    }
+
+    private Boolean getCaseSensitive(Pattern[] patterns) {
+        Boolean caseSensitive = null;
+        for (Pattern p : patterns) {
+            switch(p.flags()) {
+                case 0:
+                    if (caseSensitive == Boolean.FALSE) {
+                        return null;
+                    }
+                    caseSensitive = Boolean.TRUE;
+                    break;
+                case Pattern.CASE_INSENSITIVE:
+                    if (caseSensitive == Boolean.TRUE) {
+                        return null;
+                    }
+                    caseSensitive = Boolean.FALSE;
+                    break;
+                default:
+                    return null;
+            }
+        }
+        return caseSensitive;
+    }
+
+    private char[][] extractSimpleNames(Pattern[] pattern) {
+        char[][] result = new char[pattern.length][];
+        int i = 0;
+        for (Pattern p : pattern) {
+            char[] input = p.pattern().toCharArray();
+            for (char c : input) {
+                if (!Character.isLetterOrDigit(c) && c != '_') {
+                    return null;
+                }
+            }
+            result[i++] = input;
+        }
+        return result;
+    }
+
+    private char[] extractPrefix(Pattern[] pattern) {
+        if (pattern.length != 1)
+            return null;
+        String p = pattern[0].pattern();
+        if (p.endsWith(".*")) {
+            //$NON-NLS-1$
+            char[] input = p.substring(0, p.length() - 2).toCharArray();
+            for (char c : input) {
+                if (!Character.isLetterOrDigit(c) && c != '_') {
+                    return null;
+                }
+            }
+            return input;
+        }
+        return null;
+    }
+
+    @Override
+    public IIndexFragmentBinding[] findMacroContainers(Pattern pattern, IndexFilter filter, IProgressMonitor monitor) throws CoreException {
+        if (monitor == null) {
+            monitor = new NullProgressMonitor();
+        }
+        Pattern[] patterns = new Pattern[] { pattern };
+        Boolean caseSensitive = getCaseSensitive(patterns);
+        if (caseSensitive != null) {
+            char[][] simpleNames = extractSimpleNames(patterns);
+            if (simpleNames != null && simpleNames.length == 1) {
+                return findMacroContainers(simpleNames[0], false, caseSensitive, filter, monitor);
+            }
+            char[] prefix = extractPrefix(patterns);
+            if (prefix != null) {
+                return findMacroContainers(prefix, true, caseSensitive, filter, monitor);
+            }
+        }
+        List<IIndexFragmentBinding> result = new ArrayList<>();
+        for (PDOMLinkage linkage : getLinkageList()) {
+            if (filter.acceptLinkage(linkage)) {
+                try {
+                    MacroContainerPatternCollector finder = new MacroContainerPatternCollector(linkage, pattern, monitor);
+                    linkage.getMacroIndex().accept(finder);
+                    result.addAll(Arrays.asList(finder.getMacroContainers()));
+                } catch (CoreException e) {
+                    if (e.getStatus() != Status.OK_STATUS)
+                        throw e;
+                    return IIndexFragmentBinding.EMPTY_INDEX_BINDING_ARRAY;
+                }
+            }
+        }
+        return result.toArray(new IIndexFragmentBinding[result.size()]);
+    }
+
+    @Override
+    public IIndexFragmentBinding[] findBindings(char[][] names, IndexFilter filter, IProgressMonitor monitor) throws CoreException {
+        return findBindings(names, true, filter, monitor);
+    }
+
+    public IIndexFragmentBinding[] findBindings(char[][] names, boolean caseSensitive, IndexFilter filter, IProgressMonitor monitor) throws CoreException {
+        if (names.length == 0) {
+            return IIndexFragmentBinding.EMPTY_INDEX_BINDING_ARRAY;
+        }
+        if (names.length == 1) {
+            return findBindings(names[0], true, caseSensitive, filter, monitor);
+        }
+        IIndexFragmentBinding[] candidates = findBindings(names[names.length - 1], false, caseSensitive, filter, monitor);
+        int j = 0;
+        for (int i = 0; i < candidates.length; i++) {
+            IIndexFragmentBinding cand = candidates[i];
+            if (matches(cand, names, caseSensitive)) {
+                candidates[j++] = cand;
+            }
+        }
+        return ArrayUtil.trimAt(IIndexFragmentBinding.class, candidates, j - 1);
+    }
+
+    private boolean matches(IIndexFragmentBinding cand, char[][] names, boolean caseSensitive) {
+        for (int i = names.length; --i >= 0; cand = cand.getOwner()) {
+            if (cand == null)
+                return false;
+            char[] name = cand.getNameCharArray();
+            if (!CharArrayUtils.equals(name, 0, name.length, names[i], !caseSensitive)) {
+                if (cand instanceof IEnumeration) {
+                    if (cand instanceof ICPPEnumeration && ((ICPPEnumeration) cand).isScoped())
+                        return false;
+                    // Unscoped enumerations are not part of the qualified name.
+                    i++;
+                } else if (cand instanceof ICPPNamespace && name.length == 0) {
+                    // Anonymous namespaces are not part of the qualified name.
+                    i++;
+                } else {
+                    return false;
+                }
+            }
+        }
+        // Toplevel anonymous namespaces are not part of the qualified name either.
+        return cand == null || (cand instanceof ICPPNamespace && cand.getNameCharArray().length == 0);
+    }
+
+    private long getFirstLinkageRecord() throws CoreException {
+        return db.getRecPtr(LINKAGES);
+    }
+
+    @Override
+    public IIndexLinkage[] getLinkages() {
+        Collection<PDOMLinkage> values = getLinkageList();
+        return values.toArray(new IIndexLinkage[values.size()]);
+    }
+
+    @Override
+    public PDOMLinkage[] getLinkageImpls() {
+        Collection<PDOMLinkage> values = getLinkageList();
+        return values.toArray(new PDOMLinkage[values.size()]);
+    }
+
+    public void insertLinkage(PDOMLinkage linkage) throws CoreException {
+        linkage.setNext(db.getRecPtr(LINKAGES));
+        db.putRecPtr(LINKAGES, linkage.getRecord());
+        fLinkageIDCache.put(linkage.getLinkageID(), linkage);
+    }
+
+    // Read-write lock rules. Readers don't conflict with other readers,
+    // Writers conflict with readers, and everyone conflicts with writers.
+    private final Object mutex = new Object();
+
+    private int lockCount;
+
+    private int waitingReaders;
+
+    private long lastWriteAccess = 0;
+
+    private long lastReadAccess = 0;
+
+    private long timeWriteLockAcquired;
+
+    @Override
+    public void acquireReadLock() throws InterruptedException {
+        long t = sDEBUG_LOCKS ? System.nanoTime() : 0;
+        synchronized (mutex) {
+            ++waitingReaders;
+            try {
+                while (lockCount < 0) mutex.wait();
+            } finally {
+                --waitingReaders;
+            }
+            ++lockCount;
+            db.setLocked(true);
+            if (sDEBUG_LOCKS) {
+                t = (System.nanoTime() - t) / 1000000;
+                if (t >= LONG_READ_LOCK_WAIT_REPORT_THRESHOLD) {
+                    //$NON-NLS-1$//$NON-NLS-2$
+                    System.out.println("Acquired index read lock after " + t + " ms wait.");
+                }
+                incReadLock(fLockDebugging);
+            }
+        }
+    }
+
+    @Override
+    public void releaseReadLock() {
+        synchronized (mutex) {
+            //$NON-NLS-1$
+            assert lockCount > 0 : "No lock to release";
+            if (sDEBUG_LOCKS) {
+                decReadLock(fLockDebugging);
+            }
+            lastReadAccess = System.currentTimeMillis();
+            if (lockCount > 0)
+                --lockCount;
+            mutex.notifyAll();
+            db.setLocked(lockCount != 0);
+        }
+        // A lock release probably means that some AST is going away. The result cache has to be
+        // cleared since it may contain objects belonging to the AST that is going away. A failure
+        // to release an AST object would cause a memory leak since the whole AST would remain
+        // pinned to memory.
+        // TODO(sprigogin): It would be more efficient to replace the global result cache with
+        // separate caches for each AST.
+        clearResultCache();
+    }
+
+    /**
+     * Acquire a write lock on this PDOM. Blocks until any existing read/write locks are released.
+     * @throws InterruptedException
+     * @throws IllegalStateException if this PDOM is not writable
+     */
+    public void acquireWriteLock(IProgressMonitor monitor) throws InterruptedException {
+        acquireWriteLock(0, monitor);
+    }
+
+    /**
+     * Acquire a write lock on this PDOM, giving up the specified number of read locks first. Blocks
+     * until any existing read/write locks are released.
+     * @throws InterruptedException
+     * @throws IllegalStateException if this PDOM is not writable
+     */
+    public void acquireWriteLock(int giveupReadLocks, IProgressMonitor monitor) throws InterruptedException {
+        assert !isPermanentlyReadOnly();
+        synchronized (mutex) {
+            if (sDEBUG_LOCKS) {
+                incWriteLock(giveupReadLocks);
+            }
+            if (giveupReadLocks > 0) {
+                // give up on read locks
+                //$NON-NLS-1$
+                assert lockCount >= giveupReadLocks : "Not enough locks to release";
+                if (lockCount < giveupReadLocks) {
+                    giveupReadLocks = lockCount;
+                }
+            } else {
+                giveupReadLocks = 0;
+            }
+            // Let the readers go first
+            long start = sDEBUG_LOCKS ? System.currentTimeMillis() : 0;
+            int count = 0;
+            while (lockCount > giveupReadLocks || waitingReaders > 0) {
+                mutex.wait(CANCELLATION_CHECK_INTERVAL);
+                if (monitor != null && monitor.isCanceled()) {
+                    throw new OperationCanceledException();
+                }
+                count++;
+                if (monitor != null && count == LONG_WRITE_LOCK_REPORT_THRESHOLD / CANCELLATION_CHECK_INTERVAL) {
+                    monitor.subTask(Messages.PDOM_waitingForWriteLock);
+                }
+                if (sDEBUG_LOCKS) {
+                    start = reportBlockedWriteLock(start, giveupReadLocks);
+                }
+            }
+            lockCount = -1;
+            if (sDEBUG_LOCKS)
+                timeWriteLockAcquired = System.currentTimeMillis();
+            db.setExclusiveLock();
+        }
+        if (monitor != null)
+            //$NON-NLS-1$
+            monitor.subTask("");
+    }
+
+    final public void releaseWriteLock() {
+        releaseWriteLock(0, true);
+    }
+
+    @SuppressWarnings("nls")
+    public void releaseWriteLock(int establishReadLocks, boolean flush) {
+        // When all locks are released we can clear the result cache.
+        if (establishReadLocks == 0) {
+            clearResultCache();
+        }
+        try {
+            db.giveUpExclusiveLock(flush);
+        } catch (CoreException e) {
+            CCorePlugin.log(e);
+        }
+        assert lockCount == -1;
+        if (!fEvent.isTrivial())
+            lastWriteAccess = System.currentTimeMillis();
+        final ChangeEvent event = fEvent;
+        fEvent = new ChangeEvent();
+        synchronized (mutex) {
+            if (sDEBUG_LOCKS) {
+                long timeHeld = lastWriteAccess - timeWriteLockAcquired;
+                if (timeHeld >= LONG_WRITE_LOCK_REPORT_THRESHOLD) {
+                    System.out.println("Index write lock held for " + timeHeld + " ms");
+                }
+                decWriteLock(establishReadLocks);
+            }
+            if (lockCount < 0)
+                lockCount = establishReadLocks;
+            mutex.notifyAll();
+            db.setLocked(lockCount != 0);
+        }
+        fireChange(event);
+    }
+
+    @Override
+    public boolean hasWaitingReaders() {
+        synchronized (mutex) {
+            return waitingReaders > 0;
+        }
+    }
+
+    @Override
+    public long getLastWriteAccess() {
+        return lastWriteAccess;
+    }
+
+    public long getLastReadAccess() {
+        return lastReadAccess;
+    }
+
+    protected PDOMLinkage adaptLinkage(ILinkage linkage) throws CoreException {
+        return fLinkageIDCache.get(linkage.getLinkageID());
+    }
+
+    private ThreadLocal<IBinding> inProgress = new ThreadLocal<>();
+
+    @Override
+    public IIndexFragmentBinding adaptBinding(IBinding binding) throws CoreException {
+        if (inProgress.get() == binding) {
+            // Detect if we're recursing during the adapt. That shouldn't happen and
+            // leads to stack overflow when it does.
+            return null;
+        }
+        inProgress.set(binding);
+        try {
+            return adaptBinding(binding, true);
+        } finally {
+            inProgress.set(null);
+        }
+    }
+
+    private IIndexFragmentBinding adaptBinding(IBinding binding, boolean includeLocal) throws CoreException {
+        if (binding == null) {
+            return null;
+        }
+        PDOMNode pdomNode = binding.getAdapter(PDOMNode.class);
+        if (pdomNode instanceof IIndexFragmentBinding && pdomNode.getPDOM() == this) {
+            return (IIndexFragmentBinding) pdomNode;
+        }
+        PDOMLinkage linkage = adaptLinkage(binding.getLinkage());
+        if (linkage != null) {
+            return findBindingInLinkage(linkage, binding, includeLocal);
+        }
+        if (binding instanceof IMacroBinding) {
+            for (PDOMLinkage linkage2 : fLinkageIDCache.values()) {
+                IIndexFragmentBinding pdomBinding = findBindingInLinkage(linkage2, binding, includeLocal);
+                if (pdomBinding != null)
+                    return pdomBinding;
+            }
+        }
+        return null;
+    }
+
+    private IIndexFragmentBinding findBindingInLinkage(PDOMLinkage linkage, IBinding binding, boolean includeLocal) throws CoreException {
+        if (binding instanceof IMacroBinding || binding instanceof IIndexMacroContainer) {
+            return linkage.findMacroContainer(binding.getNameCharArray());
+        }
+        return linkage.adaptBinding(binding, includeLocal);
+    }
+
+    public IIndexFragmentBinding findBinding(IIndexFragmentName indexName) throws CoreException {
+        if (indexName instanceof PDOMName) {
+            PDOMName pdomName = (PDOMName) indexName;
+            return pdomName.getBinding();
+        }
+        return null;
+    }
+
+    @Override
+    public IIndexFragmentName[] findNames(IBinding binding, int options) throws CoreException {
+        ArrayList<IIndexFragmentName> names = new ArrayList<>();
+        IIndexFragmentBinding myBinding = adaptBinding(binding);
+        if (myBinding instanceof PDOMBinding) {
+            PDOMBinding pdomBinding = (PDOMBinding) myBinding;
+            findNamesForMyBinding(pdomBinding, options, names);
+            if ((options & SEARCH_ACROSS_LANGUAGE_BOUNDARIES) != 0) {
+                PDOMBinding[] xlangBindings = getCrossLanguageBindings(binding);
+                for (PDOMBinding xlangBinding : xlangBindings) {
+                    findNamesForMyBinding(xlangBinding, options, names);
+                }
+            }
+        } else if (myBinding instanceof PDOMMacroContainer) {
+            final PDOMMacroContainer macroContainer = (PDOMMacroContainer) myBinding;
+            findNamesForMyBinding(macroContainer, options, names);
+            if ((options & SEARCH_ACROSS_LANGUAGE_BOUNDARIES) != 0) {
+                PDOMMacroContainer[] xlangBindings = getCrossLanguageBindings(macroContainer);
+                for (PDOMMacroContainer xlangBinding : xlangBindings) {
+                    findNamesForMyBinding(xlangBinding, options, names);
+                }
+            }
+        }
+        return names.toArray(new IIndexFragmentName[names.size()]);
+    }
+
+    private void findNamesForMyBinding(PDOMBinding pdomBinding, int options, ArrayList<IIndexFragmentName> names) throws CoreException {
+        PDOMName name;
+        if ((options & FIND_DECLARATIONS) != 0) {
+            for (name = pdomBinding.getFirstDeclaration(); name != null; name = name.getNextInBinding()) {
+                if (isCommitted(name) && !name.isPotentialMatch()) {
+                    names.add(name);
+                }
+            }
+        }
+        if ((options & FIND_DEFINITIONS) != 0) {
+            for (name = pdomBinding.getFirstDefinition(); name != null; name = name.getNextInBinding()) {
+                boolean findPotentialMatches = (options & FIND_POTENTIAL_MATCHES) != 0;
+                if (isCommitted(name) && (!name.isPotentialMatch() || findPotentialMatches)) {
+                    names.add(name);
+                }
+            }
+        }
+        if ((options & FIND_REFERENCES) != 0) {
+            for (name = pdomBinding.getFirstReference(); name != null; name = name.getNextInBinding()) {
+                if (isCommitted(name) && !name.isPotentialMatch()) {
+                    names.add(name);
+                }
+            }
+            for (IPDOMIterator<PDOMName> iterator = pdomBinding.getExternalReferences(); iterator.hasNext(); ) {
+                name = iterator.next();
+                if (isCommitted(name) && !name.isPotentialMatch())
+                    names.add(name);
+            }
+        }
+    }
+
+    private void findNamesForMyBinding(PDOMMacroContainer container, int options, ArrayList<IIndexFragmentName> names) throws CoreException {
+        if ((options & FIND_DEFINITIONS) != 0) {
+            for (PDOMMacro macro = container.getFirstDefinition(); macro != null; macro = macro.getNextInContainer()) {
+                final IIndexFragmentName name = macro.getDefinition();
+                if (name != null && isCommitted(macro)) {
+                    names.add(name);
+                }
+            }
+        }
+        if ((options & FIND_REFERENCES) != 0) {
+            for (PDOMMacroReferenceName name = container.getFirstReference(); name != null; name = name.getNextInContainer()) {
+                if (isCommitted(name)) {
+                    names.add(name);
+                }
+            }
+        }
+    }
+
+    public IRecordIterator getDeclarationsDefintitionsRecordIterator(IIndexBinding binding) throws CoreException {
+        IIndexFragmentBinding myBinding = adaptBinding(binding);
+        if (myBinding instanceof PDOMBinding) {
+            PDOMBinding pdomBinding = (PDOMBinding) myBinding;
+            return new CompoundRecordIterator(pdomBinding.getDeclarationRecordIterator(), pdomBinding.getDefinitionRecordIterator());
+        }
+        return IRecordIterator.EMPTY;
+    }
+
+    protected boolean isCommitted(PDOMName name) throws CoreException {
+        return true;
+    }
+
+    protected boolean isCommitted(PDOMMacro name) throws CoreException {
+        return true;
+    }
+
+    protected boolean isCommitted(PDOMMacroReferenceName name) throws CoreException {
+        return true;
+    }
+
+    @Override
+    public IIndexFragmentInclude[] findIncludedBy(IIndexFragmentFile file) throws CoreException {
+        PDOMFile pdomFile = adaptFile(file);
+        if (pdomFile != null) {
+            List<PDOMInclude> result = new ArrayList<>();
+            for (PDOMInclude i = pdomFile.getFirstIncludedBy(); i != null; i = i.getNextInIncludedBy()) {
+                if (i.getIncludedBy().getTimestamp() > 0) {
+                    result.add(i);
+                }
+            }
+            return result.toArray(new PDOMInclude[result.size()]);
+        }
+        return new PDOMInclude[0];
+    }
+
+    public boolean hasFileForLocation(int linkageId, IIndexFileLocation location) throws CoreException {
+        PDOMFile pdomFile = getFile(linkageId, location, null);
+        return pdomFile != null;
+    }
+
+    private PDOMFile adaptFile(IIndexFragmentFile file) throws CoreException {
+        if (file.getIndexFragment() == this && file instanceof PDOMFile) {
+            return (PDOMFile) file;
+        }
+        return getFile(file.getLinkageID(), file.getLocation(), file.getSignificantMacros());
+    }
+
+    public File getPath() {
+        return fPath;
+    }
+
+    @Override
+    public IIndexFragmentBinding[] findBindingsForPrefix(char[] prefix, boolean filescope, IndexFilter filter, IProgressMonitor monitor) throws CoreException {
+        return findBindingsForPrefix(prefix, filescope, false, filter, monitor);
+    }
+
+    public IIndexFragmentBinding[] findBindingsForPrefix(char[] prefix, boolean filescope, boolean caseSensitive, IndexFilter filter, IProgressMonitor monitor) throws CoreException {
+        return findBindingsForPrefixOrContentAssist(prefix, filescope, false, caseSensitive, filter, monitor);
+    }
+
+    @Override
+    public IIndexFragmentBinding[] findBindingsForContentAssist(char[] prefix, boolean filescope, IndexFilter filter, IProgressMonitor monitor) throws CoreException {
+        return findBindingsForPrefixOrContentAssist(prefix, filescope, true, false, filter, monitor);
+    }
+
+    private IIndexFragmentBinding[] findBindingsForPrefixOrContentAssist(char[] prefix, boolean filescope, boolean isContentAssist, boolean caseSensitive, IndexFilter filter, IProgressMonitor monitor) throws CoreException {
+        ArrayList<IIndexFragmentBinding> result = new ArrayList<>();
+        for (PDOMLinkage linkage : getLinkageList()) {
+            if (filter.acceptLinkage(linkage)) {
+                PDOMBinding[] bindings;
+                BindingCollector visitor = new BindingCollector(linkage, prefix, filter, !isContentAssist, isContentAssist, caseSensitive);
+                visitor.setMonitor(monitor);
+                try {
+                    linkage.accept(visitor);
+                    if (!filescope) {
+                        // Avoid adding unscoped enumerator items twice
+                        visitor.setSkipGlobalEnumerators(true);
+                        linkage.getNestedBindingsIndex().accept(visitor);
+                    }
+                } catch (OperationCanceledException e) {
+                }
+                bindings = visitor.getBindings();
+                for (PDOMBinding binding : bindings) {
+                    result.add(binding);
+                }
+            }
+        }
+        return result.toArray(new IIndexFragmentBinding[result.size()]);
+    }
+
+    @Override
+    public IIndexFragmentBinding[] findBindings(char[] name, boolean filescope, IndexFilter filter, IProgressMonitor monitor) throws CoreException {
+        return findBindings(name, filescope, true, filter, monitor);
+    }
+
+    public IIndexFragmentBinding[] findBindings(char[] name, boolean filescope, boolean isCaseSensitive, IndexFilter filter, IProgressMonitor monitor) throws CoreException {
+        ArrayList<IIndexFragmentBinding> result = new ArrayList<>();
+        HashSet<PDOMBinding> uniqueNodes = new HashSet<>();
+        try {
+            for (PDOMLinkage linkage : getLinkageList()) {
+                if (filter.acceptLinkage(linkage)) {
+                    if (isCaseSensitive) {
+                        PDOMBinding[] bindings = linkage.getBindingsViaCache(name, monitor);
+                        for (PDOMBinding binding : bindings) {
+                            if (filter.acceptBinding(binding)) {
+                                if (uniqueNodes.add(binding)) {
+                                    result.add(binding);
+                                }
+                            }
+                        }
+                    }
+                    if (!isCaseSensitive || !filescope) {
+                        BindingCollector visitor = new BindingCollector(linkage, name, filter, false, false, isCaseSensitive);
+                        visitor.setMonitor(monitor);
+                        if (!isCaseSensitive)
+                            linkage.accept(visitor);
+                        if (!filescope) {
+                            // Avoid adding unscoped enumerator items twice
+                            visitor.setSkipGlobalEnumerators(true);
+                            linkage.getNestedBindingsIndex().accept(visitor);
+                        }
+                        PDOMBinding[] bindings = visitor.getBindings();
+                        for (PDOMBinding binding : bindings) {
+                            if (uniqueNodes.add(binding)) {
+                                result.add(binding);
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (OperationCanceledException e) {
+        }
+        return result.toArray(new IIndexFragmentBinding[result.size()]);
+    }
+
+    public IIndexFragmentBinding[] findMacroContainers(char[] prefix, boolean isPrefix, boolean isCaseSensitive, IndexFilter filter, IProgressMonitor monitor) throws CoreException {
+        ArrayList<IIndexFragmentBinding> result = new ArrayList<>();
+        try {
+            for (PDOMLinkage linkage : getLinkageList()) {
+                if (filter.acceptLinkage(linkage)) {
+                    MacroContainerCollector visitor = new MacroContainerCollector(linkage, prefix, isPrefix, false, isCaseSensitive);
+                    visitor.setMonitor(monitor);
+                    linkage.getMacroIndex().accept(visitor);
+                    result.addAll(visitor.getMacroList());
+                }
+            }
+        } catch (OperationCanceledException e) {
+        }
+        return result.toArray(new IIndexFragmentBinding[result.size()]);
+    }
+
+    @Override
+    public IIndexMacro[] findMacros(char[] prefix, boolean isPrefix, boolean isCaseSensitive, IndexFilter filter, IProgressMonitor monitor) throws CoreException {
+        ArrayList<IIndexMacro> result = new ArrayList<>();
+        try {
+            for (PDOMLinkage linkage : getLinkageList()) {
+                if (filter.acceptLinkage(linkage)) {
+                    MacroContainerCollector visitor = new MacroContainerCollector(linkage, prefix, isPrefix, false, isCaseSensitive);
+                    visitor.setMonitor(monitor);
+                    linkage.getMacroIndex().accept(visitor);
+                    for (PDOMMacroContainer mcont : visitor.getMacroList()) {
+                        result.addAll(Arrays.asList(mcont.getDefinitions()));
+                    }
+                }
+            }
+        } catch (OperationCanceledException e) {
+        }
+        return result.toArray(new IIndexMacro[result.size()]);
+    }
+
+    @Override
+    public String getProperty(String propertyName) throws CoreException {
+        if (IIndexFragment.PROPERTY_FRAGMENT_FORMAT_ID.equals(propertyName)) {
+            return FRAGMENT_PROPERTY_VALUE_FORMAT_ID;
+        }
+        int version = db.getVersion();
+        if (IIndexFragment.PROPERTY_FRAGMENT_FORMAT_VERSION.equals(propertyName)) {
+            return PDOM.versionString(version);
+        }
+        // play it safe, properties are accessed before version checks.
+        if (PDOM.isSupportedVersion(version)) {
+            return new DBProperties(db, PROPERTIES).getProperty(propertyName);
+        }
+        if (IIndexFragment.PROPERTY_FRAGMENT_ID.equals(propertyName)) {
+            //$NON-NLS-1$
+            return "Unknown";
+        }
+        return null;
+    }
+
+    public void close() throws CoreException {
+        db.close();
+        clearCaches();
+    }
+
+    private void clearCaches() {
+        fileIndex = null;
+        tagIndex = null;
+        indexOfDefectiveFiles = null;
+        indexOfFiledWithUnresolvedIncludes = null;
+        fLinkageIDCache.clear();
+        clearResultCache();
+    }
+
+    @Override
+    public void clearResultCache() {
+        synchronized (fResultCache) {
+            fResultCache.clear();
+        }
+        synchronized (fVariableResultCache) {
+            fVariableResultCache.clear();
+        }
+    }
+
+    @Override
+    public long getCacheHits() {
+        return db.getCacheHits();
+    }
+
+    @Override
+    public long getCacheMisses() {
+        return db.getCacheMisses();
+    }
+
+    @Override
+    public void resetCacheCounters() {
+        db.resetCacheCounters();
+    }
+
+    protected void flush() throws CoreException {
+        db.flush();
+    }
+
+    @Override
+    public Object getCachedResult(Object key) {
+        synchronized (fResultCache) {
+            return fResultCache.get(key);
+        }
+    }
+
+    public void putCachedResult(Object key, Object result) {
+        putCachedResult(key, result, true);
+    }
+
+    @Override
+    public Object putCachedResult(Object key, Object result, boolean replace) {
+        synchronized (fResultCache) {
+            Object old = fResultCache.put(key, result);
+            if (old != null && !replace) {
+                fResultCache.put(key, old);
+                return old;
+            }
+            return result;
+        }
+    }
+
+    public void removeCachedResult(Object key) {
+        synchronized (fResultCache) {
+            fResultCache.remove(key);
+        }
+    }
+
+    public IValue getCachedVariableResult(Long key) {
+        synchronized (fVariableResultCache) {
+            WeakReference<IValue> variableResult = fVariableResultCache.get(key);
+            if (variableResult != null) {
+                return variableResult.get();
+            }
+            return null;
+        }
+    }
+
+    public void removeCachedVariableResult(Long key) {
+        synchronized (fVariableResultCache) {
+            fVariableResultCache.remove(key);
+        }
+    }
+
+    public void putCachedVariableResult(Long key, IValue result) {
+        synchronized (fVariableResultCache) {
+            fVariableResultCache.put(key, new WeakReference<>(result));
+        }
+    }
+
+    public String createKeyForCache(long record, char[] name) {
+        return new StringBuilder(name.length + 2).append((char) (record >> 16)).append((char) record).append(name).toString();
+    }
+
+    public boolean hasLastingDefinition(PDOMBinding binding) throws CoreException {
+        return binding.hasDefinition();
+    }
+
+    private PDOMBinding[] getCrossLanguageBindings(IBinding binding) throws CoreException {
+        switch(binding.getLinkage().getLinkageID()) {
+            case ILinkage.C_LINKAGE_ID:
+                return getCPPBindingForC(binding);
+            case ILinkage.CPP_LINKAGE_ID:
+                return getCBindingForCPP(binding);
+        }
+        return PDOMBinding.EMPTY_PDOMBINDING_ARRAY;
+    }
+
+    private PDOMMacroContainer[] getCrossLanguageBindings(PDOMMacroContainer binding) throws CoreException {
+        final int inputLinkage = binding.getLinkage().getLinkageID();
+        if (inputLinkage == ILinkage.C_LINKAGE_ID || inputLinkage == ILinkage.CPP_LINKAGE_ID) {
+            final char[] name = binding.getNameCharArray();
+            for (PDOMLinkage linkage : getLinkageList()) {
+                final int linkageID = linkage.getLinkageID();
+                if (linkageID != inputLinkage) {
+                    if (linkageID == ILinkage.C_LINKAGE_ID || linkageID == ILinkage.CPP_LINKAGE_ID) {
+                        PDOMMacroContainer container = linkage.findMacroContainer(name);
+                        if (container != null) {
+                            return new PDOMMacroContainer[] { container };
+                        }
+                    }
+                }
+            }
+        }
+        return new PDOMMacroContainer[0];
+    }
+
+    private PDOMBinding[] getCBindingForCPP(IBinding binding) throws CoreException {
+        PDOMBinding result = null;
+        PDOMLinkage c = getLinkage(ILinkage.C_LINKAGE_ID);
+        if (c == null) {
+            return PDOMBinding.EMPTY_PDOMBINDING_ARRAY;
+        }
+        if (binding instanceof ICPPFunction) {
+            ICPPFunction func = (ICPPFunction) binding;
+            if (func.isExternC()) {
+                result = FindBinding.findBinding(c.getIndex(), c, func.getNameCharArray(), new int[] { IIndexCBindingConstants.CFUNCTION }, 0);
+            }
+        } else if (binding instanceof ICPPField) {
+            ICPPField field = (ICPPField) binding;
+            IBinding parent = field.getCompositeTypeOwner();
+            PDOMBinding[] cOwners = getCBindingForCPP(parent);
+            List<PDOMBinding> results = new ArrayList<>();
+            for (PDOMBinding cOwner : cOwners) {
+                result = FindBinding.findBinding(cOwner, c, field.getNameCharArray(), new int[] { IIndexCBindingConstants.CFIELD }, 0);
+                if (result != null) {
+                    results.add(result);
+                }
+            }
+            return results.isEmpty() ? PDOMBinding.EMPTY_PDOMBINDING_ARRAY : results.toArray(new PDOMBinding[results.size()]);
+        } else if (binding instanceof ICPPVariable) {
+            ICPPVariable var = (ICPPVariable) binding;
+            if (var.isExternC()) {
+                result = FindBinding.findBinding(c.getIndex(), c, var.getNameCharArray(), new int[] { IIndexCBindingConstants.CVARIABLE }, 0);
+            }
+        } else if (binding instanceof IEnumeration) {
+            result = FindBinding.findBinding(c.getIndex(), c, binding.getNameCharArray(), new int[] { IIndexCBindingConstants.CENUMERATION }, 0);
+        } else if (binding instanceof IEnumerator) {
+            result = FindBinding.findBinding(c.getIndex(), c, binding.getNameCharArray(), new int[] { IIndexCBindingConstants.CENUMERATOR }, 0);
+        } else if (binding instanceof ITypedef) {
+            result = FindBinding.findBinding(c.getIndex(), c, binding.getNameCharArray(), new int[] { IIndexCBindingConstants.CTYPEDEF }, 0);
+        } else if (binding instanceof ICompositeType) {
+            final int key = ((ICompositeType) binding).getKey();
+            if (key == ICompositeType.k_struct || key == ICompositeType.k_union) {
+                result = FindBinding.findBinding(c.getIndex(), c, binding.getNameCharArray(), new int[] { IIndexCBindingConstants.CSTRUCTURE }, 0);
+                if (result instanceof ICompositeType && ((ICompositeType) result).getKey() != key) {
+                    result = null;
+                }
+            }
+        }
+        return result == null ? PDOMBinding.EMPTY_PDOMBINDING_ARRAY : new PDOMBinding[] { result };
+    }
+
+    private PDOMBinding[] getCPPBindingForC(IBinding binding) throws CoreException {
+        PDOMLinkage cpp = getLinkage(ILinkage.CPP_LINKAGE_ID);
+        if (cpp == null) {
+            return PDOMBinding.EMPTY_PDOMBINDING_ARRAY;
+        }
+        PDOMBinding[] cppOwners = null;
+        IndexFilter filter = null;
+        if (binding instanceof IFunction) {
+            filter = new IndexFilter() {
+
+                @Override
+                public boolean acceptBinding(IBinding binding) {
+                    if (binding instanceof ICPPFunction) {
+                        return ((ICPPFunction) binding).isExternC();
+                    }
+                    return false;
+                }
+            };
+        } else if (binding instanceof IField) {
+            IBinding compOwner = ((IField) binding).getCompositeTypeOwner();
+            cppOwners = getCPPBindingForC(compOwner);
+            if (cppOwners.length > 0) {
+                filter = IndexFilter.ALL;
+            }
+        } else if (binding instanceof IVariable) {
+            if (!(binding instanceof IField) && !(binding instanceof IParameter)) {
+                filter = new IndexFilter() {
+
+                    @Override
+                    public boolean acceptBinding(IBinding binding) {
+                        if (binding instanceof ICPPVariable) {
+                            return ((ICPPVariable) binding).isExternC();
+                        }
+                        return false;
+                    }
+                };
+            }
+        } else if (binding instanceof IEnumeration) {
+            filter = new IndexFilter() {
+
+                @Override
+                public boolean acceptBinding(IBinding binding) {
+                    return binding instanceof IEnumeration;
+                }
+            };
+        } else if (binding instanceof ITypedef) {
+            filter = new IndexFilter() {
+
+                @Override
+                public boolean acceptBinding(IBinding binding) {
+                    return binding instanceof ITypedef;
+                }
+            };
+        } else if (binding instanceof IEnumerator) {
+            filter = new IndexFilter() {
+
+                @Override
+                public boolean acceptBinding(IBinding binding) {
+                    return binding instanceof IEnumerator;
+                }
+            };
+        } else if (binding instanceof ICompositeType) {
+            final int key = ((ICompositeType) binding).getKey();
+            filter = new IndexFilter() {
+
+                @Override
+                public boolean acceptBinding(IBinding binding) {
+                    if (binding instanceof ICompositeType) {
+                        return ((ICompositeType) binding).getKey() == key;
+                    }
+                    return false;
+                }
+            };
+        }
+        if (filter != null) {
+            BindingCollector collector = new BindingCollector(cpp, binding.getNameCharArray(), filter, false, false, true);
+            if (cppOwners != null) {
+                for (PDOMBinding owner : cppOwners) {
+                    owner.accept(collector);
+                }
+            } else {
+                cpp.accept(collector);
+            }
+            return collector.getBindings();
+        }
+        return PDOMBinding.EMPTY_PDOMBINDING_ARRAY;
+    }
+
+    @Override
+    public IIndexFragmentFileSet createFileSet() {
+        return new PDOMFileSet();
+    }
+
+    // For debugging lock issues
+    static class DebugLockInfo {
+
+        int fReadLocks;
+
+        int fWriteLocks;
+
+        List<StackTraceElement[]> fTraces = new ArrayList<>();
+
+        public int addTrace() {
+            fTraces.add(Thread.currentThread().getStackTrace());
+            return fTraces.size();
+        }
+
+        @SuppressWarnings("nls")
+        public void write(String threadName) {
+            System.out.println("Thread: '" + threadName + "': " + fReadLocks + " readlocks, " + fWriteLocks + " writelocks");
+            for (StackTraceElement[] trace : fTraces) {
+                System.out.println("  Stacktrace:");
+                for (StackTraceElement ste : trace) {
+                    System.out.println("    " + ste);
+                }
+            }
+        }
+
+        public void inc(DebugLockInfo val) {
+            fReadLocks += val.fReadLocks;
+            fWriteLocks += val.fWriteLocks;
+            fTraces.addAll(val.fTraces);
+        }
+    }
+
+    // For debugging lock issues
+    private Map<Thread, DebugLockInfo> fLockDebugging;
+
+    // For debugging lock issues
+    private static DebugLockInfo getLockInfo(Map<Thread, DebugLockInfo> lockDebugging) {
+        assert sDEBUG_LOCKS;
+        Thread key = Thread.currentThread();
+        DebugLockInfo result = lockDebugging.get(key);
+        if (result == null) {
+            result = new DebugLockInfo();
+            lockDebugging.put(key, result);
+        }
+        return result;
+    }
+
+    // For debugging lock issues
+    static void incReadLock(Map<Thread, DebugLockInfo> lockDebugging) {
+        DebugLockInfo info = getLockInfo(lockDebugging);
+        info.fReadLocks++;
+        if (info.addTrace() > 10) {
+            outputReadLocks(lockDebugging);
+        }
+    }
+
+    // For debugging lock issues
+    @SuppressWarnings("nls")
+    static void decReadLock(Map<Thread, DebugLockInfo> lockDebugging) throws AssertionError {
+        DebugLockInfo info = getLockInfo(lockDebugging);
+        if (info.fReadLocks <= 0) {
+            outputReadLocks(lockDebugging);
+            throw new AssertionError("Superfluous releaseReadLock");
+        }
+        if (info.fWriteLocks != 0) {
+            outputReadLocks(lockDebugging);
+            throw new AssertionError("Releasing readlock while holding write lock");
+        }
+        if (--info.fReadLocks == 0) {
+            lockDebugging.remove(Thread.currentThread());
+        } else {
+            info.addTrace();
+        }
+    }
+
+    // For debugging lock issues
+    @SuppressWarnings("nls")
+    private void incWriteLock(int giveupReadLocks) throws AssertionError {
+        DebugLockInfo info = getLockInfo(fLockDebugging);
+        if (info.fReadLocks != giveupReadLocks) {
+            outputReadLocks(fLockDebugging);
+            throw new AssertionError("write lock with " + giveupReadLocks + " readlocks, expected " + info.fReadLocks);
+        }
+        if (info.fWriteLocks != 0)
+            throw new AssertionError("Duplicate write lock");
+        info.fWriteLocks++;
+    }
+
+    // For debugging lock issues
+    private void decWriteLock(int establishReadLocks) throws AssertionError {
+        DebugLockInfo info = getLockInfo(fLockDebugging);
+        if (info.fReadLocks != establishReadLocks)
+            throw new AssertionError(//$NON-NLS-1$ //$NON-NLS-2$
+            "release write lock with " + establishReadLocks + " readlocks, expected " + info.fReadLocks);
+        if (info.fWriteLocks != 1)
+            //$NON-NLS-1$
+            throw new AssertionError("Wrong release write lock");
+        info.fWriteLocks = 0;
+        if (info.fReadLocks == 0) {
+            fLockDebugging.remove(Thread.currentThread());
+        }
+    }
+
+    // For debugging lock issues
+    @SuppressWarnings("nls")
+    private long reportBlockedWriteLock(long start, int giveupReadLocks) {
+        long now = System.currentTimeMillis();
+        if (now >= start + BLOCKED_WRITE_LOCK_OUTPUT_INTERVAL) {
+            System.out.println();
+            System.out.println("Blocked writeLock");
+            System.out.println("  lockcount= " + lockCount + ", giveupReadLocks=" + giveupReadLocks + ", waitingReaders=" + waitingReaders);
+            outputReadLocks(fLockDebugging);
+            start = now;
+        }
+        return start;
+    }
+
+    // For debugging lock issues
+    @SuppressWarnings("nls")
+    private static void outputReadLocks(Map<Thread, DebugLockInfo> lockDebugging) {
+        System.out.println("---------------------  Lock Debugging -------------------------");
+        for (Thread th : lockDebugging.keySet()) {
+            DebugLockInfo info = lockDebugging.get(th);
+            info.write(th.getName());
+        }
+        System.out.println("---------------------------------------------------------------");
+    }
+
+    // For debugging lock issues
+    public void adjustThreadForReadLock(Map<Thread, DebugLockInfo> lockDebugging) {
+        for (Thread th : lockDebugging.keySet()) {
+            DebugLockInfo val = lockDebugging.get(th);
+            if (val.fReadLocks > 0) {
+                DebugLockInfo myval = fLockDebugging.get(th);
+                if (myval == null) {
+                    myval = new DebugLockInfo();
+                    fLockDebugging.put(th, myval);
+                }
+                myval.inc(val);
+                for (int i = 0; i < val.fReadLocks; i++) {
+                    decReadLock(fLockDebugging);
+                }
+            }
+        }
+    }
+
+    @Override
+    public IIndexScope[] getInlineNamespaces() throws CoreException {
+        PDOMLinkage linkage = getLinkage(ILinkage.CPP_LINKAGE_ID);
+        if (linkage == null) {
+            return IIndexScope.EMPTY_INDEX_SCOPE_ARRAY;
+        }
+        return linkage.getInlineNamespaces();
+    }
+
+    @Override
+    public boolean isFullyInitialized() {
+        return true;
+    }
 }

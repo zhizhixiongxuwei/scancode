@@ -21,9 +21,9 @@ import org.eclipse.core.runtime.preferences.IPreferenceMetadataStore;
 
 final public class DoxygenOptionsAccess implements DoxygenOptions {
 
-    private final IPreferenceMetadataStore optionStorage;
+    final public IPreferenceMetadataStore optionStorage;
 
-    private final DoxygenMetadata doxygenMetadata;
+    final public DoxygenMetadata doxygenMetadata;
 
     public DoxygenOptionsAccess(IPreferenceMetadataStore optionStorage, DoxygenMetadata doxygenMetadata) {
         this.optionStorage = optionStorage;

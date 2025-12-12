@@ -1,21 +1,22 @@
-/*******************************************************************************
- * Copyright (c) 2012, 2014 Wind River Systems, Inc. and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2012, 2014 Wind River Systems, Inc. and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Markus Schorn - initial API and implementation
- *     Sergey Prigogin (Google)
- *******************************************************************************/
+ *  Contributors:
+ *      Markus Schorn - initial API and implementation
+ *      Sergey Prigogin (Google)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.parser.cpp.semantics;
 
 import static org.eclipse.cdt.core.dom.ast.IASTExpression.ValueCategory.PRVALUE;
-
 import org.eclipse.cdt.core.dom.ast.IASTExpression.ValueCategory;
 import org.eclipse.cdt.core.dom.ast.IASTNode;
 import org.eclipse.cdt.core.dom.ast.IBinding;
@@ -32,119 +33,119 @@ import org.eclipse.core.runtime.CoreException;
  * delegate to the evaluation of the last expression in the compound one.
  */
 public class EvalCompoundStatementExpression extends CPPDependentEvaluation {
-	// fDelegate is the expression inside the expression-statement which is the
-	// last statement inside the statement-expression.
-	// TODO: Store the executions of the statements that come before the last one,
-	//       and simulate their execution in computeForFunctionCall().
-	private final ICPPEvaluation fDelegate;
 
-	public EvalCompoundStatementExpression(ICPPEvaluation delegate, IASTNode pointOfDefinition) {
-		this(delegate, findEnclosingTemplate(pointOfDefinition));
-	}
+    // fDelegate is the expression inside the expression-statement which is the
+    // last statement inside the statement-expression.
+    // TODO: Store the executions of the statements that come before the last one,
+    //       and simulate their execution in computeForFunctionCall().
+    final public ICPPEvaluation fDelegate;
 
-	public EvalCompoundStatementExpression(ICPPEvaluation delegate, IBinding templateDefinition) {
-		super(templateDefinition);
-		fDelegate = delegate;
-	}
+    public EvalCompoundStatementExpression(ICPPEvaluation delegate, IASTNode pointOfDefinition) {
+        this(delegate, findEnclosingTemplate(pointOfDefinition));
+    }
 
-	public ICPPEvaluation getLastEvaluation() {
-		return fDelegate;
-	}
+    public EvalCompoundStatementExpression(ICPPEvaluation delegate, IBinding templateDefinition) {
+        super(templateDefinition);
+        fDelegate = delegate;
+    }
 
-	@Override
-	public boolean isInitializerList() {
-		return false;
-	}
+    public ICPPEvaluation getLastEvaluation() {
+        return fDelegate;
+    }
 
-	@Override
-	public boolean isFunctionSet() {
-		return false;
-	}
+    @Override
+    public boolean isInitializerList() {
+        return false;
+    }
 
-	@Override
-	public boolean isTypeDependent() {
-		return fDelegate.isTypeDependent();
-	}
+    @Override
+    public boolean isFunctionSet() {
+        return false;
+    }
 
-	@Override
-	public boolean isValueDependent() {
-		return fDelegate.isValueDependent();
-	}
+    @Override
+    public boolean isTypeDependent() {
+        return fDelegate.isTypeDependent();
+    }
 
-	@Override
-	public boolean isConstantExpression() {
-		return fDelegate.isConstantExpression();
-	}
+    @Override
+    public boolean isValueDependent() {
+        return fDelegate.isValueDependent();
+    }
 
-	@Override
-	public boolean isEquivalentTo(ICPPEvaluation other) {
-		if (!(other instanceof EvalCompoundStatementExpression)) {
-			return false;
-		}
-		EvalCompoundStatementExpression o = (EvalCompoundStatementExpression) other;
-		return fDelegate.isEquivalentTo(o.fDelegate);
-	}
+    @Override
+    public boolean isConstantExpression() {
+        return fDelegate.isConstantExpression();
+    }
 
-	@Override
-	public IType getType() {
-		return fDelegate.getType();
-	}
+    @Override
+    public boolean isEquivalentTo(ICPPEvaluation other) {
+        if (!(other instanceof EvalCompoundStatementExpression)) {
+            return false;
+        }
+        EvalCompoundStatementExpression o = (EvalCompoundStatementExpression) other;
+        return fDelegate.isEquivalentTo(o.fDelegate);
+    }
 
-	@Override
-	public IValue getValue() {
-		return fDelegate.getValue();
-	}
+    @Override
+    public IType getType() {
+        return fDelegate.getType();
+    }
 
-	@Override
-	public ValueCategory getValueCategory() {
-		return PRVALUE;
-	}
+    @Override
+    public IValue getValue() {
+        return fDelegate.getValue();
+    }
 
-	@Override
-	public void marshal(ITypeMarshalBuffer buffer, boolean includeValue) throws CoreException {
-		buffer.putShort(ITypeMarshalBuffer.EVAL_COMPOUND);
-		buffer.marshalEvaluation(fDelegate, includeValue);
-		marshalTemplateDefinition(buffer);
-	}
+    @Override
+    public ValueCategory getValueCategory() {
+        return PRVALUE;
+    }
 
-	public static ICPPEvaluation unmarshal(short firstBytes, ITypeMarshalBuffer buffer) throws CoreException {
-		ICPPEvaluation arg = buffer.unmarshalEvaluation();
-		IBinding templateDefinition = buffer.unmarshalBinding();
-		return new EvalCompoundStatementExpression(arg, templateDefinition);
-	}
+    @Override
+    public void marshal(ITypeMarshalBuffer buffer, boolean includeValue) throws CoreException {
+        buffer.putShort(ITypeMarshalBuffer.EVAL_COMPOUND);
+        buffer.marshalEvaluation(fDelegate, includeValue);
+        marshalTemplateDefinition(buffer);
+    }
 
-	@Override
-	public ICPPEvaluation instantiate(InstantiationContext context, int maxDepth) {
-		ICPPEvaluation delegate = fDelegate.instantiate(context, maxDepth);
-		if (delegate == fDelegate)
-			return this;
-		return new EvalCompoundStatementExpression(delegate, getTemplateDefinition());
-	}
+    public static ICPPEvaluation unmarshal(short firstBytes, ITypeMarshalBuffer buffer) throws CoreException {
+        ICPPEvaluation arg = buffer.unmarshalEvaluation();
+        IBinding templateDefinition = buffer.unmarshalBinding();
+        return new EvalCompoundStatementExpression(arg, templateDefinition);
+    }
 
-	@Override
-	public ICPPEvaluation computeForFunctionCall(ActivationRecord record, ConstexprEvaluationContext context) {
-		ICPPEvaluation delegate = fDelegate.computeForFunctionCall(record, context.recordStep());
-		if (delegate == fDelegate) {
-			return this;
-		} else {
-			EvalCompoundStatementExpression evalCompound = new EvalCompoundStatementExpression(delegate,
-					getTemplateDefinition());
-			return evalCompound;
-		}
-	}
+    @Override
+    public ICPPEvaluation instantiate(InstantiationContext context, int maxDepth) {
+        ICPPEvaluation delegate = fDelegate.instantiate(context, maxDepth);
+        if (delegate == fDelegate)
+            return this;
+        return new EvalCompoundStatementExpression(delegate, getTemplateDefinition());
+    }
 
-	@Override
-	public int determinePackSize(ICPPTemplateParameterMap tpMap) {
-		return fDelegate.determinePackSize(tpMap);
-	}
+    @Override
+    public ICPPEvaluation computeForFunctionCall(ActivationRecord record, ConstexprEvaluationContext context) {
+        ICPPEvaluation delegate = fDelegate.computeForFunctionCall(record, context.recordStep());
+        if (delegate == fDelegate) {
+            return this;
+        } else {
+            EvalCompoundStatementExpression evalCompound = new EvalCompoundStatementExpression(delegate, getTemplateDefinition());
+            return evalCompound;
+        }
+    }
 
-	@Override
-	public boolean referencesTemplateParameter() {
-		return fDelegate.referencesTemplateParameter();
-	}
+    @Override
+    public int determinePackSize(ICPPTemplateParameterMap tpMap) {
+        return fDelegate.determinePackSize(tpMap);
+    }
 
-	@Override
-	public boolean isNoexcept() {
-		return fDelegate.isNoexcept();
-	}
+    @Override
+    public boolean referencesTemplateParameter() {
+        return fDelegate.referencesTemplateParameter();
+    }
+
+    @Override
+    public boolean isNoexcept() {
+        return fDelegate.isNoexcept();
+    }
 }

@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2014 Google, Inc and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2014 Google, Inc and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- * 	   Sergey Prigogin (Google) - initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *  	   Sergey Prigogin (Google) - initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.core.parser.util;
 
 /**
@@ -19,14 +21,15 @@ package org.eclipse.cdt.core.parser.util;
  * @since 5.7
  */
 public class InstanceOfPredicate<T> implements IUnaryPredicate<T> {
-	private Class<?> type;
 
-	public InstanceOfPredicate(Class<?> type) {
-		this.type = type;
-	}
+    public Class<?> type;
 
-	@Override
-	public boolean apply(T obj) {
-		return type.isInstance(obj);
-	}
+    public InstanceOfPredicate(Class<?> type) {
+        this.type = type;
+    }
+
+    @Override
+    public boolean apply(T obj) {
+        return type.isInstance(obj);
+    }
 }

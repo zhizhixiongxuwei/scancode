@@ -1,22 +1,23 @@
-/*******************************************************************************
- * Copyright (c) 2007, 2014 Intel Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2007, 2014 Intel Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Intel Corporation - Initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *      Intel Corporation - Initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.model;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import org.eclipse.cdt.core.ICExtensionReference;
 import org.eclipse.cdt.core.model.IPathEntry;
 import org.eclipse.cdt.core.resources.IPathEntryStore;
@@ -31,128 +32,127 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 
 public class PathEntryStoreProxy extends AbstractCExtensionProxy implements IPathEntryStore, IPathEntryStoreListener {
-	private List<IPathEntryStoreListener> fListeners;
-	private IPathEntryStore fStore;
 
-	public PathEntryStoreProxy(IProject project) {
-		super(project, PathEntryManager.PATHENTRY_STORE_UNIQ_ID);
-		fListeners = Collections.synchronizedList(new ArrayList<IPathEntryStoreListener>());
-	}
+    public List<IPathEntryStoreListener> fListeners;
 
-	public IPathEntryStore getStore() {
-		providerRequested();
-		return fStore;
-	}
+    public IPathEntryStore fStore;
 
-	@Override
-	public void addPathEntryStoreListener(IPathEntryStoreListener listener) {
-		fListeners.add(listener);
-	}
+    public PathEntryStoreProxy(IProject project) {
+        super(project, PathEntryManager.PATHENTRY_STORE_UNIQ_ID);
+        fListeners = Collections.synchronizedList(new ArrayList<IPathEntryStoreListener>());
+    }
 
-	@Override
-	public void removePathEntryStoreListener(IPathEntryStoreListener listener) {
-		fListeners.remove(listener);
-	}
+    public IPathEntryStore getStore() {
+        providerRequested();
+        return fStore;
+    }
 
-	private void fireContentChangedEvent(IProject project) {
-		PathEntryStoreChangedEvent evt = new PathEntryStoreChangedEvent(this, project,
-				PathEntryStoreChangedEvent.CONTENT_CHANGED);
-		notifyListeners(evt);
-	}
+    @Override
+    public void addPathEntryStoreListener(IPathEntryStoreListener listener) {
+        fListeners.add(listener);
+    }
 
-	private void notifyListeners(PathEntryStoreChangedEvent evt) {
-		IPathEntryStoreListener[] observers = new IPathEntryStoreListener[fListeners.size()];
-		fListeners.toArray(observers);
-		for (int i = 0; i < observers.length; i++) {
-			observers[i].pathEntryStoreChanged(evt);
-		}
-	}
+    @Override
+    public void removePathEntryStoreListener(IPathEntryStoreListener listener) {
+        fListeners.remove(listener);
+    }
 
-	@Override
-	public void close() {
-		super.close();
-		PathEntryStoreChangedEvent evt = new PathEntryStoreChangedEvent(this, getProject(),
-				PathEntryStoreChangedEvent.STORE_CLOSED);
-		IPathEntryStoreListener[] observers = new IPathEntryStoreListener[fListeners.size()];
-		fListeners.toArray(observers);
-		for (int i = 0; i < observers.length; i++) {
-			observers[i].pathEntryStoreChanged(evt);
-		}
-	}
+    private void fireContentChangedEvent(IProject project) {
+        PathEntryStoreChangedEvent evt = new PathEntryStoreChangedEvent(this, project, PathEntryStoreChangedEvent.CONTENT_CHANGED);
+        notifyListeners(evt);
+    }
 
-	@Override
-	public IProject getProject() {
-		return super.getProject();
-	}
+    private void notifyListeners(PathEntryStoreChangedEvent evt) {
+        IPathEntryStoreListener[] observers = new IPathEntryStoreListener[fListeners.size()];
+        fListeners.toArray(observers);
+        for (int i = 0; i < observers.length; i++) {
+            observers[i].pathEntryStoreChanged(evt);
+        }
+    }
 
-	@Override
-	@Deprecated
-	public ICExtensionReference getExtensionReference() {
-		return null;
-	}
+    @Override
+    public void close() {
+        super.close();
+        PathEntryStoreChangedEvent evt = new PathEntryStoreChangedEvent(this, getProject(), PathEntryStoreChangedEvent.STORE_CLOSED);
+        IPathEntryStoreListener[] observers = new IPathEntryStoreListener[fListeners.size()];
+        fListeners.toArray(observers);
+        for (int i = 0; i < observers.length; i++) {
+            observers[i].pathEntryStoreChanged(evt);
+        }
+    }
 
-	@Override
-	public ICConfigExtensionReference getConfigExtensionReference() {
-		return null;
-	}
+    @Override
+    public IProject getProject() {
+        return super.getProject();
+    }
 
-	@Override
-	public IPathEntry[] getRawPathEntries() throws CoreException {
-		providerRequested();
-		return fStore.getRawPathEntries();
-	}
+    @Override
+    @Deprecated
+    public ICExtensionReference getExtensionReference() {
+        return null;
+    }
 
-	@Override
-	public void setRawPathEntries(IPathEntry[] entries) throws CoreException {
-		providerRequested();
-		fStore.setRawPathEntries(entries);
-	}
+    @Override
+    public ICConfigExtensionReference getConfigExtensionReference() {
+        return null;
+    }
 
-	@Override
-	public void pathEntryStoreChanged(PathEntryStoreChangedEvent event) {
-		notifyListeners(event);
-	}
+    @Override
+    public IPathEntry[] getRawPathEntries() throws CoreException {
+        providerRequested();
+        return fStore.getRawPathEntries();
+    }
 
-	@Override
-	protected Object createDefaultProvider(ICConfigurationDescription cfgDes, boolean newStile) {
-		if (newStile) {
-			return new ConfigBasedPathEntryStore(getProject());
-		}
-		return new DefaultPathEntryStore(getProject());
-	}
+    @Override
+    public void setRawPathEntries(IPathEntry[] entries) throws CoreException {
+        providerRequested();
+        fStore.setRawPathEntries(entries);
+    }
 
-	@Override
-	protected void deinitializeProvider(Object o) {
-		IPathEntryStore store = (IPathEntryStore) o;
-		store.removePathEntryStoreListener(this);
-		store.close();
-	}
+    @Override
+    public void pathEntryStoreChanged(PathEntryStoreChangedEvent event) {
+        notifyListeners(event);
+    }
 
-	@Override
-	protected void initializeProvider(Object o) {
-		IPathEntryStore store = (IPathEntryStore) o;
-		fStore = store;
-		store.addPathEntryStoreListener(this);
-	}
+    @Override
+    protected Object createDefaultProvider(ICConfigurationDescription cfgDes, boolean newStile) {
+        if (newStile) {
+            return new ConfigBasedPathEntryStore(getProject());
+        }
+        return new DefaultPathEntryStore(getProject());
+    }
 
-	@Override
-	protected boolean isValidProvider(Object o) {
-		return o instanceof IPathEntryStore;
-	}
+    @Override
+    protected void deinitializeProvider(Object o) {
+        IPathEntryStore store = (IPathEntryStore) o;
+        store.removePathEntryStoreListener(this);
+        store.close();
+    }
 
-	@Override
-	protected void postProcessProviderChange(Object newProvider, Object oldProvider) {
-		//		if (oldProvider != null)
-		fireContentChangedEvent(getProject());
-	}
+    @Override
+    protected void initializeProvider(Object o) {
+        IPathEntryStore store = (IPathEntryStore) o;
+        fStore = store;
+        store.addPathEntryStoreListener(this);
+    }
 
-	@Override
-	protected boolean doHandleEvent(CProjectDescriptionEvent event) {
-		IPathEntryStore oldStore = fStore;
-		boolean result = super.doHandleEvent(event);
-		if (!result)
-			postProcessProviderChange(fStore, oldStore);
+    @Override
+    protected boolean isValidProvider(Object o) {
+        return o instanceof IPathEntryStore;
+    }
 
-		return result;
-	}
+    @Override
+    protected void postProcessProviderChange(Object newProvider, Object oldProvider) {
+        //		if (oldProvider != null)
+        fireContentChangedEvent(getProject());
+    }
+
+    @Override
+    protected boolean doHandleEvent(CProjectDescriptionEvent event) {
+        IPathEntryStore oldStore = fStore;
+        boolean result = super.doHandleEvent(event);
+        if (!result)
+            postProcessProviderChange(fStore, oldStore);
+        return result;
+    }
 }

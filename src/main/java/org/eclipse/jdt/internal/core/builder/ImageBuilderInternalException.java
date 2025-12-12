@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2000, 2008 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2000, 2008 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *      IBM Corporation - initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.jdt.internal.core.builder;
 
 import org.eclipse.core.runtime.CoreException;
@@ -21,25 +23,28 @@ import org.eclipse.core.runtime.CoreException;
  */
 public class ImageBuilderInternalException extends RuntimeException {
 
-private static final long serialVersionUID = 28252254530437336L; // backward compatible
-protected CoreException coreException;
+    // backward compatible
+    static final public long serialVersionUID = 28252254530437336L;
 
-public ImageBuilderInternalException(CoreException e) {
-	this.coreException = e;
-}
+    public CoreException coreException;
 
-public CoreException getThrowable() {
-	return this.coreException;
-}
+    public ImageBuilderInternalException(CoreException e) {
+        this.coreException = e;
+    }
 
-@Override
-public void printStackTrace() {
-	if (this.coreException != null) {
-		System.err.println(this);
-		System.err.println("Stack trace of embedded core exception:"); //$NON-NLS-1$
-		this.coreException.printStackTrace();
-	} else {
-		super.printStackTrace();
-	}
-}
+    public CoreException getThrowable() {
+        return this.coreException;
+    }
+
+    @Override
+    public void printStackTrace() {
+        if (this.coreException != null) {
+            System.err.println(this);
+            //$NON-NLS-1$
+            System.err.println("Stack trace of embedded core exception:");
+            this.coreException.printStackTrace();
+        } else {
+            super.printStackTrace();
+        }
+    }
 }

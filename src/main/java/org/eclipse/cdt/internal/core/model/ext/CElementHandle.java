@@ -45,15 +45,15 @@ import org.eclipse.jface.text.Region;
 
 abstract public class CElementHandle implements ICElementHandle, ISourceReference {
 
-    protected static final String[] EMPTY_STRING_ARRAY = {};
+    static final public String[] EMPTY_STRING_ARRAY = {};
 
-    private static final ICElement[] NO_CHILDREN = {};
+    static final public ICElement[] NO_CHILDREN = {};
 
-    private ICElement fParent;
+    public ICElement fParent;
 
-    private String fName;
+    public String fName;
 
-    private int fType;
+    public int fType;
 
     private IRegion fRegion;
 

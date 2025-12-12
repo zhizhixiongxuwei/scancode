@@ -35,7 +35,7 @@ final public class StaticConflictingSimpleNameFinder implements ConflictingSimpl
         return (Flags.isStatic(memberFlags) || Flags.isEnum(memberFlags)) && !Flags.isPrivate(memberFlags);
     }
 
-    private final IJavaProject project;
+    final public IJavaProject project;
 
     StaticConflictingSimpleNameFinder(IJavaProject project) {
         this.project = project;

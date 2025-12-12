@@ -33,13 +33,13 @@ import org.eclipse.jdt.internal.compiler.util.HashtableOfObject;
  */
 public class AnnotationBinding implements IAnnotationBinding {
 
-    static final AnnotationBinding[] NoAnnotations = new AnnotationBinding[0];
+    static final public AnnotationBinding[] NoAnnotations = new AnnotationBinding[0];
 
-    private final org.eclipse.jdt.internal.compiler.lookup.AnnotationBinding binding;
+    final public org.eclipse.jdt.internal.compiler.lookup.AnnotationBinding binding;
 
-    private final BindingResolver bindingResolver;
+    final public BindingResolver bindingResolver;
 
-    private String key;
+    public String key;
 
     AnnotationBinding(org.eclipse.jdt.internal.compiler.lookup.AnnotationBinding annotation, BindingResolver resolver) {
         if (annotation == null)

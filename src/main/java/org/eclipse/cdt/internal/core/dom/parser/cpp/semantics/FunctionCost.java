@@ -47,13 +47,13 @@ import org.eclipse.cdt.internal.core.dom.parser.cpp.semantics.Cost.DeferredUDC;
  */
 public class FunctionCost {
 
-    private final ICPPFunction fFunction;
+    final public ICPPFunction fFunction;
 
-    private final Cost[] fCosts;
+    final public Cost[] fCosts;
 
-    private final ValueCategory[] fValueCategories;
+    final public ValueCategory[] fValueCategories;
 
-    private boolean fIsDirectCopyCtor;
+    public boolean fIsDirectCopyCtor;
 
     public FunctionCost(ICPPFunction fn, int paramCount) {
         fFunction = fn;

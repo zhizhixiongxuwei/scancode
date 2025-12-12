@@ -2,16 +2,15 @@ package org.eclipse.cdt.internal.core.parser.scanner;
 
 import org.eclipse.cdt.core.dom.ast.IASTFileLocation;
 import org.eclipse.cdt.core.dom.ast.IASTPreprocessorIncludeStatement;
-
 import java.util.Objects;
 
 public class ASTFileLocation implements IASTFileLocation {
 
-    private LocationCtxFile fLocationCtx;
+    public LocationCtxFile fLocationCtx;
 
-    private int fOffset;
+    public int fOffset;
 
-    private int fLength;
+    public int fLength;
 
     public ASTFileLocation(LocationCtxFile fileLocationCtx, int startOffset, int length) {
         fLocationCtx = fileLocationCtx;

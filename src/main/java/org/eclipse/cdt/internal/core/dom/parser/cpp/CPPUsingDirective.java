@@ -1,17 +1,19 @@
-/*******************************************************************************
- * Copyright (c) 2008, 2015 Wind River Systems, Inc. and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2008, 2015 Wind River Systems, Inc. and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Markus Schorn - initial API and implementation
- *     Sergey Prigogin (Google)
- *******************************************************************************/
+ *  Contributors:
+ *      Markus Schorn - initial API and implementation
+ *      Sergey Prigogin (Google)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.parser.cpp;
 
 import org.eclipse.cdt.core.dom.ast.DOMException;
@@ -30,44 +32,46 @@ import org.eclipse.cdt.internal.core.dom.parser.cpp.semantics.CPPVisitor;
  * Represents a using-directive found in the AST.
  */
 public class CPPUsingDirective implements ICPPUsingDirective {
-	private IASTName fNamespaceName;
 
-	/**
-	 * Constructor for explicit using directives
-	 */
-	public CPPUsingDirective(ICPPASTUsingDirective node) {
-		fNamespaceName = node.getQualifiedName();
-	}
+    public IASTName fNamespaceName;
 
-	/**
-	 * Constructor for unnamed namespaces introducing an implicit using directive.
-	 */
-	public CPPUsingDirective(ICPPASTNamespaceDefinition nsdef) {
-		fNamespaceName = nsdef.getName();
-	}
+    /**
+     * Constructor for explicit using directives
+     */
+    public CPPUsingDirective(ICPPASTUsingDirective node) {
+        fNamespaceName = node.getQualifiedName();
+    }
 
-	@Override
-	public ICPPNamespaceScope getNominatedScope() throws DOMException {
-		IBinding binding = fNamespaceName.resolveBinding();
-		if (binding instanceof ICPPNamespace) {
-			return ((ICPPNamespace) binding).getNamespaceScope();
-		}
-		return null;
-	}
+    /**
+     * Constructor for unnamed namespaces introducing an implicit using directive.
+     */
+    public CPPUsingDirective(ICPPASTNamespaceDefinition nsdef) {
+        fNamespaceName = nsdef.getName();
+    }
 
-	@Override
-	public int getPointOfDeclaration() {
-		final ASTNode astNode = (ASTNode) fNamespaceName;
-		return astNode.getOffset() + astNode.getLength();
-	}
+    @Override
+    public ICPPNamespaceScope getNominatedScope() throws DOMException {
+        IBinding binding = fNamespaceName.resolveBinding();
+        if (binding instanceof ICPPNamespace) {
+            return ((ICPPNamespace) binding).getNamespaceScope();
+        }
+        return null;
+    }
 
-	@Override
-	public IScope getContainingScope() {
-		return CPPVisitor.getContainingScope(fNamespaceName);
-	}
+    @Override
+    public int getPointOfDeclaration() {
+        final ASTNode astNode = (ASTNode) fNamespaceName;
+        return astNode.getOffset() + astNode.getLength();
+    }
 
-	@Override
-	public String toString() {
-		return "using namespace " + fNamespaceName.toString(); //$NON-NLS-1$
-	}
+    @Override
+    public IScope getContainingScope() {
+        return CPPVisitor.getContainingScope(fNamespaceName);
+    }
+
+    @Override
+    public String toString() {
+        //$NON-NLS-1$
+        return "using namespace " + fNamespaceName.toString();
+    }
 }

@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2004, 2011 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2004, 2011 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     IBM - Initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *      IBM - Initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.core.dom;
 
 import org.eclipse.cdt.core.dom.ast.IASTCompletionNode;
@@ -30,131 +32,126 @@ import org.eclipse.core.resources.IStorage;
  */
 @Deprecated
 public class CDOM implements IASTServiceProvider {
-	/**
-	 * Singleton - Constructor is private.
-	 */
-	private CDOM() {
-	}
 
-	/**
-	 * <code>instance</code> is the singleton.
-	 */
-	private static CDOM instance = new CDOM();
+    /**
+     * Singleton - Constructor is private.
+     */
+    private CDOM() {
+    }
 
-	/**
-	 * accessor for singleton instance
-	 * @return instance
-	 */
-	public static CDOM getInstance() {
-		return instance;
-	}
+    /**
+     * <code>instance</code> is the singleton.
+     */
+    static public CDOM instance = new CDOM();
 
-	/**
-	 * Currently, only one AST Service is provided.
-	 */
-	private IASTServiceProvider defaultService = new InternalASTServiceProvider();
+    /**
+     * accessor for singleton instance
+     * @return instance
+     */
+    public static CDOM getInstance() {
+        return instance;
+    }
 
-	/**
-	 * @return IASTServiceProvider, the mechanism for obtaining an AST
-	 */
-	public IASTServiceProvider getASTService() {
-		//CDOM itself is not so much "the" AST service as it acts as a proxy
-		//to different AST services
-		//Should we see the need to provide an extension point for this
-		//rather than purely proxying the calls to IASTServiceProvider#*
-		//we would have to do some discovery and co-ordination on behalf of the
-		//client
-		return this;
-	}
+    /**
+     * Currently, only one AST Service is provided.
+     */
+    public IASTServiceProvider defaultService = new InternalASTServiceProvider();
 
-	/**
-	 * Constant <code>PARSE_SAVED_RESOURCES</code> - Parse saved resources in the workspace
-	 */
-	public static final int PARSE_SAVED_RESOURCES = 0;
-	/**
-	 * Constant <code>PARSE_WORKING_COPY_WITH_SAVED_INCLUSIONS</code> - Parse working copy for
-	 * translation unit, saved resources for all header files.
-	 */
-	public static final int PARSE_WORKING_COPY_WITH_SAVED_INCLUSIONS = 1;
-	/**
-	 * Constant <code>PARSE_WORKING_COPY_WHENEVER_POSSIBLE</code> - Parse working copy whenever possible for both
-	 * header files and the file in question as a translation unit.
-	 */
-	public static final int PARSE_WORKING_COPY_WHENEVER_POSSIBLE = 2;
+    /**
+     * @return IASTServiceProvider, the mechanism for obtaining an AST
+     */
+    public IASTServiceProvider getASTService() {
+        //CDOM itself is not so much "the" AST service as it acts as a proxy
+        //to different AST services
+        //Should we see the need to provide an extension point for this
+        //rather than purely proxying the calls to IASTServiceProvider#*
+        //we would have to do some discovery and co-ordination on behalf of the
+        //client
+        return this;
+    }
 
-	/**
-	 * This method always returns <code>null</code>.
-	 */
-	public ICodeReaderFactory getCodeReaderFactory(int key) {
-		return null;
-	}
+    /**
+     * Constant <code>PARSE_SAVED_RESOURCES</code> - Parse saved resources in the workspace
+     */
+    public static final int PARSE_SAVED_RESOURCES = 0;
 
-	@Override
-	public IASTTranslationUnit getTranslationUnit(IFile fileToParse) throws UnsupportedDialectException {
-		//TODO - At this time, we purely delegate blindly
-		//In the future, we may need to delegate based upon context provided
-		return defaultService.getTranslationUnit(fileToParse);
-	}
+    /**
+     * Constant <code>PARSE_WORKING_COPY_WITH_SAVED_INCLUSIONS</code> - Parse working copy for
+     * translation unit, saved resources for all header files.
+     */
+    public static final int PARSE_WORKING_COPY_WITH_SAVED_INCLUSIONS = 1;
 
-	@Override
-	public IASTTranslationUnit getTranslationUnit(IFile fileToParse, ICodeReaderFactory fileCreator)
-			throws UnsupportedDialectException {
-		//TODO - At this time, we purely delegate blindly
-		//In the future, we may need to delegate based upon context provided
-		return defaultService.getTranslationUnit(fileToParse, fileCreator);
-	}
+    /**
+     * Constant <code>PARSE_WORKING_COPY_WHENEVER_POSSIBLE</code> - Parse working copy whenever possible for both
+     * header files and the file in question as a translation unit.
+     */
+    public static final int PARSE_WORKING_COPY_WHENEVER_POSSIBLE = 2;
 
-	@Override
-	public IASTTranslationUnit getTranslationUnit(IFile fileToParse, ICodeReaderFactory fileCreator,
-			IParserConfiguration configuration) throws UnsupportedDialectException {
-		//TODO - At this time, we purely delegate blindly
-		//In the future, we may need to delegate based upon context provided
-		return defaultService.getTranslationUnit(fileToParse, fileCreator, configuration);
-	}
+    /**
+     * This method always returns <code>null</code>.
+     */
+    public ICodeReaderFactory getCodeReaderFactory(int key) {
+        return null;
+    }
 
-	@Override
-	public IASTCompletionNode getCompletionNode(IFile fileToParse, int offset, ICodeReaderFactory fileCreator)
-			throws UnsupportedDialectException {
-		//TODO - At this time, we purely delegate blindly
-		//In the future, we may need to delegate based upon context provided
-		return defaultService.getCompletionNode(fileToParse, offset, fileCreator);
-	}
+    @Override
+    public IASTTranslationUnit getTranslationUnit(IFile fileToParse) throws UnsupportedDialectException {
+        //TODO - At this time, we purely delegate blindly
+        //In the future, we may need to delegate based upon context provided
+        return defaultService.getTranslationUnit(fileToParse);
+    }
 
-	@Override
-	public IASTCompletionNode getCompletionNode(IStorage fileToParse, IProject project, int offset,
-			ICodeReaderFactory fileCreator) throws UnsupportedDialectException {
-		//TODO - At this time, we purely delegate blindly
-		//In the future, we may need to delegate based upon context provided
-		return defaultService.getCompletionNode(fileToParse, project, offset, fileCreator);
-	}
+    @Override
+    public IASTTranslationUnit getTranslationUnit(IFile fileToParse, ICodeReaderFactory fileCreator) throws UnsupportedDialectException {
+        //TODO - At this time, we purely delegate blindly
+        //In the future, we may need to delegate based upon context provided
+        return defaultService.getTranslationUnit(fileToParse, fileCreator);
+    }
 
-	/**
-	 * This method has no effect.
-	 */
-	public void setWorkingCopyProvider(IWorkingCopyProvider workingCopyProvider) {
-	}
+    @Override
+    public IASTTranslationUnit getTranslationUnit(IFile fileToParse, ICodeReaderFactory fileCreator, IParserConfiguration configuration) throws UnsupportedDialectException {
+        //TODO - At this time, we purely delegate blindly
+        //In the future, we may need to delegate based upon context provided
+        return defaultService.getTranslationUnit(fileToParse, fileCreator, configuration);
+    }
 
-	@Override
-	public IASTTranslationUnit getTranslationUnit(IStorage fileToParse, IProject project,
-			ICodeReaderFactory fileCreator) throws UnsupportedDialectException {
-		return defaultService.getTranslationUnit(fileToParse, project, fileCreator);
-	}
+    @Override
+    public IASTCompletionNode getCompletionNode(IFile fileToParse, int offset, ICodeReaderFactory fileCreator) throws UnsupportedDialectException {
+        //TODO - At this time, we purely delegate blindly
+        //In the future, we may need to delegate based upon context provided
+        return defaultService.getCompletionNode(fileToParse, offset, fileCreator);
+    }
 
-	@Override
-	public IASTTranslationUnit getTranslationUnit(IStorage fileToParse, IProject project)
-			throws UnsupportedDialectException {
-		return defaultService.getTranslationUnit(fileToParse, project);
-	}
+    @Override
+    public IASTCompletionNode getCompletionNode(IStorage fileToParse, IProject project, int offset, ICodeReaderFactory fileCreator) throws UnsupportedDialectException {
+        //TODO - At this time, we purely delegate blindly
+        //In the future, we may need to delegate based upon context provided
+        return defaultService.getCompletionNode(fileToParse, project, offset, fileCreator);
+    }
 
-	@Override
-	public IASTTranslationUnit getTranslationUnit(IFile fileToParse, boolean parseComments)
-			throws UnsupportedDialectException {
-		return defaultService.getTranslationUnit(fileToParse, parseComments);
-	}
+    /**
+     * This method has no effect.
+     */
+    public void setWorkingCopyProvider(IWorkingCopyProvider workingCopyProvider) {
+    }
 
-	@Override
-	public IASTTranslationUnit getTranslationUnit(IFile fileToParse, ICodeReaderFactory fileCreator,
-			boolean parseComments) throws UnsupportedDialectException {
-		return defaultService.getTranslationUnit(fileToParse, fileCreator, parseComments);
-	}
+    @Override
+    public IASTTranslationUnit getTranslationUnit(IStorage fileToParse, IProject project, ICodeReaderFactory fileCreator) throws UnsupportedDialectException {
+        return defaultService.getTranslationUnit(fileToParse, project, fileCreator);
+    }
+
+    @Override
+    public IASTTranslationUnit getTranslationUnit(IStorage fileToParse, IProject project) throws UnsupportedDialectException {
+        return defaultService.getTranslationUnit(fileToParse, project);
+    }
+
+    @Override
+    public IASTTranslationUnit getTranslationUnit(IFile fileToParse, boolean parseComments) throws UnsupportedDialectException {
+        return defaultService.getTranslationUnit(fileToParse, parseComments);
+    }
+
+    @Override
+    public IASTTranslationUnit getTranslationUnit(IFile fileToParse, ICodeReaderFactory fileCreator, boolean parseComments) throws UnsupportedDialectException {
+        return defaultService.getTranslationUnit(fileToParse, fileCreator, parseComments);
+    }
 }

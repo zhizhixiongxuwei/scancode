@@ -37,13 +37,13 @@ public class PDOMCPPConstructorSpecialization extends PDOMCPPMethodSpecializatio
      * Offset of the constructor chain execution for constexpr constructors.
      */
     // Database.EXECUTION_SIZE
-    private static final int CONSTRUCTOR_CHAIN = PDOMCPPMethodSpecialization.RECORD_SIZE + 0;
+    static final public int CONSTRUCTOR_CHAIN = PDOMCPPMethodSpecialization.RECORD_SIZE + 0;
 
     /**
      * The size in bytes of a PDOMCPPConstructorSpecialization record in the database.
      */
     @SuppressWarnings("hiding")
-    protected static final int RECORD_SIZE = CONSTRUCTOR_CHAIN + Database.EXECUTION_SIZE;
+    static final public int RECORD_SIZE = CONSTRUCTOR_CHAIN + Database.EXECUTION_SIZE;
 
     public PDOMCPPConstructorSpecialization(PDOMCPPLinkage linkage, PDOMNode parent, ICPPConstructor constructor, PDOMBinding specialized) throws CoreException {
         super(linkage, parent, constructor, specialized);

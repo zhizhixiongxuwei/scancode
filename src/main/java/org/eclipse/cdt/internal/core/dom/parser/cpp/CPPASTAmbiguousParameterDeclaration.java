@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2008, 2012 IBM Wind River Systems, Inc. and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2008, 2012 IBM Wind River Systems, Inc. and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Markus Schorn - Initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *      Markus Schorn - Initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.parser.cpp;
 
 import org.eclipse.cdt.core.dom.ast.ASTVisitor;
@@ -39,116 +41,113 @@ import org.eclipse.core.runtime.Assert;
  * <br>
  * template<typename... T> void function(T ...); // is T a parameter pack?
  */
-public class CPPASTAmbiguousParameterDeclaration extends ASTAmbiguousNode
-		implements IASTAmbiguousParameterDeclaration, ICPPASTParameterDeclaration {
-	private ICPPASTParameterDeclaration fParameterDecl;
+public class CPPASTAmbiguousParameterDeclaration extends ASTAmbiguousNode implements IASTAmbiguousParameterDeclaration, ICPPASTParameterDeclaration {
 
-	public CPPASTAmbiguousParameterDeclaration(ICPPASTParameterDeclaration decl) {
-		fParameterDecl = decl;
-	}
+    public ICPPASTParameterDeclaration fParameterDecl;
 
-	@Override
-	public void addParameterDeclaration(IASTParameterDeclaration d) {
-		assert false;
-	}
+    public CPPASTAmbiguousParameterDeclaration(ICPPASTParameterDeclaration decl) {
+        fParameterDecl = decl;
+    }
 
-	@Override
-	protected final IASTNode doResolveAmbiguity(ASTVisitor resolver) {
-		final IASTAmbiguityParent owner = (IASTAmbiguityParent) getParent();
+    @Override
+    public void addParameterDeclaration(IASTParameterDeclaration d) {
+        assert false;
+    }
 
-		// Setup the ast to use the alternative
-		owner.replace(this, fParameterDecl);
-		fParameterDecl.accept(resolver);
+    @Override
+    protected final IASTNode doResolveAmbiguity(ASTVisitor resolver) {
+        final IASTAmbiguityParent owner = (IASTAmbiguityParent) getParent();
+        // Setup the ast to use the alternative
+        owner.replace(this, fParameterDecl);
+        fParameterDecl.accept(resolver);
+        IType t = CPPVisitor.createType(fParameterDecl, true);
+        if (!(t instanceof ICPPParameterPackType) || !CPPTemplates.containsParameterPack(((ICPPParameterPackType) t).getType())) {
+            final ICPPASTDeclarator dtor = fParameterDecl.getDeclarator();
+            dtor.setDeclaresParameterPack(false);
+            adjustOffsets(dtor);
+            ((ICPPASTFunctionDeclarator) fParameterDecl.getParent()).setVarArgs(true);
+        }
+        return fParameterDecl;
+    }
 
-		IType t = CPPVisitor.createType(fParameterDecl, true);
-		if (!(t instanceof ICPPParameterPackType)
-				|| !CPPTemplates.containsParameterPack(((ICPPParameterPackType) t).getType())) {
-			final ICPPASTDeclarator dtor = fParameterDecl.getDeclarator();
-			dtor.setDeclaresParameterPack(false);
-			adjustOffsets(dtor);
-			((ICPPASTFunctionDeclarator) fParameterDecl.getParent()).setVarArgs(true);
-		}
-		return fParameterDecl;
-	}
+    private void adjustOffsets(final ICPPASTDeclarator dtor) {
+        IASTPointerOperator[] ptrOps = dtor.getPointerOperators();
+        final ASTNode asNode = (ASTNode) dtor;
+        if (ptrOps.length > 0) {
+            final ASTNode first = (ASTNode) ptrOps[0];
+            final ASTNode last = (ASTNode) ptrOps[ptrOps.length - 1];
+            asNode.setOffsetAndLength(first.getOffset(), last.getOffset() + last.getLength());
+        } else {
+            asNode.setOffsetAndLength(0, 0);
+        }
+    }
 
-	private void adjustOffsets(final ICPPASTDeclarator dtor) {
-		IASTPointerOperator[] ptrOps = dtor.getPointerOperators();
-		final ASTNode asNode = (ASTNode) dtor;
-		if (ptrOps.length > 0) {
-			final ASTNode first = (ASTNode) ptrOps[0];
-			final ASTNode last = (ASTNode) ptrOps[ptrOps.length - 1];
-			asNode.setOffsetAndLength(first.getOffset(), last.getOffset() + last.getLength());
-		} else {
-			asNode.setOffsetAndLength(0, 0);
-		}
-	}
+    @Override
+    public IASTParameterDeclaration[] getParameterDeclarations() {
+        return new IASTParameterDeclaration[] { fParameterDecl };
+    }
 
-	@Override
-	public IASTParameterDeclaration[] getParameterDeclarations() {
-		return new IASTParameterDeclaration[] { fParameterDecl };
-	}
+    @Override
+    public IASTNode[] getNodes() {
+        return getParameterDeclarations();
+    }
 
-	@Override
-	public IASTNode[] getNodes() {
-		return getParameterDeclarations();
-	}
+    @Override
+    public IASTDeclSpecifier getDeclSpecifier() {
+        return fParameterDecl.getDeclSpecifier();
+    }
 
-	@Override
-	public IASTDeclSpecifier getDeclSpecifier() {
-		return fParameterDecl.getDeclSpecifier();
-	}
+    @Override
+    public ICPPASTDeclarator getDeclarator() {
+        return fParameterDecl.getDeclarator();
+    }
 
-	@Override
-	public ICPPASTDeclarator getDeclarator() {
-		return fParameterDecl.getDeclarator();
-	}
+    @Override
+    public void setDeclSpecifier(IASTDeclSpecifier declSpec) {
+        Assert.isLegal(false);
+    }
 
-	@Override
-	public void setDeclSpecifier(IASTDeclSpecifier declSpec) {
-		Assert.isLegal(false);
-	}
+    @Override
+    public void setDeclarator(IASTDeclarator declarator) {
+        Assert.isLegal(false);
+    }
 
-	@Override
-	public void setDeclarator(IASTDeclarator declarator) {
-		Assert.isLegal(false);
-	}
+    @Override
+    public ICPPASTParameterDeclaration copy() {
+        Assert.isLegal(false);
+        return null;
+    }
 
-	@Override
-	public ICPPASTParameterDeclaration copy() {
-		Assert.isLegal(false);
-		return null;
-	}
+    @Override
+    public ICPPASTParameterDeclaration copy(CopyStyle style) {
+        Assert.isLegal(false);
+        return null;
+    }
 
-	@Override
-	public ICPPASTParameterDeclaration copy(CopyStyle style) {
-		Assert.isLegal(false);
-		return null;
-	}
+    @Override
+    public boolean isParameterPack() {
+        Assert.isLegal(false);
+        return true;
+    }
 
-	@Override
-	public boolean isParameterPack() {
-		Assert.isLegal(false);
-		return true;
-	}
+    @Override
+    public IASTAttributeSpecifier[] getAttributeSpecifiers() {
+        return fParameterDecl.getAttributeSpecifiers();
+    }
 
-	@Override
-	public IASTAttributeSpecifier[] getAttributeSpecifiers() {
-		return fParameterDecl.getAttributeSpecifiers();
-	}
+    @Override
+    public void addAttributeSpecifier(IASTAttributeSpecifier attributeSpecifier) {
+        fParameterDecl.addAttributeSpecifier(attributeSpecifier);
+    }
 
-	@Override
-	public void addAttributeSpecifier(IASTAttributeSpecifier attributeSpecifier) {
-		fParameterDecl.addAttributeSpecifier(attributeSpecifier);
-	}
+    @Override
+    public IASTAttribute[] getAttributes() {
+        return fParameterDecl.getAttributes();
+    }
 
-	@Override
-	public IASTAttribute[] getAttributes() {
-		return fParameterDecl.getAttributes();
-	}
-
-	@Override
-	@Deprecated
-	public void addAttribute(IASTAttribute attribute) {
-		fParameterDecl.addAttribute(attribute);
-	}
+    @Override
+    @Deprecated
+    public void addAttribute(IASTAttribute attribute) {
+        fParameterDecl.addAttribute(attribute);
+    }
 }

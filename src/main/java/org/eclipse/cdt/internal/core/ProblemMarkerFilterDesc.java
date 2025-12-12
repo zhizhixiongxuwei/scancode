@@ -35,23 +35,23 @@ public class ProblemMarkerFilterDesc {
      * XML attribute for name of class that implements this extension point
      */
     //$NON-NLS-1$
-    private static final String ATTR_CLASS = "class";
+    static final public String ATTR_CLASS = "class";
 
     /**
      * Variable name for projectNatures for enablement expression
      */
     //$NON-NLS-1$
-    private static final String VAR_PROJECTNATURES = "projectNatures";
+    static final public String VAR_PROJECTNATURES = "projectNatures";
 
     /**
      * Configuration element for this extension point
      */
-    private final IConfigurationElement element;
+    final public IConfigurationElement element;
 
     /**
      * Expression that allows conditionally enable/disable extension point
      */
-    private final Expression enablementExpression;
+    final public Expression enablementExpression;
 
     /**
      * Status of this extension point.
@@ -59,7 +59,7 @@ public class ProblemMarkerFilterDesc {
      * True = enabled because of missing enablementExpression
      * null = evaluate the expression for particular project
      */
-    private Boolean fStatus = null;
+    public Boolean fStatus = null;
 
     /**
      * Unique id of this extension point

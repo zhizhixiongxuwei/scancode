@@ -27,7 +27,7 @@ public class TranslationUnitInfo extends OpenableInfo {
      * Timestamp of original resource at the time this element
      * was opened or last updated.
      */
-    protected long fTimestamp;
+    public long fTimestamp;
 
     protected TranslationUnitInfo(CElement element) {
         super(element);

@@ -61,15 +61,15 @@ final public class ScannerContext {
         }
     }
 
-    private CodeState fInactiveState = CodeState.eSkipInactive;
+    public CodeState fInactiveState = CodeState.eSkipInactive;
 
-    private final int fDepth;
+    final public int fDepth;
 
-    private final ILocationCtx fLocationCtx;
+    final public ILocationCtx fLocationCtx;
 
-    private final ScannerContext fParent;
+    final public ScannerContext fParent;
 
-    private final Lexer fLexer;
+    final public Lexer fLexer;
 
     private Token fTokens;
 

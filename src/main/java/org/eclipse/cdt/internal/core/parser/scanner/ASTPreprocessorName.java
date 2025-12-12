@@ -37,9 +37,9 @@ import org.eclipse.core.runtime.IAdaptable;
  */
 public class ASTPreprocessorName extends ASTPreprocessorNode implements IASTName {
 
-    private final char[] fName;
+    final public char[] fName;
 
-    private final IBinding fBinding;
+    final public IBinding fBinding;
 
     public ASTPreprocessorName(IASTNode parent, ASTNodeProperty property, int startNumber, int endNumber, char[] name, IBinding binding) {
         super(parent, property, startNumber, endNumber);
@@ -143,9 +143,3 @@ public class ASTPreprocessorName extends ASTPreprocessorNode implements IASTName
         throw new UnsupportedOperationException();
     }
 }
-
-
-
-
-
-

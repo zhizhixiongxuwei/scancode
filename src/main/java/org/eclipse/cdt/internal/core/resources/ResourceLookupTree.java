@@ -70,15 +70,15 @@ import org.eclipse.core.runtime.jobs.Job;
 public class ResourceLookupTree implements IResourceChangeListener, IResourceDeltaVisitor, IResourceProxyVisitor {
 
     // 10 min
-    private static final int UNREF_DELAY = 10 * 60000;
+    static final public int UNREF_DELAY = 10 * 60000;
 
-    private static final boolean VISIT_CHILDREN = true;
+    static final public boolean VISIT_CHILDREN = true;
 
-    private static final boolean SKIP_CHILDREN = false;
+    static final public boolean SKIP_CHILDREN = false;
 
-    private static final IFile[] NO_FILES = new IFile[0];
+    static final public IFile[] NO_FILES = new IFile[0];
 
-    private static final int TRIGGER_RECALC = IResourceDelta.TYPE | IResourceDelta.REPLACED | IResourceDelta.LOCAL_CHANGED | IResourceDelta.OPEN;
+    static final public int TRIGGER_RECALC = IResourceDelta.TYPE | IResourceDelta.REPLACED | IResourceDelta.LOCAL_CHANGED | IResourceDelta.OPEN;
 
     private static class Extensions {
 
@@ -155,8 +155,8 @@ public class ResourceLookupTree implements IResourceChangeListener, IResourceDel
         };
         fFileExtensions = new HashMap<>();
         fUnrefJob = new //$NON-NLS-1$
-        Job(//$NON-NLS-1$
-        "Timer") {
+        //$NON-NLS-1$
+        Job("Timer") {
 
             @Override
             protected IStatus run(IProgressMonitor monitor) {
@@ -302,9 +302,10 @@ public class ResourceLookupTree implements IResourceChangeListener, IResourceDel
                 CCorePlugin.log(e);
             }
             if (trace) {
-                System.out.println(//$NON-NLS-1$//$NON-NLS-2$
-                "Built file lookup tree for " + res.getName() + ", took " + (System.currentTimeMillis() - time) + "ms to add " + (countNodes() - count) + //$NON-NLS-1$ //$NON-NLS-2$
-                " nodes.");
+                //$NON-NLS-1$//$NON-NLS-2$
+                System.out.//$NON-NLS-1$//$NON-NLS-2$
+                println(//$NON-NLS-1$ //$NON-NLS-2$
+                "Built file lookup tree for " + res.getName() + ", took " + (System.currentTimeMillis() - time) + "ms to add " + (countNodes() - count) + " nodes.");
             }
         }
     }

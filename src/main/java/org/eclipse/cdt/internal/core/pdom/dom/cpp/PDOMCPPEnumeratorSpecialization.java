@@ -37,12 +37,12 @@ import org.eclipse.core.runtime.CoreException;
  */
 public class PDOMCPPEnumeratorSpecialization extends PDOMCPPSpecialization implements IPDOMCPPEnumerator {
 
-    private static final int VALUE = PDOMCPPSpecialization.RECORD_SIZE;
+    static final public int VALUE = PDOMCPPSpecialization.RECORD_SIZE;
 
-    private static final int INTERNAL_TYPE = VALUE + Database.VALUE_SIZE;
+    static final public int INTERNAL_TYPE = VALUE + Database.VALUE_SIZE;
 
     @SuppressWarnings("hiding")
-    protected static final int RECORD_SIZE = INTERNAL_TYPE + Database.TYPE_SIZE;
+    static final public int RECORD_SIZE = INTERNAL_TYPE + Database.TYPE_SIZE;
 
     public PDOMCPPEnumeratorSpecialization(PDOMCPPLinkage linkage, PDOMNode parent, ICPPInternalEnumerator enumerator, PDOMBinding specialized) throws CoreException {
         super(linkage, parent, (ICPPSpecialization) enumerator, specialized);

@@ -27,15 +27,15 @@ import org.eclipse.core.runtime.CoreException;
  */
 final public class Chunk {
 
-    final private byte[] fBuffer = new byte[Database.CHUNK_SIZE];
+    final public byte[] fBuffer = new byte[Database.CHUNK_SIZE];
 
-    final Database fDatabase;
+    final public Database fDatabase;
 
-    final int fSequenceNumber;
+    final public int fSequenceNumber;
 
-    boolean fCacheHitFlag;
+    public boolean fCacheHitFlag;
 
-    boolean fDirty;
+    public boolean fDirty;
 
     // locked chunks must not be released from cache.
     boolean fLocked;

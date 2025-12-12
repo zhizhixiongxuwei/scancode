@@ -6,7 +6,7 @@ import org.eclipse.core.runtime.IAdaptable;
 
 public class ASTBuiltinName extends ASTPreprocessorDefinition implements IAdaptable {
 
-    private final IName fOriginalDefinition;
+    final public IName fOriginalDefinition;
 
     public ASTBuiltinName(IASTNode parent, ASTNodeProperty property, IName originalDefinition, char[] name, IBinding binding) {
         super(parent, property, -1, -1, name, binding);

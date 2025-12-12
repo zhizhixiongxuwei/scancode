@@ -1,22 +1,23 @@
-/*******************************************************************************
- * Copyright (c) 2010, 2011 Wind River Systems, Inc. and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2010, 2011 Wind River Systems, Inc. and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Markus Schorn - initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *      Markus Schorn - initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.pdom;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-
 import org.eclipse.cdt.core.index.IndexerSetupParticipant;
 import org.eclipse.cdt.core.model.ICProject;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -29,98 +30,97 @@ import org.eclipse.core.runtime.jobs.Job;
  * Postpones indexer setup until there are no running refresh jobs.
  */
 public class WaitForRefreshJobs extends IndexerSetupParticipant {
-	private Set<ICProject> fProjects = new HashSet<>();
-	private Set<Job> fRefreshJobs = Collections.synchronizedSet(new HashSet<Job>());
 
-	private IJobChangeListener fJobListener = new IJobChangeListener() {
-		@Override
-		public void sleeping(IJobChangeEvent event) {
-		}
+    public Set<ICProject> fProjects = new HashSet<>();
 
-		@Override
-		public void scheduled(IJobChangeEvent event) {
-		}
+    public Set<Job> fRefreshJobs = Collections.synchronizedSet(new HashSet<Job>());
 
-		@Override
-		public void running(IJobChangeEvent event) {
-		}
+    public IJobChangeListener fJobListener = new IJobChangeListener() {
 
-		@Override
-		public void done(IJobChangeEvent event) {
-			onJobDone(event.getJob());
-		}
+        @Override
+        public void sleeping(IJobChangeEvent event) {
+        }
 
-		@Override
-		public void awake(IJobChangeEvent event) {
-		}
+        @Override
+        public void scheduled(IJobChangeEvent event) {
+        }
 
-		@Override
-		public void aboutToRun(IJobChangeEvent event) {
-		}
-	};
+        @Override
+        public void running(IJobChangeEvent event) {
+        }
 
-	@Override
-	public boolean postponeIndexerSetup(ICProject project) {
-		// Protect set of projects
-		synchronized (this) {
-			if (isRefreshing()) {
-				fProjects.add(project);
-				return true;
-			}
-		}
-		return false;
-	}
+        @Override
+        public void done(IJobChangeEvent event) {
+            onJobDone(event.getJob());
+        }
 
-	protected void onJobDone(Job job) {
-		fRefreshJobs.remove(job);
-		if (fRefreshJobs.isEmpty()) {
-			checkNotifyIndexer();
-		}
-	}
+        @Override
+        public void awake(IJobChangeEvent event) {
+        }
 
-	private void checkNotifyIndexer() {
-		Set<ICProject> projects;
-		// Protect set of projects
-		synchronized (this) {
-			if (isRefreshing())
-				return;
-			projects = fProjects;
-			fProjects = new HashSet<>();
-		}
+        @Override
+        public void aboutToRun(IJobChangeEvent event) {
+        }
+    };
 
-		for (ICProject project : projects) {
-			notifyIndexerSetup(project);
-		}
-	}
+    @Override
+    public boolean postponeIndexerSetup(ICProject project) {
+        // Protect set of projects
+        synchronized (this) {
+            if (isRefreshing()) {
+                fProjects.add(project);
+                return true;
+            }
+        }
+        return false;
+    }
 
-	private boolean isRefreshing() {
-		updateRefreshJobs(ResourcesPlugin.FAMILY_AUTO_REFRESH);
-		if (fRefreshJobs.size() != 0) {
-			return true;
-		}
+    protected void onJobDone(Job job) {
+        fRefreshJobs.remove(job);
+        if (fRefreshJobs.isEmpty()) {
+            checkNotifyIndexer();
+        }
+    }
 
-		updateRefreshJobs(ResourcesPlugin.FAMILY_MANUAL_REFRESH);
-		if (fRefreshJobs.size() != 0) {
-			return true;
-		}
+    private void checkNotifyIndexer() {
+        Set<ICProject> projects;
+        // Protect set of projects
+        synchronized (this) {
+            if (isRefreshing())
+                return;
+            projects = fProjects;
+            fProjects = new HashSet<>();
+        }
+        for (ICProject project : projects) {
+            notifyIndexerSetup(project);
+        }
+    }
 
-		return false;
-	}
+    private boolean isRefreshing() {
+        updateRefreshJobs(ResourcesPlugin.FAMILY_AUTO_REFRESH);
+        if (fRefreshJobs.size() != 0) {
+            return true;
+        }
+        updateRefreshJobs(ResourcesPlugin.FAMILY_MANUAL_REFRESH);
+        if (fRefreshJobs.size() != 0) {
+            return true;
+        }
+        return false;
+    }
 
-	private void updateRefreshJobs(Object jobFamily) {
-		IJobManager jobManager = Job.getJobManager();
-
-		Job[] refreshJobs = jobManager.find(jobFamily);
-		if (refreshJobs != null) {
-			for (Job j : refreshJobs) {
-				if (fRefreshJobs.add(j)) {
-					j.addJobChangeListener(fJobListener);
-					// In case the job has finished in the meantime
-					if (j.getState() == Job.NONE) {
-						fRefreshJobs.remove(j);
-					}
-				}
-			}
-		}
-	}
+    private void updateRefreshJobs(Object jobFamily) {
+        IJobManager jobManager = Job.getJobManager();
+        Job[] refreshJobs = jobManager.find(jobFamily);
+        if (refreshJobs != null) {
+            for (Job j : refreshJobs) {
+                if (fRefreshJobs.add(j)) {
+                    j.addJobChangeListener(fJobListener);
+                    // In case the job has finished in the meantime
+                    if (j.getState() == Job.NONE) {
+                        fRefreshJobs.remove(j);
+                    }
+                }
+            }
+        }
+    }
 }

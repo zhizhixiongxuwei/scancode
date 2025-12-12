@@ -1,17 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2000, 2022 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2000, 2022 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * SPDX-License-Identifier: EPL-2.0
- *
- * Contributors:
- *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *      IBM Corporation - initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.jdt.internal.core.dom.rewrite;
 
 import java.util.ArrayList;
@@ -42,570 +43,645 @@ import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.ReplaceEdit;
 import org.eclipse.text.edits.TextEdit;
 
-@SuppressWarnings({"rawtypes", "unchecked"})
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public final class ASTRewriteFormatter {
 
-	public static class NodeMarker extends Position {
-		public Object data;
-	}
+    public static class NodeMarker extends Position {
 
-	private class ExtendedFlattener extends ASTRewriteFlattener {
+        public Object data;
+    }
 
-		private final ArrayList positions;
+    private class ExtendedFlattener extends ASTRewriteFlattener {
 
-		public ExtendedFlattener(RewriteEventStore store) {
-			super(store);
-			this.positions= new ArrayList();
-		}
+        private final ArrayList positions;
 
-		@Override
-		public void preVisit(ASTNode node) {
-			Object trackData= getEventStore().getTrackedNodeData(node);
-			if (trackData != null) {
-				addMarker(trackData, this.result.length(), 0);
-			}
-			Object placeholderData= getPlaceholders().getPlaceholderData(node);
-			if (placeholderData != null) {
-				addMarker(placeholderData, this.result.length(), 0);
-			}
-		}
+        public ExtendedFlattener(RewriteEventStore store) {
+            super(store);
+            this.positions = new ArrayList();
+        }
 
-		@Override
-		public void postVisit(ASTNode node) {
-			Object placeholderData= getPlaceholders().getPlaceholderData(node);
-			if (placeholderData != null) {
-				fixupLength(placeholderData, this.result.length());
-			}
-			Object trackData= getEventStore().getTrackedNodeData(node);
-			if (trackData != null) {
-				fixupLength(trackData, this.result.length());
-			}
-		}
+        @Override
+        public void preVisit(ASTNode node) {
+            Object trackData = getEventStore().getTrackedNodeData(node);
+            if (trackData != null) {
+                addMarker(trackData, this.result.length(), 0);
+            }
+            Object placeholderData = getPlaceholders().getPlaceholderData(node);
+            if (placeholderData != null) {
+                addMarker(placeholderData, this.result.length(), 0);
+            }
+        }
 
-		@Override
-		public boolean visit(Block node) {
-			if (getPlaceholders().isCollapsed(node)) {
-				visitList(node, Block.STATEMENTS_PROPERTY, null);
-				return false;
-			}
-			return super.visit(node);
-		}
+        @Override
+        public void postVisit(ASTNode node) {
+            Object placeholderData = getPlaceholders().getPlaceholderData(node);
+            if (placeholderData != null) {
+                fixupLength(placeholderData, this.result.length());
+            }
+            Object trackData = getEventStore().getTrackedNodeData(node);
+            if (trackData != null) {
+                fixupLength(trackData, this.result.length());
+            }
+        }
 
-		private NodeMarker addMarker(Object annotation, int startOffset, int length) {
-			NodeMarker marker= new NodeMarker();
-			marker.offset= startOffset;
-			marker.length= length;
-			marker.data= annotation;
-			this.positions.add(marker);
-			return marker;
-		}
+        @Override
+        public boolean visit(Block node) {
+            if (getPlaceholders().isCollapsed(node)) {
+                visitList(node, Block.STATEMENTS_PROPERTY, null);
+                return false;
+            }
+            return super.visit(node);
+        }
 
-		private void fixupLength(Object data, int endOffset) {
-			for (int i= this.positions.size()-1; i >= 0 ; i--) {
-				NodeMarker marker= (NodeMarker) this.positions.get(i);
-				if (marker.data == data) {
-					marker.length= endOffset - marker.offset;
-					return;
-				}
-			}
-		}
+        private NodeMarker addMarker(Object annotation, int startOffset, int length) {
+            NodeMarker marker = new NodeMarker();
+            marker.offset = startOffset;
+            marker.length = length;
+            marker.data = annotation;
+            this.positions.add(marker);
+            return marker;
+        }
 
-		public NodeMarker[] getMarkers() {
-			return (NodeMarker[]) this.positions.toArray(new NodeMarker[this.positions.size()]);
-		}
-	}
+        private void fixupLength(Object data, int endOffset) {
+            for (int i = this.positions.size() - 1; i >= 0; i--) {
+                NodeMarker marker = (NodeMarker) this.positions.get(i);
+                if (marker.data == data) {
+                    marker.length = endOffset - marker.offset;
+                    return;
+                }
+            }
+        }
 
-	private final String lineDelimiter;
-	private final int tabWidth;
-	private final int indentWidth;
+        public NodeMarker[] getMarkers() {
+            return (NodeMarker[]) this.positions.toArray(new NodeMarker[this.positions.size()]);
+        }
+    }
 
-	private final NodeInfoStore placeholders;
-	private final RewriteEventStore eventStore;
+    final public String lineDelimiter;
 
-	private final Map options;
+    final public int tabWidth;
 
+    final public int indentWidth;
 
-	public ASTRewriteFormatter(NodeInfoStore placeholders, RewriteEventStore eventStore, Map options, String lineDelimiter) {
-		this.placeholders= placeholders;
-		this.eventStore= eventStore;
+    final public NodeInfoStore placeholders;
 
-		this.options= options == null ? JavaCore.getOptions() : (Map) new HashMap(options);
-		this.options.put(
-				DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_RESOURCES_IN_TRY,
-				DefaultCodeFormatterConstants.createAlignmentValue(true, DefaultCodeFormatterConstants.WRAP_NEXT_PER_LINE, DefaultCodeFormatterConstants.INDENT_DEFAULT));
+    final public RewriteEventStore eventStore;
 
-		this.lineDelimiter= lineDelimiter;
+    private final Map options;
 
-		this.tabWidth= IndentManipulation.getTabWidth(options);
-		this.indentWidth= IndentManipulation.getIndentWidth(options);
-	}
+    public ASTRewriteFormatter(NodeInfoStore placeholders, RewriteEventStore eventStore, Map options, String lineDelimiter) {
+        this.placeholders = placeholders;
+        this.eventStore = eventStore;
+        this.options = options == null ? JavaCore.getOptions() : (Map) new HashMap(options);
+        this.options.put(DefaultCodeFormatterConstants.FORMATTER_ALIGNMENT_FOR_RESOURCES_IN_TRY, DefaultCodeFormatterConstants.createAlignmentValue(true, DefaultCodeFormatterConstants.WRAP_NEXT_PER_LINE, DefaultCodeFormatterConstants.INDENT_DEFAULT));
+        this.lineDelimiter = lineDelimiter;
+        this.tabWidth = IndentManipulation.getTabWidth(options);
+        this.indentWidth = IndentManipulation.getIndentWidth(options);
+    }
 
+    public NodeInfoStore getPlaceholders() {
+        return this.placeholders;
+    }
 
+    public RewriteEventStore getEventStore() {
+        return this.eventStore;
+    }
 
-	public NodeInfoStore getPlaceholders() {
-		return this.placeholders;
-	}
+    public int getTabWidth() {
+        return this.tabWidth;
+    }
 
-	public RewriteEventStore getEventStore() {
-		return this.eventStore;
-	}
+    public int getIndentWidth() {
+        return this.indentWidth;
+    }
 
-	public int getTabWidth() {
-		return this.tabWidth;
-	}
+    public String getLineDelimiter() {
+        return this.lineDelimiter;
+    }
 
-	public int getIndentWidth() {
-		return this.indentWidth;
-	}
-
-	public String getLineDelimiter() {
-		return this.lineDelimiter;
-	}
-
-	/**
-	 * Returns the string accumulated in the visit formatted using the default formatter.
-	 * Updates the existing node's positions.
-	 *
-	 * @param node The node to flatten.
-	 * @param initialIndentationLevel The initial indentation level.
-	 * @param minimumIndentInSpaces The minimum indent to use in spaces
-	 * @param resultingMarkers Resulting the updated NodeMarkers.
-	 * @return Returns the serialized and formatted code.
-	 */
-	public String getFormattedResult(ASTNode node, int initialIndentationLevel, int minimumIndentInSpaces, Collection resultingMarkers) {
-
-		ExtendedFlattener flattener= new ExtendedFlattener(this.eventStore);
-		node.accept(flattener);
-
-		NodeMarker[] markers= flattener.getMarkers();
-		Collections.addAll(resultingMarkers, markers);
-
-		String unformatted= flattener.getResult();
-		TextEdit edit= formatNode(node, unformatted, initialIndentationLevel, minimumIndentInSpaces);
-		if (edit == null) {
-		    if (initialIndentationLevel > 0) {
-		        // at least correct the indent
-		        String indentString = createIndentString(initialIndentationLevel);
-		        int indentInSpaces= computeIndentInSpaces(indentString);
-		        if (indentInSpaces < minimumIndentInSpaces) {
-		        	indentString = " ".repeat(minimumIndentInSpaces - indentInSpaces) + indentString; //$NON-NLS-1$
-		        }
-				ReplaceEdit[] edits = IndentManipulation.getChangeIndentEdits(unformatted, 0, this.tabWidth, this.indentWidth, indentString);
-				edit= new MultiTextEdit();
-				edit.addChild(new InsertEdit(0, indentString));
-				edit.addChildren(edits);
-		    } else {
-		       return unformatted;
-		    }
-		}
-		return evaluateFormatterEdit(unformatted, edit, markers);
-	}
+    /**
+     * Returns the string accumulated in the visit formatted using the default formatter.
+     * Updates the existing node's positions.
+     *
+     * @param node The node to flatten.
+     * @param initialIndentationLevel The initial indentation level.
+     * @param minimumIndentInSpaces The minimum indent to use in spaces
+     * @param resultingMarkers Resulting the updated NodeMarkers.
+     * @return Returns the serialized and formatted code.
+     */
+    public String getFormattedResult(ASTNode node, int initialIndentationLevel, int minimumIndentInSpaces, Collection resultingMarkers) {
+        ExtendedFlattener flattener = new ExtendedFlattener(this.eventStore);
+        node.accept(flattener);
+        NodeMarker[] markers = flattener.getMarkers();
+        Collections.addAll(resultingMarkers, markers);
+        String unformatted = flattener.getResult();
+        TextEdit edit = formatNode(node, unformatted, initialIndentationLevel, minimumIndentInSpaces);
+        if (edit == null) {
+            if (initialIndentationLevel > 0) {
+                // at least correct the indent
+                String indentString = createIndentString(initialIndentationLevel);
+                int indentInSpaces = computeIndentInSpaces(indentString);
+                if (indentInSpaces < minimumIndentInSpaces) {
+                    //$NON-NLS-1$
+                    indentString = " ".repeat(minimumIndentInSpaces - indentInSpaces) + indentString;
+                }
+                ReplaceEdit[] edits = IndentManipulation.getChangeIndentEdits(unformatted, 0, this.tabWidth, this.indentWidth, indentString);
+                edit = new MultiTextEdit();
+                edit.addChild(new InsertEdit(0, indentString));
+                edit.addChildren(edits);
+            } else {
+                return unformatted;
+            }
+        }
+        return evaluateFormatterEdit(unformatted, edit, markers);
+    }
 
     public String createIndentString(int indentationUnits) {
-    	return ToolFactory.createCodeFormatter(this.options).createIndentationString(indentationUnits);
+        return ToolFactory.createCodeFormatter(this.options).createIndentationString(indentationUnits);
     }
 
     public String createIndentString(int indentationUnits, int minimumIndentInSpaces) {
-    	String indent= ToolFactory.createCodeFormatter(this.options).createIndentationString(indentationUnits);
-    	int indentInSpaces= computeIndentInSpaces(indent);
-    	if (indentInSpaces < minimumIndentInSpaces) {
-    		indent= indent + " ".repeat(minimumIndentInSpaces - indentInSpaces); //$NON-NLS-1$
-    	}
-    	return indent;
+        String indent = ToolFactory.createCodeFormatter(this.options).createIndentationString(indentationUnits);
+        int indentInSpaces = computeIndentInSpaces(indent);
+        if (indentInSpaces < minimumIndentInSpaces) {
+            //$NON-NLS-1$
+            indent = indent + " ".repeat(minimumIndentInSpaces - indentInSpaces);
+        }
+        return indent;
     }
 
     public String getIndentString(String currentLine) {
-		return IndentManipulation.extractIndentString(currentLine, this.tabWidth, this.indentWidth);
-	}
+        return IndentManipulation.extractIndentString(currentLine, this.tabWidth, this.indentWidth);
+    }
 
     public String getIndentStringWithSpaces(String currentLine) {
-    	int count= 0;
-    	while (count < currentLine.length() && IndentManipulation.isIndentChar(currentLine.charAt(count))) {
-    		++count;
-    	}
-    	return currentLine.substring(0, count);
+        int count = 0;
+        while (count < currentLine.length() && IndentManipulation.isIndentChar(currentLine.charAt(count))) {
+            ++count;
+        }
+        return currentLine.substring(0, count);
     }
 
     public String changeIndent(String code, int codeIndentLevel, String newIndent) {
-		return IndentManipulation.changeIndent(code, codeIndentLevel, this.tabWidth, this.indentWidth, newIndent, this.lineDelimiter);
-	}
+        return IndentManipulation.changeIndent(code, codeIndentLevel, this.tabWidth, this.indentWidth, newIndent, this.lineDelimiter);
+    }
 
-	public int computeIndentUnits(String line) {
-		return IndentManipulation.measureIndentUnits(line, this.tabWidth, this.indentWidth);
-	}
+    public int computeIndentUnits(String line) {
+        return IndentManipulation.measureIndentUnits(line, this.tabWidth, this.indentWidth);
+    }
 
-	public int computeIndentInSpaces(String line) {
-		return IndentManipulation.measureIndentInSpaces(line, this.tabWidth);
-	}
+    public int computeIndentInSpaces(String line) {
+        return IndentManipulation.measureIndentInSpaces(line, this.tabWidth);
+    }
 
-	/**
-	 * Evaluates the edit on the given string.
-	 * @param string The string to format
-	 * @param edit The edit resulted from the code formatter
-	 * @param positions Positions to update or <code>null</code>.
-	 * @return The formatted string
-	 * @throws IllegalArgumentException If the positions are not inside the string, a
-	 *  IllegalArgumentException is thrown.
-	 */
-	public static String evaluateFormatterEdit(String string, TextEdit edit, Position[] positions) {
-		try {
-			Document doc= createDocument(string, positions);
-			edit.apply(doc, 0);
-			if (positions != null) {
-				for (Position position : positions) {
-					Assert.isTrue(!position.isDeleted, "Position got deleted"); //$NON-NLS-1$
-				}
-			}
-			return doc.get();
-		} catch (BadLocationException e) {
-			//JavaPlugin.log(e); // bug in the formatter
-			Assert.isTrue(false, "Formatter created edits with wrong positions: " + e.getMessage()); //$NON-NLS-1$
-		}
-		return null;
-	}
+    /**
+     * Evaluates the edit on the given string.
+     * @param string The string to format
+     * @param edit The edit resulted from the code formatter
+     * @param positions Positions to update or <code>null</code>.
+     * @return The formatted string
+     * @throws IllegalArgumentException If the positions are not inside the string, a
+     *  IllegalArgumentException is thrown.
+     */
+    public static String evaluateFormatterEdit(String string, TextEdit edit, Position[] positions) {
+        try {
+            Document doc = createDocument(string, positions);
+            edit.apply(doc, 0);
+            if (positions != null) {
+                for (Position position : positions) {
+                    //$NON-NLS-1$
+                    Assert.isTrue(!position.isDeleted, "Position got deleted");
+                }
+            }
+            return doc.get();
+        } catch (BadLocationException e) {
+            //JavaPlugin.log(e); // bug in the formatter
+            //$NON-NLS-1$
+            Assert.isTrue(false, "Formatter created edits with wrong positions: " + e.getMessage());
+        }
+        return null;
+    }
 
-	public TextEdit formatString(int kind, String string, int offset, int length, int indentationLevel) {
-		return ToolFactory.createCodeFormatter(this.options).format(kind, string, offset, length, indentationLevel, this.lineDelimiter);
-	}
+    public TextEdit formatString(int kind, String string, int offset, int length, int indentationLevel) {
+        return ToolFactory.createCodeFormatter(this.options).format(kind, string, offset, length, indentationLevel, this.lineDelimiter);
+    }
 
-	/**
-	 * Creates edits that describe how to format the given string. Returns <code>null</code> if the code could not be formatted for the given kind.
-	 * @param node Node describing the type of the string
-	 * @param str The unformatted string
-	 * @param indentationLevel Indentation level in tab widths
-	 * @param minimumIndentInSpaces Minimum indent of item in spaces
-	 * @return Returns the edit representing the result of the formatter
-	 * @throws IllegalArgumentException If the offset and length are not inside the string, a
-	 *  IllegalArgumentException is thrown.
-	 */
-	private TextEdit formatNode(ASTNode node, String str, int indentationLevel, int minimumIndentInSpaces) {
-		int code;
-		String prefix= ""; //$NON-NLS-1$
-		String suffix= ""; //$NON-NLS-1$
-		if (node instanceof Statement) {
-			code= CodeFormatter.K_STATEMENTS;
-			if (node.getNodeType() == ASTNode.SWITCH_CASE) {
-				prefix= "switch(1) {"; //$NON-NLS-1$
-				suffix= "}"; //$NON-NLS-1$
-				code= CodeFormatter.K_STATEMENTS;
-			}
-		} else if (node instanceof Expression && node.getNodeType() != ASTNode.VARIABLE_DECLARATION_EXPRESSION) {
-			if (node instanceof Annotation) {
-				suffix= "\nclass A {}"; //$NON-NLS-1$
-				code= CodeFormatter.K_COMPILATION_UNIT;
-			} else {
-				code= CodeFormatter.K_EXPRESSION;
-			}
-		} else if (node instanceof BodyDeclaration) {
-			code= CodeFormatter.K_CLASS_BODY_DECLARATIONS;
-		} else {
-			switch (node.getNodeType()) {
-				case ASTNode.ARRAY_TYPE:
-				case ASTNode.PARAMETERIZED_TYPE:
-				case ASTNode.PRIMITIVE_TYPE:
-				case ASTNode.QUALIFIED_TYPE:
-				case ASTNode.SIMPLE_TYPE:
-					prefix= "void m(final "; //$NON-NLS-1$
-					suffix= " x);"; //$NON-NLS-1$
-					code= CodeFormatter.K_CLASS_BODY_DECLARATIONS;
-					break;
-				case ASTNode.WILDCARD_TYPE:
-					prefix= "A<"; //$NON-NLS-1$
-					suffix= "> x;"; //$NON-NLS-1$
-					code= CodeFormatter.K_CLASS_BODY_DECLARATIONS;
-					break;
-				case ASTNode.COMPILATION_UNIT:
-					code= CodeFormatter.K_COMPILATION_UNIT;
-					break;
-				case ASTNode.MODULE_DECLARATION:
-					code= CodeFormatter.K_MODULE_INFO;
-					break;
-				case ASTNode.VARIABLE_DECLARATION_EXPRESSION:
-					suffix= ";"; //$NON-NLS-1$
-					code= CodeFormatter.K_STATEMENTS;
-					break;
-				case ASTNode.SINGLE_VARIABLE_DECLARATION:
-					prefix= "void m("; //$NON-NLS-1$
-					suffix= ");"; //$NON-NLS-1$
-					code= CodeFormatter.K_CLASS_BODY_DECLARATIONS;
-					break;
-				case ASTNode.VARIABLE_DECLARATION_FRAGMENT:
-					prefix= "A "; //$NON-NLS-1$
-					suffix= ";"; //$NON-NLS-1$
-					code= CodeFormatter.K_STATEMENTS;
-					break;
-				case ASTNode.PACKAGE_DECLARATION:
-				case ASTNode.IMPORT_DECLARATION:
-					suffix= "\nclass A {}"; //$NON-NLS-1$
-					code= CodeFormatter.K_COMPILATION_UNIT;
-					break;
-				case ASTNode.JAVADOC:
-					suffix= "\nclass A {}"; //$NON-NLS-1$
-					code= CodeFormatter.K_COMPILATION_UNIT;
-					break;
-				case ASTNode.CATCH_CLAUSE:
-					prefix= "try {}"; //$NON-NLS-1$
-					code= CodeFormatter.K_STATEMENTS;
-					break;
-				case ASTNode.ANONYMOUS_CLASS_DECLARATION:
-					prefix= "new A()"; //$NON-NLS-1$
-					suffix= ";"; //$NON-NLS-1$
-					code= CodeFormatter.K_STATEMENTS;
-					break;
-				case ASTNode.MEMBER_VALUE_PAIR:
-					prefix= "@Author("; //$NON-NLS-1$
-					suffix= ") class x {}"; //$NON-NLS-1$
-					code= CodeFormatter.K_COMPILATION_UNIT;
-					break;
-				case ASTNode.MODIFIER:
-					suffix= " class x {}"; //$NON-NLS-1$
-					code= CodeFormatter.K_COMPILATION_UNIT;
-					break;
-				case ASTNode.MODULE_MODIFIER:
-					code= CodeFormatter.K_MODULE_INFO;
-					break;
-				case ASTNode.TYPE_PARAMETER:
-					prefix= "class X<"; //$NON-NLS-1$
-					suffix= "> {}"; //$NON-NLS-1$
-					code= CodeFormatter.K_COMPILATION_UNIT;
-					break;
-				case ASTNode.MEMBER_REF:
-				case ASTNode.METHOD_REF:
-				case ASTNode.METHOD_REF_PARAMETER:
-				case ASTNode.TAG_ELEMENT:
-				case ASTNode.TEXT_ELEMENT:
-				case ASTNode.JAVADOC_TEXT_ELEMENT:
-					// javadoc formatting disabled due to bug 93644
-					return null;
+    /**
+     * Creates edits that describe how to format the given string. Returns <code>null</code> if the code could not be formatted for the given kind.
+     * @param node Node describing the type of the string
+     * @param str The unformatted string
+     * @param indentationLevel Indentation level in tab widths
+     * @param minimumIndentInSpaces Minimum indent of item in spaces
+     * @return Returns the edit representing the result of the formatter
+     * @throws IllegalArgumentException If the offset and length are not inside the string, a
+     *  IllegalArgumentException is thrown.
+     */
+    private TextEdit formatNode(ASTNode node, String str, int indentationLevel, int minimumIndentInSpaces) {
+        int code;
+        //$NON-NLS-1$
+        String prefix = "";
+        //$NON-NLS-1$
+        String suffix = "";
+        if (node instanceof Statement) {
+            code = CodeFormatter.K_STATEMENTS;
+            if (node.getNodeType() == ASTNode.SWITCH_CASE) {
+                //$NON-NLS-1$
+                prefix = "switch(1) {";
+                //$NON-NLS-1$
+                suffix = "}";
+                code = CodeFormatter.K_STATEMENTS;
+            }
+        } else if (node instanceof Expression && node.getNodeType() != ASTNode.VARIABLE_DECLARATION_EXPRESSION) {
+            if (node instanceof Annotation) {
+                //$NON-NLS-1$
+                suffix = "\nclass A {}";
+                code = CodeFormatter.K_COMPILATION_UNIT;
+            } else {
+                code = CodeFormatter.K_EXPRESSION;
+            }
+        } else if (node instanceof BodyDeclaration) {
+            code = CodeFormatter.K_CLASS_BODY_DECLARATIONS;
+        } else {
+            switch(node.getNodeType()) {
+                case ASTNode.ARRAY_TYPE:
+                case ASTNode.PARAMETERIZED_TYPE:
+                case ASTNode.PRIMITIVE_TYPE:
+                case ASTNode.QUALIFIED_TYPE:
+                case ASTNode.SIMPLE_TYPE:
+                    //$NON-NLS-1$
+                    prefix = "void m(final ";
+                    //$NON-NLS-1$
+                    suffix = " x);";
+                    code = CodeFormatter.K_CLASS_BODY_DECLARATIONS;
+                    break;
+                case ASTNode.WILDCARD_TYPE:
+                    //$NON-NLS-1$
+                    prefix = "A<";
+                    //$NON-NLS-1$
+                    suffix = "> x;";
+                    code = CodeFormatter.K_CLASS_BODY_DECLARATIONS;
+                    break;
+                case ASTNode.COMPILATION_UNIT:
+                    code = CodeFormatter.K_COMPILATION_UNIT;
+                    break;
+                case ASTNode.MODULE_DECLARATION:
+                    code = CodeFormatter.K_MODULE_INFO;
+                    break;
+                case ASTNode.VARIABLE_DECLARATION_EXPRESSION:
+                    //$NON-NLS-1$
+                    suffix = ";";
+                    code = CodeFormatter.K_STATEMENTS;
+                    break;
+                case ASTNode.SINGLE_VARIABLE_DECLARATION:
+                    //$NON-NLS-1$
+                    prefix = "void m(";
+                    //$NON-NLS-1$
+                    suffix = ");";
+                    code = CodeFormatter.K_CLASS_BODY_DECLARATIONS;
+                    break;
+                case ASTNode.VARIABLE_DECLARATION_FRAGMENT:
+                    //$NON-NLS-1$
+                    prefix = "A ";
+                    //$NON-NLS-1$
+                    suffix = ";";
+                    code = CodeFormatter.K_STATEMENTS;
+                    break;
+                case ASTNode.PACKAGE_DECLARATION:
+                case ASTNode.IMPORT_DECLARATION:
+                    //$NON-NLS-1$
+                    suffix = "\nclass A {}";
+                    code = CodeFormatter.K_COMPILATION_UNIT;
+                    break;
+                case ASTNode.JAVADOC:
+                    //$NON-NLS-1$
+                    suffix = "\nclass A {}";
+                    code = CodeFormatter.K_COMPILATION_UNIT;
+                    break;
+                case ASTNode.CATCH_CLAUSE:
+                    //$NON-NLS-1$
+                    prefix = "try {}";
+                    code = CodeFormatter.K_STATEMENTS;
+                    break;
+                case ASTNode.ANONYMOUS_CLASS_DECLARATION:
+                    //$NON-NLS-1$
+                    prefix = "new A()";
+                    //$NON-NLS-1$
+                    suffix = ";";
+                    code = CodeFormatter.K_STATEMENTS;
+                    break;
+                case ASTNode.MEMBER_VALUE_PAIR:
+                    //$NON-NLS-1$
+                    prefix = "@Author(";
+                    //$NON-NLS-1$
+                    suffix = ") class x {}";
+                    code = CodeFormatter.K_COMPILATION_UNIT;
+                    break;
+                case ASTNode.MODIFIER:
+                    //$NON-NLS-1$
+                    suffix = " class x {}";
+                    code = CodeFormatter.K_COMPILATION_UNIT;
+                    break;
+                case ASTNode.MODULE_MODIFIER:
+                    code = CodeFormatter.K_MODULE_INFO;
+                    break;
+                case ASTNode.TYPE_PARAMETER:
+                    //$NON-NLS-1$
+                    prefix = "class X<";
+                    //$NON-NLS-1$
+                    suffix = "> {}";
+                    code = CodeFormatter.K_COMPILATION_UNIT;
+                    break;
+                case ASTNode.MEMBER_REF:
+                case ASTNode.METHOD_REF:
+                case ASTNode.METHOD_REF_PARAMETER:
+                case ASTNode.TAG_ELEMENT:
+                case ASTNode.TEXT_ELEMENT:
+                case ASTNode.JAVADOC_TEXT_ELEMENT:
+                    // javadoc formatting disabled due to bug 93644
+                    return null;
+                //				wiat for bug 93644
+                //				case ASTNode.MEMBER_REF:
+                //				case ASTNode.METHOD_REF:
+                //					prefix= "/**\n * @see ";
+                //					suffix= "\n*/";
+                //					code= CodeFormatter.K_JAVA_DOC;
+                //					break;
+                //				case ASTNode.METHOD_REF_PARAMETER:
+                //					prefix= "/**\n * @see A#foo(";
+                //					suffix= ")\n*/";
+                //					code= CodeFormatter.K_JAVA_DOC;
+                //					break;
+                //				case ASTNode.TAG_ELEMENT:
+                //				case ASTNode.TEXT_ELEMENT:
+                //					prefix= "/**\n * ";
+                //					suffix= "\n*/";
+                //					code= CodeFormatter.K_JAVA_DOC;
+                //					break;
+                default:
+                    //Assert.isTrue(false, "Node type not covered: " + node.getClass().getName());
+                    return null;
+            }
+        }
+        String concatStr = prefix + str + suffix;
+        TextEdit edit = formatString(code, concatStr, prefix.length(), str.length(), indentationLevel);
+        if (prefix.length() > 0) {
+            edit = shifEdit(edit, prefix.length());
+        }
+        return edit;
+    }
 
-//				wiat for bug 93644
-//				case ASTNode.MEMBER_REF:
-//				case ASTNode.METHOD_REF:
-//					prefix= "/**\n * @see ";
-//					suffix= "\n*/";
-//					code= CodeFormatter.K_JAVA_DOC;
-//					break;
-//				case ASTNode.METHOD_REF_PARAMETER:
-//					prefix= "/**\n * @see A#foo(";
-//					suffix= ")\n*/";
-//					code= CodeFormatter.K_JAVA_DOC;
-//					break;
-//				case ASTNode.TAG_ELEMENT:
-//				case ASTNode.TEXT_ELEMENT:
-//					prefix= "/**\n * ";
-//					suffix= "\n*/";
-//					code= CodeFormatter.K_JAVA_DOC;
-//					break;
-				default:
-					//Assert.isTrue(false, "Node type not covered: " + node.getClass().getName());
-					return null;
-			}
-		}
+    private static TextEdit shifEdit(TextEdit oldEdit, int diff) {
+        TextEdit newEdit;
+        if (oldEdit instanceof ReplaceEdit) {
+            ReplaceEdit edit = (ReplaceEdit) oldEdit;
+            newEdit = new ReplaceEdit(edit.getOffset() - diff, edit.getLength(), edit.getText());
+        } else if (oldEdit instanceof InsertEdit) {
+            InsertEdit edit = (InsertEdit) oldEdit;
+            newEdit = new InsertEdit(edit.getOffset() - diff, edit.getText());
+        } else if (oldEdit instanceof DeleteEdit) {
+            DeleteEdit edit = (DeleteEdit) oldEdit;
+            newEdit = new DeleteEdit(edit.getOffset() - diff, edit.getLength());
+        } else if (oldEdit instanceof MultiTextEdit) {
+            newEdit = new MultiTextEdit();
+        } else {
+            // not supported
+            return null;
+        }
+        TextEdit[] children = oldEdit.getChildren();
+        for (TextEdit child : children) {
+            TextEdit shifted = shifEdit(child, diff);
+            if (shifted != null) {
+                newEdit.addChild(shifted);
+            }
+        }
+        return newEdit;
+    }
 
-		String concatStr= prefix + str + suffix;
-		TextEdit edit= formatString(code, concatStr, prefix.length(), str.length(), indentationLevel);
+    private static Document createDocument(String string, Position[] positions) throws IllegalArgumentException {
+        Document doc = new Document(string);
+        try {
+            if (positions != null) {
+                //$NON-NLS-1$
+                final String POS_CATEGORY = "myCategory";
+                doc.addPositionCategory(POS_CATEGORY);
+                doc.addPositionUpdater(new DefaultPositionUpdater(POS_CATEGORY) {
 
-		if (prefix.length() > 0) {
-			edit= shifEdit(edit, prefix.length());
-		}
-		return edit;
-	}
-
-	private static TextEdit shifEdit(TextEdit oldEdit, int diff) {
-		TextEdit newEdit;
-		if (oldEdit instanceof ReplaceEdit) {
-			ReplaceEdit edit= (ReplaceEdit) oldEdit;
-			newEdit= new ReplaceEdit(edit.getOffset() - diff, edit.getLength(), edit.getText());
-		} else if (oldEdit instanceof InsertEdit) {
-			InsertEdit edit= (InsertEdit) oldEdit;
-			newEdit= new InsertEdit(edit.getOffset() - diff,  edit.getText());
-		} else if (oldEdit instanceof DeleteEdit) {
-			DeleteEdit edit= (DeleteEdit) oldEdit;
-			newEdit= new DeleteEdit(edit.getOffset() - diff,  edit.getLength());
-		} else if (oldEdit instanceof MultiTextEdit) {
-			newEdit= new MultiTextEdit();
-		} else {
-			return null; // not supported
-		}
-		TextEdit[] children= oldEdit.getChildren();
-		for (TextEdit child : children) {
-			TextEdit shifted= shifEdit(child, diff);
-			if (shifted != null) {
-				newEdit.addChild(shifted);
-			}
-		}
-		return newEdit;
-	}
-
-	private static Document createDocument(String string, Position[] positions) throws IllegalArgumentException {
-		Document doc= new Document(string);
-		try {
-			if (positions != null) {
-				final String POS_CATEGORY= "myCategory"; //$NON-NLS-1$
-
-				doc.addPositionCategory(POS_CATEGORY);
-				doc.addPositionUpdater(new DefaultPositionUpdater(POS_CATEGORY) {
-					@Override
-					protected boolean notDeleted() {
-						int start= this.fOffset;
-						int end= start + this.fLength;
-						if (start < this.fPosition.offset && (this.fPosition.offset + this.fPosition.length < end)) {
-							this.fPosition.offset= end; // deleted positions: set to end of remove
-							return false;
-						}
-						return true;
-					}
-				});
-				for (Position position : positions) {
-					try {
-						doc.addPosition(POS_CATEGORY, position);
-					} catch (BadLocationException e) {
-						throw new IllegalArgumentException("Position outside of string. offset: " + position.offset + ", length: " + position.length + ", string size: " + string.length(), e);   //$NON-NLS-1$//$NON-NLS-2$//$NON-NLS-3$
-					}
-				}
-			}
-		} catch (BadPositionCategoryException cannotHappen) {
-			// can not happen: category is correctly set up
-		}
-		return doc;
-	}
-
-
+                    @Override
+                    protected boolean notDeleted() {
+                        int start = this.fOffset;
+                        int end = start + this.fLength;
+                        if (start < this.fPosition.offset && (this.fPosition.offset + this.fPosition.length < end)) {
+                            // deleted positions: set to end of remove
+                            this.fPosition.offset = end;
+                            return false;
+                        }
+                        return true;
+                    }
+                });
+                for (Position position : positions) {
+                    try {
+                        doc.addPosition(POS_CATEGORY, position);
+                    } catch (BadLocationException e) {
+                        //$NON-NLS-1$//$NON-NLS-2$//$NON-NLS-3$
+                        throw new IllegalArgumentException("Position outside of string. offset: " + position.offset + ", length: " + position.length + ", string size: " + string.length(), e);
+                    }
+                }
+            }
+        } catch (BadPositionCategoryException cannotHappen) {
+            // can not happen: category is correctly set up
+        }
+        return doc;
+    }
 
     public static interface Prefix {
-		String getPrefix(int indent);
-	}
 
-	public static interface BlockContext {
-		String[] getPrefixAndSuffix(int indent, ASTNode node, RewriteEventStore events);
-	}
+        String getPrefix(int indent);
+    }
 
-	public static class ConstPrefix implements Prefix {
-		private final String prefix;
+    public static interface BlockContext {
 
-		public ConstPrefix(String prefix) {
-			this.prefix= prefix;
-		}
+        String[] getPrefixAndSuffix(int indent, ASTNode node, RewriteEventStore events);
+    }
 
-		@Override
-		public String getPrefix(int indent) {
-			return this.prefix;
-		}
-	}
+    public static class ConstPrefix implements Prefix {
 
-	private class FormattingPrefix implements Prefix {
-		private final int kind;
-		private final String string;
-		private final int start;
-		private final int length;
+        private final String prefix;
 
-		public FormattingPrefix(String string, String sub, int kind) {
-			this.start= string.indexOf(sub);
-			this.length= sub.length();
-			this.string= string;
-			this.kind= kind;
-		}
+        public ConstPrefix(String prefix) {
+            this.prefix = prefix;
+        }
 
-		@Override
-		public String getPrefix(int indent) {
-			Position pos= new Position(this.start, this.length);
-			String str= this.string;
-			TextEdit res= formatString(this.kind, str, 0, str.length(), indent);
-			if (res != null) {
-				str= evaluateFormatterEdit(str, res, new Position[] { pos });
-			}
-			return str.substring(pos.offset + 1, pos.offset + pos.length - 1);
-		}
-	}
+        @Override
+        public String getPrefix(int indent) {
+            return this.prefix;
+        }
+    }
 
-	private class BlockFormattingPrefix implements BlockContext {
-		private final String prefix;
-		private final int start;
+    private class FormattingPrefix implements Prefix {
 
-		public BlockFormattingPrefix(String prefix, int start) {
-			this.start= start;
-			this.prefix= prefix;
-		}
+        private final int kind;
 
-		@Override
-		public String[] getPrefixAndSuffix(int indent, ASTNode node, RewriteEventStore events) {
-			String nodeString= ASTRewriteFlattener.asString(node, events);
-			String str= this.prefix + nodeString;
-			Position pos= new Position(this.start, this.prefix.length() + 1 - this.start);
+        private final String string;
 
-			TextEdit res= formatString(CodeFormatter.K_STATEMENTS, str, 0, str.length(), indent);
-			if (res != null) {
-				str= evaluateFormatterEdit(str, res, new Position[] { pos });
-			}
-			return new String[] { str.substring(pos.offset + 1, pos.offset + pos.length - 1), ""}; //$NON-NLS-1$
-		}
-	}
+        private final int start;
 
-	private class BlockFormattingPrefixSuffix implements BlockContext {
-		private final String prefix;
-		private final String suffix;
-		private final int start;
+        private final int length;
 
-		public BlockFormattingPrefixSuffix(String prefix, String suffix, int start) {
-			this.start= start;
-			this.suffix= suffix;
-			this.prefix= prefix;
-		}
+        public FormattingPrefix(String string, String sub, int kind) {
+            this.start = string.indexOf(sub);
+            this.length = sub.length();
+            this.string = string;
+            this.kind = kind;
+        }
 
-		@Override
-		public String[] getPrefixAndSuffix(int indent, ASTNode node, RewriteEventStore events) {
-			String nodeString= ASTRewriteFlattener.asString(node, events);
-			int nodeStart= this.prefix.length();
-			int nodeEnd= nodeStart + nodeString.length() - 1;
+        @Override
+        public String getPrefix(int indent) {
+            Position pos = new Position(this.start, this.length);
+            String str = this.string;
+            TextEdit res = formatString(this.kind, str, 0, str.length(), indent);
+            if (res != null) {
+                str = evaluateFormatterEdit(str, res, new Position[] { pos });
+            }
+            return str.substring(pos.offset + 1, pos.offset + pos.length - 1);
+        }
+    }
 
-			String str= this.prefix + nodeString + this.suffix;
+    private class BlockFormattingPrefix implements BlockContext {
 
-			Position pos1= new Position(this.start, nodeStart + 1 - this.start);
-			Position pos2= new Position(nodeEnd, 2);
+        private final String prefix;
 
-			TextEdit res= formatString(CodeFormatter.K_STATEMENTS, str, 0, str.length(), indent);
-			if (res != null) {
-				str= evaluateFormatterEdit(str, res, new Position[] { pos1, pos2 });
-			}
-			return new String[] {
-				str.substring(pos1.offset + 1, pos1.offset + pos1.length - 1),
-				str.substring(pos2.offset + 1, pos2.offset + pos2.length - 1)
-			};
-		}
-	}
+        private final int start;
 
-	public final static Prefix NONE= new ConstPrefix(""); //$NON-NLS-1$
-	public final static Prefix SPACE= new ConstPrefix(" "); //$NON-NLS-1$
-	public final static Prefix ASSERT_COMMENT= new ConstPrefix(" : "); //$NON-NLS-1$
+        public BlockFormattingPrefix(String prefix, int start) {
+            this.start = start;
+            this.prefix = prefix;
+        }
 
-	public final Prefix VAR_INITIALIZER= new FormattingPrefix("A a={};", "a={" , CodeFormatter.K_STATEMENTS); //$NON-NLS-1$ //$NON-NLS-2$
-	public final Prefix METHOD_BODY= new FormattingPrefix("void a() {}", ") {" , CodeFormatter.K_CLASS_BODY_DECLARATIONS); //$NON-NLS-1$ //$NON-NLS-2$
-	public final Prefix FINALLY_BLOCK= new FormattingPrefix("try {} finally {}", "} finally {", CodeFormatter.K_STATEMENTS); //$NON-NLS-1$ //$NON-NLS-2$
-	public final Prefix CATCH_BLOCK= new FormattingPrefix("try {} catch(Exception e) {}", "} c" , CodeFormatter.K_STATEMENTS); //$NON-NLS-1$ //$NON-NLS-2$
-	public final Prefix ANNOT_MEMBER_DEFAULT= new FormattingPrefix("String value() default 1;", ") default 1" , CodeFormatter.K_CLASS_BODY_DECLARATIONS); //$NON-NLS-1$ //$NON-NLS-2$
-	public final Prefix ENUM_BODY_START= new FormattingPrefix("enum E { A(){void foo(){}} }", "){v" , CodeFormatter.K_COMPILATION_UNIT); //$NON-NLS-1$ //$NON-NLS-2$
-	public final Prefix ENUM_BODY_END= new FormattingPrefix("enum E { A(){void foo(){ }}, B}", "}}," , CodeFormatter.K_COMPILATION_UNIT); //$NON-NLS-1$ //$NON-NLS-2$
-	public final Prefix WILDCARD_EXTENDS= new FormattingPrefix("A<? extends B> a;", "? extends B" , CodeFormatter.K_CLASS_BODY_DECLARATIONS); //$NON-NLS-1$ //$NON-NLS-2$
-	public final Prefix WILDCARD_SUPER= new FormattingPrefix("A<? super B> a;", "? super B" , CodeFormatter.K_CLASS_BODY_DECLARATIONS); //$NON-NLS-1$ //$NON-NLS-2$
+        @Override
+        public String[] getPrefixAndSuffix(int indent, ASTNode node, RewriteEventStore events) {
+            String nodeString = ASTRewriteFlattener.asString(node, events);
+            String str = this.prefix + nodeString;
+            Position pos = new Position(this.start, this.prefix.length() + 1 - this.start);
+            TextEdit res = formatString(CodeFormatter.K_STATEMENTS, str, 0, str.length(), indent);
+            if (res != null) {
+                str = evaluateFormatterEdit(str, res, new Position[] { pos });
+            }
+            //$NON-NLS-1$
+            return new String[] { str.substring(pos.offset + 1, pos.offset + pos.length - 1), "" };
+        }
+    }
 
-	public final Prefix FIRST_ENUM_CONST= new FormattingPrefix("enum E { X;}", "{ X" , CodeFormatter.K_COMPILATION_UNIT); //$NON-NLS-1$ //$NON-NLS-2$
-	public final Prefix ANNOTATION_SEPARATION= new FormattingPrefix("@A @B class C {}", "A @" , CodeFormatter.K_COMPILATION_UNIT); //$NON-NLS-1$ //$NON-NLS-2$
-	public final Prefix PARAM_ANNOTATION_SEPARATION= new FormattingPrefix("void foo(@A @B C p) { }", "A @" , CodeFormatter.K_CLASS_BODY_DECLARATIONS); //$NON-NLS-1$ //$NON-NLS-2$
-	public final Prefix LOCAL_ANNOTATION_SEPARATION= new FormattingPrefix("@A @B C p;", "A @" , CodeFormatter.K_STATEMENTS); //$NON-NLS-1$ //$NON-NLS-2$
-	public final Prefix TYPE_ANNOTATION_SEPARATION= new FormattingPrefix("C<@A @B D> l;", "A @" , CodeFormatter.K_STATEMENTS); //$NON-NLS-1$ //$NON-NLS-2$
-	public final Prefix VARARGS= new FormattingPrefix("void foo(A ... a) { }", "A ." , CodeFormatter.K_CLASS_BODY_DECLARATIONS); //$NON-NLS-1$ //$NON-NLS-2$
-	public final Prefix TRY_RESOURCES = new FormattingPrefix("try (A a = new A(); B b = new B()) {}", "; B" , CodeFormatter.K_STATEMENTS); //$NON-NLS-1$ //$NON-NLS-2$
-	public final Prefix TRY_RESOURCES_PAREN = new FormattingPrefix("try (A a = new A(); B b = new B()) {}", "y (" , CodeFormatter.K_STATEMENTS); //$NON-NLS-1$ //$NON-NLS-2$
+    private class BlockFormattingPrefixSuffix implements BlockContext {
 
-	public final BlockContext IF_BLOCK_WITH_ELSE= new BlockFormattingPrefixSuffix("if (true)", "else{}", 8); //$NON-NLS-1$ //$NON-NLS-2$
-	public final BlockContext IF_BLOCK_NO_ELSE= new BlockFormattingPrefix("if (true)", 8); //$NON-NLS-1$
-	public final BlockContext ELSE_AFTER_STATEMENT= new BlockFormattingPrefix("if (true) foo();else ", 15); //$NON-NLS-1$
-	public final BlockContext ELSE_AFTER_BLOCK= new BlockFormattingPrefix("if (true) {}else ", 11); //$NON-NLS-1$
+        private final String prefix;
 
-	public final Prefix CASE_SEPARATION= new FormattingPrefix("case A, B", "A" , CodeFormatter.K_EXPRESSION); //$NON-NLS-1$ //$NON-NLS-2$
+        private final String suffix;
 
-	public final BlockContext FOR_BLOCK= new BlockFormattingPrefix("for (;;) ", 7); //$NON-NLS-1$
-	public final BlockContext WHILE_BLOCK= new BlockFormattingPrefix("while (true)", 11); //$NON-NLS-1$
-	public final BlockContext DO_BLOCK= new BlockFormattingPrefixSuffix("do ", "while (true);", 1); //$NON-NLS-1$ //$NON-NLS-2$
+        private final int start;
 
+        public BlockFormattingPrefixSuffix(String prefix, String suffix, int start) {
+            this.start = start;
+            this.suffix = suffix;
+            this.prefix = prefix;
+        }
+
+        @Override
+        public String[] getPrefixAndSuffix(int indent, ASTNode node, RewriteEventStore events) {
+            String nodeString = ASTRewriteFlattener.asString(node, events);
+            int nodeStart = this.prefix.length();
+            int nodeEnd = nodeStart + nodeString.length() - 1;
+            String str = this.prefix + nodeString + this.suffix;
+            Position pos1 = new Position(this.start, nodeStart + 1 - this.start);
+            Position pos2 = new Position(nodeEnd, 2);
+            TextEdit res = formatString(CodeFormatter.K_STATEMENTS, str, 0, str.length(), indent);
+            if (res != null) {
+                str = evaluateFormatterEdit(str, res, new Position[] { pos1, pos2 });
+            }
+            return new String[] { str.substring(pos1.offset + 1, pos1.offset + pos1.length - 1), str.substring(pos2.offset + 1, pos2.offset + pos2.length - 1) };
+        }
+    }
+
+    //$NON-NLS-1$
+    public final static Prefix NONE = new ConstPrefix("");
+
+    //$NON-NLS-1$
+    public final static Prefix SPACE = new ConstPrefix(" ");
+
+    //$NON-NLS-1$
+    public final static Prefix ASSERT_COMMENT = new ConstPrefix(" : ");
+
+    //$NON-NLS-1$ //$NON-NLS-2$
+    public final Prefix VAR_INITIALIZER = new FormattingPrefix("A a={};", "a={", CodeFormatter.K_STATEMENTS);
+
+    //$NON-NLS-1$ //$NON-NLS-2$
+    public final Prefix METHOD_BODY = new FormattingPrefix("void a() {}", ") {", CodeFormatter.K_CLASS_BODY_DECLARATIONS);
+
+    //$NON-NLS-1$ //$NON-NLS-2$
+    public final Prefix FINALLY_BLOCK = new FormattingPrefix("try {} finally {}", "} finally {", CodeFormatter.K_STATEMENTS);
+
+    //$NON-NLS-1$ //$NON-NLS-2$
+    public final Prefix CATCH_BLOCK = new FormattingPrefix("try {} catch(Exception e) {}", "} c", CodeFormatter.K_STATEMENTS);
+
+    //$NON-NLS-1$ //$NON-NLS-2$
+    public final Prefix ANNOT_MEMBER_DEFAULT = new FormattingPrefix("String value() default 1;", ") default 1", CodeFormatter.K_CLASS_BODY_DECLARATIONS);
+
+    //$NON-NLS-1$ //$NON-NLS-2$
+    public final Prefix ENUM_BODY_START = new FormattingPrefix("enum E { A(){void foo(){}} }", "){v", CodeFormatter.K_COMPILATION_UNIT);
+
+    //$NON-NLS-1$ //$NON-NLS-2$
+    public final Prefix ENUM_BODY_END = new FormattingPrefix("enum E { A(){void foo(){ }}, B}", "}},", CodeFormatter.K_COMPILATION_UNIT);
+
+    //$NON-NLS-1$ //$NON-NLS-2$
+    public final Prefix WILDCARD_EXTENDS = new FormattingPrefix("A<? extends B> a;", "? extends B", CodeFormatter.K_CLASS_BODY_DECLARATIONS);
+
+    //$NON-NLS-1$ //$NON-NLS-2$
+    public final Prefix WILDCARD_SUPER = new FormattingPrefix("A<? super B> a;", "? super B", CodeFormatter.K_CLASS_BODY_DECLARATIONS);
+
+    //$NON-NLS-1$ //$NON-NLS-2$
+    public final Prefix FIRST_ENUM_CONST = new FormattingPrefix("enum E { X;}", "{ X", CodeFormatter.K_COMPILATION_UNIT);
+
+    //$NON-NLS-1$ //$NON-NLS-2$
+    public final Prefix ANNOTATION_SEPARATION = new FormattingPrefix("@A @B class C {}", "A @", CodeFormatter.K_COMPILATION_UNIT);
+
+    //$NON-NLS-1$ //$NON-NLS-2$
+    public final Prefix PARAM_ANNOTATION_SEPARATION = new FormattingPrefix("void foo(@A @B C p) { }", "A @", CodeFormatter.K_CLASS_BODY_DECLARATIONS);
+
+    //$NON-NLS-1$ //$NON-NLS-2$
+    public final Prefix LOCAL_ANNOTATION_SEPARATION = new FormattingPrefix("@A @B C p;", "A @", CodeFormatter.K_STATEMENTS);
+
+    //$NON-NLS-1$ //$NON-NLS-2$
+    public final Prefix TYPE_ANNOTATION_SEPARATION = new FormattingPrefix("C<@A @B D> l;", "A @", CodeFormatter.K_STATEMENTS);
+
+    //$NON-NLS-1$ //$NON-NLS-2$
+    public final Prefix VARARGS = new FormattingPrefix("void foo(A ... a) { }", "A .", CodeFormatter.K_CLASS_BODY_DECLARATIONS);
+
+    //$NON-NLS-1$ //$NON-NLS-2$
+    public final Prefix TRY_RESOURCES = new FormattingPrefix("try (A a = new A(); B b = new B()) {}", "; B", CodeFormatter.K_STATEMENTS);
+
+    //$NON-NLS-1$ //$NON-NLS-2$
+    public final Prefix TRY_RESOURCES_PAREN = new FormattingPrefix("try (A a = new A(); B b = new B()) {}", "y (", CodeFormatter.K_STATEMENTS);
+
+    //$NON-NLS-1$ //$NON-NLS-2$
+    public final BlockContext IF_BLOCK_WITH_ELSE = new BlockFormattingPrefixSuffix("if (true)", "else{}", 8);
+
+    //$NON-NLS-1$
+    public final BlockContext IF_BLOCK_NO_ELSE = new BlockFormattingPrefix("if (true)", 8);
+
+    //$NON-NLS-1$
+    public final BlockContext ELSE_AFTER_STATEMENT = new BlockFormattingPrefix("if (true) foo();else ", 15);
+
+    //$NON-NLS-1$
+    public final BlockContext ELSE_AFTER_BLOCK = new BlockFormattingPrefix("if (true) {}else ", 11);
+
+    //$NON-NLS-1$ //$NON-NLS-2$
+    public final Prefix CASE_SEPARATION = new FormattingPrefix("case A, B", "A", CodeFormatter.K_EXPRESSION);
+
+    //$NON-NLS-1$
+    public final BlockContext FOR_BLOCK = new BlockFormattingPrefix("for (;;) ", 7);
+
+    //$NON-NLS-1$
+    public final BlockContext WHILE_BLOCK = new BlockFormattingPrefix("while (true)", 11);
+
+    //$NON-NLS-1$ //$NON-NLS-2$
+    public final BlockContext DO_BLOCK = new BlockFormattingPrefixSuffix("do ", "while (true);", 1);
 }

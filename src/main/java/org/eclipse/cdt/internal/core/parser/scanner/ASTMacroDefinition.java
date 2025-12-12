@@ -6,11 +6,11 @@ import org.eclipse.cdt.internal.core.dom.parser.ASTNodeSpecification;
 
 public class ASTMacroDefinition extends ASTPreprocessorNode implements IASTPreprocessorObjectStyleMacroDefinition {
 
-    private final ASTPreprocessorName fName;
+    final public ASTPreprocessorName fName;
 
-    protected final int fExpansionNumber;
+    final public int fExpansionNumber;
 
-    private final int fExpansionOffset;
+    final public int fExpansionOffset;
 
     /**
      * Regular constructor.

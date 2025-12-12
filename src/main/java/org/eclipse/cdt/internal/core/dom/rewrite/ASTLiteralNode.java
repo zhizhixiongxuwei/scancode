@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2007, 2014 Wind River Systems, Inc. and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2007, 2014 Wind River Systems, Inc. and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Markus Schorn - initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *      Markus Schorn - initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.rewrite;
 
 import org.eclipse.cdt.core.dom.ast.ASTNodeProperty;
@@ -28,115 +30,116 @@ import org.eclipse.cdt.internal.core.dom.rewrite.astwriter.ASTWriterVisitor;
  * @since 5.0
  */
 public class ASTLiteralNode implements IASTNode {
-	private final String fCode;
 
-	public ASTLiteralNode(String code) {
-		fCode = code;
-	}
+    final public String fCode;
 
-	@Override
-	public String getRawSignature() {
-		return fCode;
-	}
+    public ASTLiteralNode(String code) {
+        fCode = code;
+    }
 
-	@Override
-	public boolean accept(ASTVisitor visitor) {
-		if (visitor instanceof ASTWriterVisitor) {
-			((ASTWriterVisitor) visitor).visit(this);
-		}
-		return true;
-	}
+    @Override
+    public String getRawSignature() {
+        return fCode;
+    }
 
-	@Override
-	public boolean contains(IASTNode node) {
-		return false;
-	}
+    @Override
+    public boolean accept(ASTVisitor visitor) {
+        if (visitor instanceof ASTWriterVisitor) {
+            ((ASTWriterVisitor) visitor).visit(this);
+        }
+        return true;
+    }
 
-	@Override
-	public String getContainingFilename() {
-		return null;
-	}
+    @Override
+    public boolean contains(IASTNode node) {
+        return false;
+    }
 
-	@Override
-	public IASTFileLocation getFileLocation() {
-		return null;
-	}
+    @Override
+    public String getContainingFilename() {
+        return null;
+    }
 
-	@Override
-	public IASTNodeLocation[] getNodeLocations() {
-		return IASTNodeLocation.EMPTY_ARRAY;
-	}
+    @Override
+    public IASTFileLocation getFileLocation() {
+        return null;
+    }
 
-	@Override
-	public IASTNode getParent() {
-		return null;
-	}
+    @Override
+    public IASTNodeLocation[] getNodeLocations() {
+        return IASTNodeLocation.EMPTY_ARRAY;
+    }
 
-	@Override
-	public IASTNode[] getChildren() {
-		return IASTNode.EMPTY_NODE_ARRAY;
-	}
+    @Override
+    public IASTNode getParent() {
+        return null;
+    }
 
-	@Override
-	public final ASTNodeProperty getPropertyInParent() {
-		return null;
-	}
+    @Override
+    public IASTNode[] getChildren() {
+        return IASTNode.EMPTY_NODE_ARRAY;
+    }
 
-	@Override
-	public IASTTranslationUnit getTranslationUnit() {
-		return null;
-	}
+    @Override
+    public final ASTNodeProperty getPropertyInParent() {
+        return null;
+    }
 
-	@Override
-	public boolean isPartOfTranslationUnitFile() {
-		return false;
-	}
+    @Override
+    public IASTTranslationUnit getTranslationUnit() {
+        return null;
+    }
 
-	@Override
-	public void setParent(IASTNode node) {
-	}
+    @Override
+    public boolean isPartOfTranslationUnitFile() {
+        return false;
+    }
 
-	@Override
-	public void setPropertyInParent(ASTNodeProperty property) {
-	}
+    @Override
+    public void setParent(IASTNode node) {
+    }
 
-	@Override
-	public IToken getSyntax() {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public void setPropertyInParent(ASTNodeProperty property) {
+    }
 
-	@Override
-	public IToken getLeadingSyntax() {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public IToken getSyntax() {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public IToken getTrailingSyntax() {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public IToken getLeadingSyntax() {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public boolean isFrozen() {
-		return false;
-	}
+    @Override
+    public IToken getTrailingSyntax() {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public IASTNode copy() {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public boolean isFrozen() {
+        return false;
+    }
 
-	@Override
-	public IASTNode copy(CopyStyle style) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public IASTNode copy() {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public boolean isActive() {
-		return true;
-	}
+    @Override
+    public IASTNode copy(CopyStyle style) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public IASTNode getOriginalNode() {
-		return this;
-	}
+    @Override
+    public boolean isActive() {
+        return true;
+    }
+
+    @Override
+    public IASTNode getOriginalNode() {
+        return this;
+    }
 }

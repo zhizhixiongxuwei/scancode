@@ -25,9 +25,9 @@ import java.util.Set;
  */
 final public class ImportsDelta {
 
-    final Set<ImportName> importsToAdd;
+    final public Set<ImportName> importsToAdd;
 
-    final Set<ImportName> importsToRemove;
+    final public Set<ImportName> importsToRemove;
 
     ImportsDelta(Collection<ImportName> importsToAdd, Collection<ImportName> importsToRemove) {
         this.importsToAdd = Collections.unmodifiableSet(new HashSet<>(importsToAdd));
@@ -36,7 +36,8 @@ final public class ImportsDelta {
 
     @Override
     public String toString() {
-        return String.format(//$NON-NLS-1$
-        "(additions: %s, removals: %s)", this.importsToAdd, this.importsToRemove);
+        return //$NON-NLS-1$
+        String.//$NON-NLS-1$
+        format("(additions: %s, removals: %s)", this.importsToAdd, this.importsToRemove);
     }
 }

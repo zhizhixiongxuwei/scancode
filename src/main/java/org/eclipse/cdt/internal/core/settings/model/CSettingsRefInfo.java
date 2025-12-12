@@ -35,7 +35,7 @@ public class CSettingsRefInfo {
      * External Settings Holder Map
      *  From references container -> to concrete held settings
      */
-    private HashMap<CContainerRef, CRefSettingsHolder> fESHolderMap = new LinkedHashMap<>();
+    public HashMap<CContainerRef, CRefSettingsHolder> fESHolderMap = new LinkedHashMap<>();
 
     CSettingsRefInfo() {
     }

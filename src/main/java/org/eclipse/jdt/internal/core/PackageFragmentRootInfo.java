@@ -36,7 +36,7 @@ public class PackageFragmentRootInfo extends OpenableElementInfo {
      * The SourceMapper for this JAR (or <code>null</code> if
      * this JAR does not have source attached).
      */
-    protected SourceMapper sourceMapper = null;
+    public SourceMapper sourceMapper = null;
 
     /**
      * The kind of the root associated with this info.
@@ -44,11 +44,11 @@ public class PackageFragmentRootInfo extends OpenableElementInfo {
      * <li><code>IPackageFragmentRoot.K_SOURCE</code>
      * <li><code>IPackageFragmentRoot.K_BINARY</code></ul>
      */
-    protected int rootKind = IPackageFragmentRoot.K_SOURCE;
+    public int rootKind = IPackageFragmentRoot.K_SOURCE;
 
-    private boolean ignoreOptionalProblems;
+    public boolean ignoreOptionalProblems;
 
-    private boolean initialized;
+    public boolean initialized;
 
     /**
      * Create and initialize a new instance of the receiver

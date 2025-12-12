@@ -1,18 +1,20 @@
-/*******************************************************************************
- * Copyright (c) 2012 Institute for Software, HSR Hochschule fuer Technik
- * Rapperswil, University of applied sciences.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2012 Institute for Software, HSR Hochschule fuer Technik
+ *  Rapperswil, University of applied sciences.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Thomas Corbat (IFS) - Initial API and implementation
- *     Sergey Prigogin (Google)
- *******************************************************************************/
+ *  Contributors:
+ *      Thomas Corbat (IFS) - Initial API and implementation
+ *      Sergey Prigogin (Google)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.parser.cpp;
 
 import org.eclipse.cdt.core.dom.ILinkage;
@@ -33,138 +35,142 @@ import org.eclipse.cdt.internal.core.dom.parser.cpp.semantics.CPPTemplates;
 import org.eclipse.cdt.internal.core.dom.parser.cpp.semantics.CPPVisitor;
 import org.eclipse.core.runtime.PlatformObject;
 
-public class CPPAliasTemplate extends PlatformObject
-		implements ICPPAliasTemplate, ICPPTemplateParameterOwner, ICPPInternalBinding {
-	private final IASTName aliasName;
-	private final IType aliasedType;
-	private ICPPTemplateParameter[] templateParameters;
+public class CPPAliasTemplate extends PlatformObject implements ICPPAliasTemplate, ICPPTemplateParameterOwner, ICPPInternalBinding {
 
-	public CPPAliasTemplate(IASTName aliasName, IType aliasedType) {
-		this.aliasName = aliasName;
-		this.aliasedType = aliasedType;
-		aliasName.setBinding(this);
-	}
+    final public IASTName aliasName;
 
-	@Override
-	public IType getType() {
-		return aliasedType;
-	}
+    final public IType aliasedType;
 
-	@Override
-	public String getName() {
-		return new String(getNameCharArray());
-	}
+    public ICPPTemplateParameter[] templateParameters;
 
-	@Override
-	public char[] getNameCharArray() {
-		return aliasName.getSimpleID();
-	}
+    public CPPAliasTemplate(IASTName aliasName, IType aliasedType) {
+        this.aliasName = aliasName;
+        this.aliasedType = aliasedType;
+        aliasName.setBinding(this);
+    }
 
-	@Override
-	public ILinkage getLinkage() {
-		return Linkage.CPP_LINKAGE;
-	}
+    @Override
+    public IType getType() {
+        return aliasedType;
+    }
 
-	@Override
-	public IBinding getOwner() {
-		return CPPVisitor.findDeclarationOwner(aliasName, true);
-	}
+    @Override
+    public String getName() {
+        return new String(getNameCharArray());
+    }
 
-	@Override
-	public IScope getScope() throws DOMException {
-		return CPPVisitor.getContainingScope(aliasName.getParent());
-	}
+    @Override
+    public char[] getNameCharArray() {
+        return aliasName.getSimpleID();
+    }
 
-	@Override
-	public boolean isSameType(IType type) {
-		if (type == null) {
-			return false;
-		}
-		IType aliasedType = getType();
-		return type.isSameType(aliasedType);
-	}
+    @Override
+    public ILinkage getLinkage() {
+        return Linkage.CPP_LINKAGE;
+    }
 
-	@Override
-	public Object clone() {
-		IType t = null;
-		try {
-			t = (IType) super.clone();
-		} catch (CloneNotSupportedException e) {
-			// Not going to happen
-		}
-		return t;
-	}
+    @Override
+    public IBinding getOwner() {
+        return CPPVisitor.findDeclarationOwner(aliasName, true);
+    }
 
-	@Override
-	public String[] getQualifiedName() throws DOMException {
-		return CPPVisitor.getQualifiedName(this);
-	}
+    @Override
+    public IScope getScope() throws DOMException {
+        return CPPVisitor.getContainingScope(aliasName.getParent());
+    }
 
-	@Override
-	public char[][] getQualifiedNameCharArray() throws DOMException {
-		return CPPVisitor.getQualifiedNameCharArray(this);
-	}
+    @Override
+    public boolean isSameType(IType type) {
+        if (type == null) {
+            return false;
+        }
+        IType aliasedType = getType();
+        return type.isSameType(aliasedType);
+    }
 
-	@Override
-	public boolean isGloballyQualified() throws DOMException {
-		return true;
-	}
+    @Override
+    public Object clone() {
+        IType t = null;
+        try {
+            t = (IType) super.clone();
+        } catch (CloneNotSupportedException e) {
+            // Not going to happen
+        }
+        return t;
+    }
 
-	@Override
-	public ICPPTemplateParameter[] getTemplateParameters() {
-		if (templateParameters == null) {
-			ICPPASTTemplateDeclaration template = CPPTemplates.getTemplateDeclaration(aliasName);
-			if (template == null)
-				return ICPPTemplateParameter.EMPTY_TEMPLATE_PARAMETER_ARRAY;
-			ICPPASTTemplateParameter[] params = template.getTemplateParameters();
-			IBinding p = null;
-			ICPPTemplateParameter[] result = null;
-			for (ICPPASTTemplateParameter param : params) {
-				p = CPPTemplates.getTemplateParameterName(param).resolveBinding();
-				if (p instanceof ICPPTemplateParameter) {
-					result = ArrayUtil.append(ICPPTemplateParameter.class, result, (ICPPTemplateParameter) p);
-				}
-			}
-			templateParameters = ArrayUtil.trim(ICPPTemplateParameter.class, result);
-		}
-		return templateParameters;
-	}
+    @Override
+    public String[] getQualifiedName() throws DOMException {
+        return CPPVisitor.getQualifiedName(this);
+    }
 
-	@Override
-	public IBinding resolveTemplateParameter(ICPPTemplateParameter templateParameter) {
-		int pos = templateParameter.getParameterPosition();
+    @Override
+    public char[][] getQualifiedNameCharArray() throws DOMException {
+        return CPPVisitor.getQualifiedNameCharArray(this);
+    }
 
-		ICPPASTTemplateParameter[] params = CPPTemplates.getTemplateDeclaration(aliasName).getTemplateParameters();
-		if (pos < params.length) {
-			final IASTName oName = CPPTemplates.getTemplateParameterName(params[pos]);
-			return oName.resolvePreBinding();
-		}
-		return templateParameter;
-	}
+    @Override
+    public boolean isGloballyQualified() throws DOMException {
+        return true;
+    }
 
-	@Override
-	public IASTNode getDefinition() {
-		return aliasName;
-	}
+    @Override
+    public ICPPTemplateParameter[] getTemplateParameters() {
+        if (templateParameters == null) {
+            ICPPASTTemplateDeclaration template = CPPTemplates.getTemplateDeclaration(aliasName);
+            if (template == null)
+                return ICPPTemplateParameter.EMPTY_TEMPLATE_PARAMETER_ARRAY;
+            ICPPASTTemplateParameter[] params = template.getTemplateParameters();
+            IBinding p = null;
+            ICPPTemplateParameter[] result = null;
+            for (ICPPASTTemplateParameter param : params) {
+                p = CPPTemplates.getTemplateParameterName(param).resolveBinding();
+                if (p instanceof ICPPTemplateParameter) {
+                    result = ArrayUtil.append(ICPPTemplateParameter.class, result, (ICPPTemplateParameter) p);
+                }
+            }
+            templateParameters = ArrayUtil.trim(ICPPTemplateParameter.class, result);
+        }
+        return templateParameters;
+    }
 
-	@Override
-	public IASTNode[] getDeclarations() {
-		return null;
-	}
+    @Override
+    public IBinding resolveTemplateParameter(ICPPTemplateParameter templateParameter) {
+        int pos = templateParameter.getParameterPosition();
+        ICPPASTTemplateParameter[] params = CPPTemplates.getTemplateDeclaration(aliasName).getTemplateParameters();
+        if (pos < params.length) {
+            final IASTName oName = CPPTemplates.getTemplateParameterName(params[pos]);
+            return oName.resolvePreBinding();
+        }
+        return templateParameter;
+    }
 
-	@Override
-	public void addDefinition(IASTNode node) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public IASTNode getDefinition() {
+        return aliasName;
+    }
 
-	@Override
-	public void addDeclaration(IASTNode node) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public IASTNode[] getDeclarations() {
+        return null;
+    }
 
-	/** For debugging only. */
-	@Override
-	public String toString() {
-		return ASTTypeUtil.getQualifiedName(this) + " -> " + ASTTypeUtil.getType(aliasedType, true); //$NON-NLS-1$
-	}
+    @Override
+    public void addDefinition(IASTNode node) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void addDeclaration(IASTNode node) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * For debugging only.
+     */
+    @Override
+    public String toString() {
+        //$NON-NLS-1$
+        return ASTTypeUtil.getQualifiedName(this) + " -> " + ASTTypeUtil.getType(aliasedType, true);
+    }
 }

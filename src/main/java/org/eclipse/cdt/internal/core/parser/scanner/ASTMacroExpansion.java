@@ -7,7 +7,7 @@ import org.eclipse.cdt.core.dom.ast.IASTTranslationUnit;
 
 public class ASTMacroExpansion extends ASTPreprocessorNode implements IASTPreprocessorMacroExpansion {
 
-    private LocationCtxMacroExpansion fContext;
+    public LocationCtxMacroExpansion fContext;
 
     public ASTMacroExpansion(IASTNode parent, int startNumber, int endNumber) {
         super(parent, IASTTranslationUnit.MACRO_EXPANSION, startNumber, endNumber);

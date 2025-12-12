@@ -25,12 +25,12 @@ import org.eclipse.core.runtime.CoreException;
 
 public class PDOMCPPFriend extends PDOMNode {
 
-    private static final int FRIEND_SPECIFIER = PDOMNode.RECORD_SIZE + 0;
+    static final public int FRIEND_SPECIFIER = PDOMNode.RECORD_SIZE + 0;
 
-    private static final int NEXT_FRIEND = PDOMNode.RECORD_SIZE + 4;
+    static final public int NEXT_FRIEND = PDOMNode.RECORD_SIZE + 4;
 
     @SuppressWarnings("hiding")
-    protected static final int RECORD_SIZE = PDOMNode.RECORD_SIZE + 8;
+    static final public int RECORD_SIZE = PDOMNode.RECORD_SIZE + 8;
 
     public PDOMCPPFriend(PDOMLinkage linkage, long record) {
         super(linkage, record);

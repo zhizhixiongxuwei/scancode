@@ -1,20 +1,21 @@
-/*******************************************************************************
- * Copyright (c) 2006, 2010 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2006, 2010 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Mike Kucera (IBM Corporation) - initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *      Mike Kucera (IBM Corporation) - initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.core.parser.util;
 
 import java.io.PrintStream;
-
 import org.eclipse.cdt.core.dom.ast.ASTGenericVisitor;
 import org.eclipse.cdt.core.dom.ast.IASTComment;
 import org.eclipse.cdt.core.dom.ast.IASTName;
@@ -43,238 +44,221 @@ import org.eclipse.cdt.internal.core.dom.parser.ITypeContainer;
 @SuppressWarnings("nls")
 public class ASTPrinter {
 
-	private static boolean PRINT_PARENT_PROPERTIES = false;
-	private static boolean RESOLVE_BINDINGS = false;
+    static public boolean PRINT_PARENT_PROPERTIES = false;
 
-	/**
-	 * Prints the AST to the given PrintStream.
-	 *
-	 * @return Always returns false, boolean return type allows this method
-	 * to be called from a conditional breakpoint during debugging.
-	 */
-	public static boolean print(IASTNode node, PrintStream out) {
-		if (node == null) {
-			out.println("null");
-			return false;
-		}
+    static public boolean RESOLVE_BINDINGS = false;
 
-		if (node instanceof IASTTranslationUnit) {
-			IASTPreprocessorStatement[] preStats = ((IASTTranslationUnit) node).getAllPreprocessorStatements();
-			if (preStats != null) {
-				for (IASTPreprocessorStatement stat : preStats)
-					print(out, 0, stat);
-			}
-		}
+    /**
+     * Prints the AST to the given PrintStream.
+     *
+     * @return Always returns false, boolean return type allows this method
+     * to be called from a conditional breakpoint during debugging.
+     */
+    public static boolean print(IASTNode node, PrintStream out) {
+        if (node == null) {
+            out.println("null");
+            return false;
+        }
+        if (node instanceof IASTTranslationUnit) {
+            IASTPreprocessorStatement[] preStats = ((IASTTranslationUnit) node).getAllPreprocessorStatements();
+            if (preStats != null) {
+                for (IASTPreprocessorStatement stat : preStats) print(out, 0, stat);
+            }
+        }
+        node.accept(new PrintVisitor(out));
+        if (node instanceof IASTTranslationUnit) {
+            IASTProblem[] problems = ((IASTTranslationUnit) node).getPreprocessorProblems();
+            if (problems != null) {
+                for (IASTProblem problem : problems) print(out, 0, problem);
+            }
+            IASTComment[] comments = ((IASTTranslationUnit) node).getComments();
+            if (comments != null) {
+                for (IASTComment comment : comments) print(out, 0, comment);
+            }
+        }
+        return false;
+    }
 
-		node.accept(new PrintVisitor(out));
+    /**
+     * Prints the AST to stdout.
+     *
+     * @return Always returns false, boolean return type allows this method
+     * to be called from a conditional breakpoint during debugging.
+     */
+    public static boolean print(IASTNode root) {
+        return print(root, System.out);
+    }
 
-		if (node instanceof IASTTranslationUnit) {
-			IASTProblem[] problems = ((IASTTranslationUnit) node).getPreprocessorProblems();
-			if (problems != null) {
-				for (IASTProblem problem : problems)
-					print(out, 0, problem);
-			}
+    /**
+     * Prints problem nodes in the AST to the given printstream.
+     *
+     * @return Always returns false, boolean return type allows this method
+     * to be called from a conditional breakpoint during debugging.
+     */
+    public static boolean printProblems(IASTNode node, PrintStream out) {
+        if (node == null) {
+            out.println("null");
+            return false;
+        }
+        node.accept(new PrintProblemsVisitor(out));
+        if (node instanceof IASTTranslationUnit) {
+            IASTProblem[] problems = ((IASTTranslationUnit) node).getPreprocessorProblems();
+            if (problems != null) {
+                for (IASTProblem problem : problems) {
+                    print(out, 0, problem);
+                }
+            }
+        }
+        return false;
+    }
 
-			IASTComment[] comments = ((IASTTranslationUnit) node).getComments();
-			if (comments != null) {
-				for (IASTComment comment : comments)
-					print(out, 0, comment);
-			}
-		}
-		return false;
-	}
+    /**
+     * Prints problem nodes in the AST to stdout.
+     *
+     * @return Always returns false, boolean return type allows this method
+     * to be called from a conditional breakpoint during debugging.
+     */
+    public static boolean printProblems(IASTNode root) {
+        return printProblems(root, System.out);
+    }
 
-	/**
-	 * Prints the AST to stdout.
-	 *
-	 * @return Always returns false, boolean return type allows this method
-	 * to be called from a conditional breakpoint during debugging.
-	 */
-	public static boolean print(IASTNode root) {
-		return print(root, System.out);
-	}
+    private static class PrintVisitor extends ASTGenericVisitor {
 
-	/**
-	 * Prints problem nodes in the AST to the given printstream.
-	 *
-	 * @return Always returns false, boolean return type allows this method
-	 * to be called from a conditional breakpoint during debugging.
-	 */
-	public static boolean printProblems(IASTNode node, PrintStream out) {
-		if (node == null) {
-			out.println("null");
-			return false;
-		}
+        final PrintStream out;
 
-		node.accept(new PrintProblemsVisitor(out));
+        int indentLevel = 0;
 
-		if (node instanceof IASTTranslationUnit) {
-			IASTProblem[] problems = ((IASTTranslationUnit) node).getPreprocessorProblems();
-			if (problems != null) {
-				for (IASTProblem problem : problems) {
-					print(out, 0, problem);
-				}
-			}
-		}
+        public PrintVisitor(PrintStream out) {
+            super(true);
+            this.out = out;
+            shouldVisitAmbiguousNodes = true;
+        }
 
-		return false;
-	}
+        @Override
+        protected int genericVisit(IASTNode node) {
+            print(out, indentLevel++, node);
+            return PROCESS_CONTINUE;
+        }
 
-	/**
-	 * Prints problem nodes in the AST to stdout.
-	 *
-	 * @return Always returns false, boolean return type allows this method
-	 * to be called from a conditional breakpoint during debugging.
-	 */
-	public static boolean printProblems(IASTNode root) {
-		return printProblems(root, System.out);
-	}
+        @Override
+        protected int genericLeave(IASTNode node) {
+            indentLevel--;
+            return PROCESS_CONTINUE;
+        }
 
-	private static class PrintVisitor extends ASTGenericVisitor {
-		final PrintStream out;
-		int indentLevel = 0;
+        @Override
+        public int visit(ASTAmbiguousNode node) {
+            print(out, indentLevel++, node);
+            for (IASTNode n : node.getNodes()) n.accept(this);
+            indentLevel--;
+            return PROCESS_CONTINUE;
+        }
+    }
 
-		public PrintVisitor(PrintStream out) {
-			super(true);
-			this.out = out;
-			shouldVisitAmbiguousNodes = true;
-		}
+    private static class PrintProblemsVisitor extends PrintVisitor {
 
-		@Override
-		protected int genericVisit(IASTNode node) {
-			print(out, indentLevel++, node);
-			return PROCESS_CONTINUE;
-		}
+        public PrintProblemsVisitor(PrintStream out) {
+            super(out);
+        }
 
-		@Override
-		protected int genericLeave(IASTNode node) {
-			indentLevel--;
-			return PROCESS_CONTINUE;
-		}
+        @Override
+        protected int genericVisit(IASTNode node) {
+            indentLevel++;
+            if (node instanceof IASTProblem)
+                print(out, indentLevel, node);
+            return PROCESS_CONTINUE;
+        }
+    }
 
-		@Override
-		public int visit(ASTAmbiguousNode node) {
-			print(out, indentLevel++, node);
-			for (IASTNode n : node.getNodes())
-				n.accept(this);
-			indentLevel--;
-			return PROCESS_CONTINUE;
-		}
-	}
-
-	private static class PrintProblemsVisitor extends PrintVisitor {
-		public PrintProblemsVisitor(PrintStream out) {
-			super(out);
-		}
-
-		@Override
-		protected int genericVisit(IASTNode node) {
-			indentLevel++;
-			if (node instanceof IASTProblem)
-				print(out, indentLevel, node);
-			return PROCESS_CONTINUE;
-		}
-
-	}
-
-	private static void print(PrintStream out, int indentLevel, Object n) {
-		for (int i = 0; i < indentLevel; i++)
-			out.print("  ");
-
-		if (n == null) {
-			out.println("NULL");
-			return;
-		}
-
-		out.print(n.getClass().getName());
-
-		if (n instanceof ASTNode) {
-			ASTNode node = (ASTNode) n;
-			out.print(" (" + node.getOffset() + "," + node.getLength() + ") ");
-			if (node.getParent() == null && !(node instanceof IASTTranslationUnit)) {
-				out.print("PARENT IS NULL ");
-			}
-			if (PRINT_PARENT_PROPERTIES)
-				out.print(node.getPropertyInParent());
-		}
-
-		if (n instanceof ICArrayType) {
-			ICArrayType at = (ICArrayType) n;
-			if (at.isRestrict()) {
-				out.print(" restrict");
-			}
-		}
-
-		if (n instanceof IASTName) {
-			IASTName name = (IASTName) n;
-			out.print(" " + ((IASTName) n).toString());
-			if (RESOLVE_BINDINGS) {
-				try {
-					IBinding binding = name.resolveBinding();
-					print(out, indentLevel, binding);
-				} catch (Exception e) {
-					System.out.println("Exception while resolving binding: " + name);
-				}
-			}
-		} else if (n instanceof ICASTPointer) {
-			ICASTPointer pointer = (ICASTPointer) n;
-			if (pointer.isConst())
-				out.print(" const");
-			if (pointer.isVolatile())
-				out.print(" volatile");
-			if (pointer.isRestrict())
-				out.print(" restrict");
-		} else if (n instanceof ICPointerType) {
-			ICPointerType pointer = (ICPointerType) n;
-			if (pointer.isConst())
-				out.print(" const");
-			if (pointer.isVolatile())
-				out.print(" volatile");
-			if (pointer.isRestrict())
-				out.print(" restrict");
-			out.println();
-			try {
-				print(out, indentLevel, ((ITypeContainer) n).getType());
-			} catch (Exception e) {
-			}
-		} else if (n instanceof ICASTArrayModifier) {
-			if (((ICASTArrayModifier) n).isRestrict()) {
-				out.print(" restrict");
-			}
-		} else if (n instanceof IASTComment) {
-			out.print("'" + new String(((IASTComment) n).getComment()) + "'");
-			//		} else if (n instanceof ICompositeType) {
-			//			try {
-			//				IField[] fields = ((ICompositeType)n).getFields();
-			//				if (fields == null || fields.length == 0) {
-			//					out.print(" no fields");
-			//				}
-			//				for (IField field : fields) {
-			//					out.println();
-			//					print(out, indentLevel + 1, field);
-			//				}
-			//			} catch (DOMException e) {
-			//				e.printStackTrace();
-			//			}
-		} else if (n instanceof ITypeContainer) {
-			out.println();
-			try {
-				print(out, indentLevel, ((ITypeContainer) n).getType());
-			} catch (Exception e) {
-			}
-		} else if (n instanceof IVariable) {
-			IVariable var = (IVariable) n;
-			IType t;
-			t = var.getType();
-			out.println();
-			print(out, indentLevel, t);
-
-		} else if (n instanceof IProblemBinding) {
-			IProblemBinding problem = (IProblemBinding) n;
-			out.print(problem.getMessage());
-		}
-
-		out.println();
-	}
-
+    private static void print(PrintStream out, int indentLevel, Object n) {
+        for (int i = 0; i < indentLevel; i++) out.print("  ");
+        if (n == null) {
+            out.println("NULL");
+            return;
+        }
+        out.print(n.getClass().getName());
+        if (n instanceof ASTNode) {
+            ASTNode node = (ASTNode) n;
+            out.print(" (" + node.getOffset() + "," + node.getLength() + ") ");
+            if (node.getParent() == null && !(node instanceof IASTTranslationUnit)) {
+                out.print("PARENT IS NULL ");
+            }
+            if (PRINT_PARENT_PROPERTIES)
+                out.print(node.getPropertyInParent());
+        }
+        if (n instanceof ICArrayType) {
+            ICArrayType at = (ICArrayType) n;
+            if (at.isRestrict()) {
+                out.print(" restrict");
+            }
+        }
+        if (n instanceof IASTName) {
+            IASTName name = (IASTName) n;
+            out.print(" " + ((IASTName) n).toString());
+            if (RESOLVE_BINDINGS) {
+                try {
+                    IBinding binding = name.resolveBinding();
+                    print(out, indentLevel, binding);
+                } catch (Exception e) {
+                    System.out.println("Exception while resolving binding: " + name);
+                }
+            }
+        } else if (n instanceof ICASTPointer) {
+            ICASTPointer pointer = (ICASTPointer) n;
+            if (pointer.isConst())
+                out.print(" const");
+            if (pointer.isVolatile())
+                out.print(" volatile");
+            if (pointer.isRestrict())
+                out.print(" restrict");
+        } else if (n instanceof ICPointerType) {
+            ICPointerType pointer = (ICPointerType) n;
+            if (pointer.isConst())
+                out.print(" const");
+            if (pointer.isVolatile())
+                out.print(" volatile");
+            if (pointer.isRestrict())
+                out.print(" restrict");
+            out.println();
+            try {
+                print(out, indentLevel, ((ITypeContainer) n).getType());
+            } catch (Exception e) {
+            }
+        } else if (n instanceof ICASTArrayModifier) {
+            if (((ICASTArrayModifier) n).isRestrict()) {
+                out.print(" restrict");
+            }
+        } else if (n instanceof IASTComment) {
+            out.print("'" + new String(((IASTComment) n).getComment()) + "'");
+            //		} else if (n instanceof ICompositeType) {
+            //			try {
+            //				IField[] fields = ((ICompositeType)n).getFields();
+            //				if (fields == null || fields.length == 0) {
+            //					out.print(" no fields");
+            //				}
+            //				for (IField field : fields) {
+            //					out.println();
+            //					print(out, indentLevel + 1, field);
+            //				}
+            //			} catch (DOMException e) {
+            //				e.printStackTrace();
+            //			}
+        } else if (n instanceof ITypeContainer) {
+            out.println();
+            try {
+                print(out, indentLevel, ((ITypeContainer) n).getType());
+            } catch (Exception e) {
+            }
+        } else if (n instanceof IVariable) {
+            IVariable var = (IVariable) n;
+            IType t;
+            t = var.getType();
+            out.println();
+            print(out, indentLevel, t);
+        } else if (n instanceof IProblemBinding) {
+            IProblemBinding problem = (IProblemBinding) n;
+            out.print(problem.getMessage());
+        }
+        out.println();
+    }
 }

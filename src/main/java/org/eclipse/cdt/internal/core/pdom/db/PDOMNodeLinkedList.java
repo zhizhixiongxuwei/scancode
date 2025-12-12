@@ -1,18 +1,20 @@
-/*******************************************************************************
- * Copyright (c) 2005, 2014 QNX Software Systems and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2005, 2014 QNX Software Systems and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     QNX - Initial API and implementation
- *     Markus Schorn (Wind River Systems)
- *     Sergey Prigogin (Google)
- *******************************************************************************/
+ *  Contributors:
+ *      QNX - Initial API and implementation
+ *      Markus Schorn (Wind River Systems)
+ *      Sergey Prigogin (Google)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.pdom.db;
 
 import org.eclipse.cdt.core.dom.IPDOMVisitor;
@@ -25,127 +27,129 @@ import org.eclipse.core.runtime.CoreException;
  * @author Doug Schaefer
  */
 public class PDOMNodeLinkedList {
-	private long offset;
-	private PDOMLinkage linkage;
-	private boolean allowsNull;
 
-	private static final int FIRST_MEMBER = 0;
-	protected static final int RECORD_SIZE = 4;
+    public long offset;
 
-	public PDOMNodeLinkedList(PDOMLinkage linkage, long offset, boolean allowsNulls) {
-		this.offset = offset;
-		this.linkage = linkage;
-		this.allowsNull = allowsNulls;
-	}
+    public PDOMLinkage linkage;
 
-	/**
-	 * Creates an object representing a linked list at the specified offset of the specified pdom.
-	 * The linked list created may not hold null items
-	 * @param linkage
-	 * @param offset
-	 */
-	public PDOMNodeLinkedList(PDOMLinkage linkage, long offset) {
-		this(linkage, offset, false);
-	}
+    public boolean allowsNull;
 
-	protected int getRecordSize() {
-		return RECORD_SIZE;
-	}
+    static final public int FIRST_MEMBER = 0;
 
-	public void accept(IPDOMVisitor visitor) throws CoreException {
-		Database db = linkage.getDB();
-		long firstItem = db.getRecPtr(offset + FIRST_MEMBER);
-		if (firstItem == 0)
-			return;
+    static final public int RECORD_SIZE = 4;
 
-		long item = firstItem;
-		do {
-			PDOMNode node;
-			final long record = db.getRecPtr(item + ListItem.ITEM);
-			if (record == 0) {
-				if (!allowsNull) {
-					throw new NullPointerException();
-				}
-				node = null;
-			} else {
-				node = PDOMNode.load(linkage.getPDOM(), record);
-			}
-			if (visitor.visit(node) && node != null) {
-				node.accept(visitor);
-			}
-			visitor.leave(node);
-		} while ((item = db.getRecPtr(item + ListItem.NEXT)) != firstItem);
-	}
+    public PDOMNodeLinkedList(PDOMLinkage linkage, long offset, boolean allowsNulls) {
+        this.offset = offset;
+        this.linkage = linkage;
+        this.allowsNull = allowsNulls;
+    }
 
-	private ListItem getFirstMemberItem() throws CoreException {
-		Database db = linkage.getDB();
-		long item = db.getRecPtr(offset + FIRST_MEMBER);
-		return item != 0 ? new ListItem(db, item) : null;
-	}
+    /**
+     * Creates an object representing a linked list at the specified offset of the specified pdom.
+     * The linked list created may not hold null items
+     * @param linkage
+     * @param offset
+     */
+    public PDOMNodeLinkedList(PDOMLinkage linkage, long offset) {
+        this(linkage, offset, false);
+    }
 
-	/**
-	 * Returns node at position {@code pos}. Not recommended to be used in a loop since
-	 * such a loop would be more expensive that a single {@code accept(IPDOMVisitor)} call.
-	 * @param pos A zero-based position in the list.
-	 * @return The node at position {@code pos}, or {@code null} if no such node exists.
-	 */
-	public PDOMNode getNodeAt(int pos) throws CoreException {
-		Database db = linkage.getDB();
-		long firstItem = db.getRecPtr(offset + FIRST_MEMBER);
-		if (firstItem == 0) {
-			return null;
-		}
-		long item = firstItem;
-		do {
-			if (--pos < 0) {
-				long record = db.getRecPtr(item + ListItem.ITEM);
-				if (record == 0) {
-					if (!allowsNull) {
-						throw new NullPointerException();
-					}
-					return null;
-				} else {
-					return PDOMNode.load(linkage.getPDOM(), record);
-				}
-			}
-		} while ((item = db.getRecPtr(item + ListItem.NEXT)) != firstItem);
-		return null;
-	}
+    protected int getRecordSize() {
+        return RECORD_SIZE;
+    }
 
-	public void addMember(PDOMNode member) throws CoreException {
-		addMember(allowsNull && member == null ? 0 : member.getRecord());
-	}
+    public void accept(IPDOMVisitor visitor) throws CoreException {
+        Database db = linkage.getDB();
+        long firstItem = db.getRecPtr(offset + FIRST_MEMBER);
+        if (firstItem == 0)
+            return;
+        long item = firstItem;
+        do {
+            PDOMNode node;
+            final long record = db.getRecPtr(item + ListItem.ITEM);
+            if (record == 0) {
+                if (!allowsNull) {
+                    throw new NullPointerException();
+                }
+                node = null;
+            } else {
+                node = PDOMNode.load(linkage.getPDOM(), record);
+            }
+            if (visitor.visit(node) && node != null) {
+                node.accept(visitor);
+            }
+            visitor.leave(node);
+        } while ((item = db.getRecPtr(item + ListItem.NEXT)) != firstItem);
+    }
 
-	protected void addMember(long record) throws CoreException {
-		Database db = linkage.getDB();
-		ListItem firstMember = getFirstMemberItem();
-		if (firstMember == null) {
-			firstMember = new ListItem(db);
-			firstMember.setItem(record);
-			firstMember.setNext(firstMember);
-			firstMember.setPrev(firstMember);
-			db.putRecPtr(offset + FIRST_MEMBER, firstMember.getRecord());
-		} else {
-			ListItem newMember = new ListItem(db);
-			newMember.setItem(record);
-			ListItem prevMember = firstMember.getPrev();
-			prevMember.setNext(newMember);
-			firstMember.setPrev(newMember);
-			newMember.setPrev(prevMember);
-			newMember.setNext(firstMember);
-		}
-	}
+    private ListItem getFirstMemberItem() throws CoreException {
+        Database db = linkage.getDB();
+        long item = db.getRecPtr(offset + FIRST_MEMBER);
+        return item != 0 ? new ListItem(db, item) : null;
+    }
 
-	public void deleteListItems() throws CoreException {
-		ListItem item = getFirstMemberItem();
-		if (item != null) {
-			long firstRec = item.record;
+    /**
+     * Returns node at position {@code pos}. Not recommended to be used in a loop since
+     * such a loop would be more expensive that a single {@code accept(IPDOMVisitor)} call.
+     * @param pos A zero-based position in the list.
+     * @return The node at position {@code pos}, or {@code null} if no such node exists.
+     */
+    public PDOMNode getNodeAt(int pos) throws CoreException {
+        Database db = linkage.getDB();
+        long firstItem = db.getRecPtr(offset + FIRST_MEMBER);
+        if (firstItem == 0) {
+            return null;
+        }
+        long item = firstItem;
+        do {
+            if (--pos < 0) {
+                long record = db.getRecPtr(item + ListItem.ITEM);
+                if (record == 0) {
+                    if (!allowsNull) {
+                        throw new NullPointerException();
+                    }
+                    return null;
+                } else {
+                    return PDOMNode.load(linkage.getPDOM(), record);
+                }
+            }
+        } while ((item = db.getRecPtr(item + ListItem.NEXT)) != firstItem);
+        return null;
+    }
 
-			do {
-				ListItem nextItem = item.getNext();
-				item.delete();
-				item = nextItem;
-			} while (item.record != firstRec && item.record != 0);
-		}
-	}
+    public void addMember(PDOMNode member) throws CoreException {
+        addMember(allowsNull && member == null ? 0 : member.getRecord());
+    }
+
+    protected void addMember(long record) throws CoreException {
+        Database db = linkage.getDB();
+        ListItem firstMember = getFirstMemberItem();
+        if (firstMember == null) {
+            firstMember = new ListItem(db);
+            firstMember.setItem(record);
+            firstMember.setNext(firstMember);
+            firstMember.setPrev(firstMember);
+            db.putRecPtr(offset + FIRST_MEMBER, firstMember.getRecord());
+        } else {
+            ListItem newMember = new ListItem(db);
+            newMember.setItem(record);
+            ListItem prevMember = firstMember.getPrev();
+            prevMember.setNext(newMember);
+            firstMember.setPrev(newMember);
+            newMember.setPrev(prevMember);
+            newMember.setNext(firstMember);
+        }
+    }
+
+    public void deleteListItems() throws CoreException {
+        ListItem item = getFirstMemberItem();
+        if (item != null) {
+            long firstRec = item.record;
+            do {
+                ListItem nextItem = item.getNext();
+                item.delete();
+                item = nextItem;
+            } while (item.record != firstRec && item.record != 0);
+        }
+    }
 }

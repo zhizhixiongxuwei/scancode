@@ -44,13 +44,13 @@ public class DOMField extends DOMMember implements IDOMField {
      * has been altered from the contents in the
      * document, otherwise <code>null</code>.
      */
-    protected String fType;
+    public String fType;
 
     /**
      * The original inclusive source range of the
      * field's type in the document.
      */
-    protected int[] fTypeRange;
+    public int[] fTypeRange;
 
     /**
      * The contents of the initializer when the
@@ -58,13 +58,13 @@ public class DOMField extends DOMMember implements IDOMField {
      * original state in the document, otherwise
      * <code>null</code>.
      */
-    protected String fInitializer;
+    public String fInitializer;
 
     /**
      * The original inclusive source range of the
      * initializer in the document.
      */
-    protected int[] fInitializerRange;
+    public int[] fInitializerRange;
 
     /**
      * Constructs an empty field node.

@@ -34,12 +34,12 @@ import org.eclipse.core.runtime.CoreException;
 
 public class PDOMCPPUsingDeclarationSpecialization extends PDOMCPPSpecialization implements ICPPUsingDeclaration {
 
-    private static final int TARGET_BINDINGS = PDOMCPPSpecialization.RECORD_SIZE;
+    static final public int TARGET_BINDINGS = PDOMCPPSpecialization.RECORD_SIZE;
 
     @SuppressWarnings("hiding")
-    protected static final int RECORD_SIZE = TARGET_BINDINGS + Database.PTR_SIZE;
+    static final public int RECORD_SIZE = TARGET_BINDINGS + Database.PTR_SIZE;
 
-    private volatile IBinding[] delegates;
+    volatile public IBinding[] delegates;
 
     public PDOMCPPUsingDeclarationSpecialization(PDOMCPPLinkage linkage, PDOMNode parent, ICPPUsingDeclaration using, PDOMBinding specialized) throws CoreException {
         super(linkage, parent, (ICPPSpecialization) using, specialized);

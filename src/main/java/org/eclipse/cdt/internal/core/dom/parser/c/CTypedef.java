@@ -1,17 +1,19 @@
-/*******************************************************************************
- * Copyright (c) 2005, 2011 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2005, 2011 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     IBM Rational Software - Initial API and implementation
- *     Markus Schorn (Wind River Systems)
- *******************************************************************************/
+ *  Contributors:
+ *      IBM Rational Software - Initial API and implementation
+ *      Markus Schorn (Wind River Systems)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.parser.c;
 
 import org.eclipse.cdt.core.dom.ILinkage;
@@ -31,96 +33,98 @@ import org.eclipse.core.runtime.PlatformObject;
  * Represents a typedef.
  */
 public class CTypedef extends PlatformObject implements ITypedef, ITypeContainer, ICInternalBinding {
-	private final IASTName name;
-	private IType type = null;
 
-	public CTypedef(IASTName name) {
-		this.name = name;
-	}
+    final public IASTName name;
 
-	@Override
-	public IASTNode getPhysicalNode() {
-		return name;
-	}
+    public IType type = null;
 
-	@Override
-	public IType getType() {
-		if (type == null && name.getParent() instanceof IASTDeclarator)
-			type = CVisitor.createType((IASTDeclarator) name.getParent());
-		return type;
-	}
+    public CTypedef(IASTName name) {
+        this.name = name;
+    }
 
-	@Override
-	public void setType(IType t) {
-		type = t;
-	}
+    @Override
+    public IASTNode getPhysicalNode() {
+        return name;
+    }
 
-	@Override
-	public String getName() {
-		return name.toString();
-	}
+    @Override
+    public IType getType() {
+        if (type == null && name.getParent() instanceof IASTDeclarator)
+            type = CVisitor.createType((IASTDeclarator) name.getParent());
+        return type;
+    }
 
-	@Override
-	public char[] getNameCharArray() {
-		return name.toCharArray();
-	}
+    @Override
+    public void setType(IType t) {
+        type = t;
+    }
 
-	@Override
-	public IScope getScope() {
-		IASTDeclarator declarator = (IASTDeclarator) name.getParent();
-		return CVisitor.getContainingScope(declarator.getParent());
-	}
+    @Override
+    public String getName() {
+        return name.toString();
+    }
 
-	@Override
-	public Object clone() {
-		IType t = null;
-		try {
-			t = (IType) super.clone();
-		} catch (CloneNotSupportedException e) {
-			//not going to happen
-		}
-		return t;
-	}
+    @Override
+    public char[] getNameCharArray() {
+        return name.toCharArray();
+    }
 
-	@Override
-	public boolean isSameType(IType t) {
-		if (t == this)
-			return true;
-		if (t instanceof ITypedef) {
-			IType temp = getType();
-			if (temp != null)
-				return temp.isSameType(((ITypedef) t).getType());
-			return false;
-		}
+    @Override
+    public IScope getScope() {
+        IASTDeclarator declarator = (IASTDeclarator) name.getParent();
+        return CVisitor.getContainingScope(declarator.getParent());
+    }
 
-		IType temp = getType();
-		if (temp != null)
-			return temp.isSameType(t);
-		return false;
-	}
+    @Override
+    public Object clone() {
+        IType t = null;
+        try {
+            t = (IType) super.clone();
+        } catch (CloneNotSupportedException e) {
+            //not going to happen
+        }
+        return t;
+    }
 
-	@Override
-	public ILinkage getLinkage() {
-		return Linkage.C_LINKAGE;
-	}
+    @Override
+    public boolean isSameType(IType t) {
+        if (t == this)
+            return true;
+        if (t instanceof ITypedef) {
+            IType temp = getType();
+            if (temp != null)
+                return temp.isSameType(((ITypedef) t).getType());
+            return false;
+        }
+        IType temp = getType();
+        if (temp != null)
+            return temp.isSameType(t);
+        return false;
+    }
 
-	@Override
-	public IASTNode[] getDeclarations() {
-		return IASTNode.EMPTY_NODE_ARRAY;
-	}
+    @Override
+    public ILinkage getLinkage() {
+        return Linkage.C_LINKAGE;
+    }
 
-	@Override
-	public IASTNode getDefinition() {
-		return name;
-	}
+    @Override
+    public IASTNode[] getDeclarations() {
+        return IASTNode.EMPTY_NODE_ARRAY;
+    }
 
-	@Override
-	public IBinding getOwner() {
-		return CVisitor.findEnclosingFunction(name);
-	}
+    @Override
+    public IASTNode getDefinition() {
+        return name;
+    }
 
-	@Override
-	public String toString() {
-		return getName() + " -> " + ASTTypeUtil.getType(this, true); //$NON-NLS-1$
-	}
+    @Override
+    public IBinding getOwner() {
+        return CVisitor.findEnclosingFunction(name);
+    }
+
+    @Override
+    public String toString() {
+        //$NON-NLS-1$
+        return getName() + " -> " + ASTTypeUtil.getType(this, true);
+    }
 }

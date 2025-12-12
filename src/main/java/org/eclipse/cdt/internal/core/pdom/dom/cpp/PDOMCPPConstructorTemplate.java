@@ -35,13 +35,13 @@ public class PDOMCPPConstructorTemplate extends PDOMCPPMethodTemplate implements
      * Offset of the constructor chain execution for constexpr constructors.
      */
     // Database.EXECUTION_SIZE
-    private static final int CONSTRUCTOR_CHAIN = PDOMCPPMethodTemplate.RECORD_SIZE;
+    static final public int CONSTRUCTOR_CHAIN = PDOMCPPMethodTemplate.RECORD_SIZE;
 
     /**
      * The size in bytes of a PDOMCPPConstructorTemplate record in the database.
      */
     @SuppressWarnings("hiding")
-    protected static final int RECORD_SIZE = CONSTRUCTOR_CHAIN + Database.EXECUTION_SIZE;
+    static final public int RECORD_SIZE = CONSTRUCTOR_CHAIN + Database.EXECUTION_SIZE;
 
     public PDOMCPPConstructorTemplate(PDOMCPPLinkage linkage, PDOMNode parent, ICPPConstructor method) throws CoreException, DOMException {
         super(linkage, parent, method);

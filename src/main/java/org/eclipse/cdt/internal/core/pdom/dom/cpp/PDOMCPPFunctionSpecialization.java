@@ -45,29 +45,29 @@ public class PDOMCPPFunctionSpecialization extends PDOMCPPSpecialization impleme
     /**
      * Offset of total number of function parameters (relative to the beginning of the record).
      */
-    private static final int NUM_PARAMS = PDOMCPPSpecialization.RECORD_SIZE;
+    static final public int NUM_PARAMS = PDOMCPPSpecialization.RECORD_SIZE;
 
     /**
      * Offset of pointer to the first parameter of this function (relative to the beginning of the record).
      */
-    private static final int FIRST_PARAM = NUM_PARAMS + 4;
+    static final public int FIRST_PARAM = NUM_PARAMS + 4;
 
     /**
      * Offset for type of this function (relative to the beginning of the record).
      */
-    private static final int FUNCTION_TYPE = FIRST_PARAM + Database.PTR_SIZE;
+    static final public int FUNCTION_TYPE = FIRST_PARAM + Database.PTR_SIZE;
 
     /**
      * Offset of start of exception specification.
      */
     // int
-    protected static final int EXCEPTION_SPEC = FUNCTION_TYPE + Database.TYPE_SIZE;
+    static final public int EXCEPTION_SPEC = FUNCTION_TYPE + Database.TYPE_SIZE;
 
     /**
      * Offset of annotation information (relative to the beginning of the record).
      */
     // short
-    private static final int ANNOTATION = EXCEPTION_SPEC + Database.PTR_SIZE;
+    static final public int ANNOTATION = EXCEPTION_SPEC + Database.PTR_SIZE;
 
     /**
      * Offset of the number of the required arguments.

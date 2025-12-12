@@ -31,11 +31,11 @@ import org.eclipse.core.runtime.CoreException;
 
 public class SignatureBuilder implements ITypeMarshalBuffer {
 
-    private static final short NULL_TYPE = 0x0000;
+    static final public short NULL_TYPE = 0x0000;
 
-    private static final short UNSTORABLE_TYPE = 0x001D;
+    static final public short UNSTORABLE_TYPE = 0x001D;
 
-    private final StringBuilder fBuffer;
+    final public StringBuilder fBuffer;
 
     /**
      * Constructor for input buffer.

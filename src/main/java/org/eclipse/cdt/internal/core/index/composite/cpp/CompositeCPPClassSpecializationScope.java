@@ -1,18 +1,20 @@
-/*******************************************************************************
- * Copyright (c) 2008, 2015 Symbian Software Systems and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2008, 2015 Symbian Software Systems and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Andrew Ferguson (Symbian) - Initial implementation
- *     Markus Schorn (Wind River Systems)
- *     Sergey Prigogin (Google)
- *******************************************************************************/
+ *  Contributors:
+ *      Andrew Ferguson (Symbian) - Initial implementation
+ *      Markus Schorn (Wind River Systems)
+ *      Sergey Prigogin (Google)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.index.composite.cpp;
 
 import org.eclipse.cdt.core.dom.ast.EScopeKind;
@@ -35,120 +37,120 @@ import org.eclipse.cdt.internal.core.index.composite.CompositeScope;
 import org.eclipse.cdt.internal.core.index.composite.ICompositesFactory;
 
 public class CompositeCPPClassSpecializationScope extends CompositeScope implements ICPPClassSpecializationScope {
-	private ICPPClassSpecializationScope fDelegate;
 
-	public CompositeCPPClassSpecializationScope(ICompositesFactory cf, IIndexFragmentBinding rbinding) {
-		super(cf, rbinding);
-	}
+    public ICPPClassSpecializationScope fDelegate;
 
-	private ICPPClassSpecialization specialization() {
-		return (ICPPClassSpecialization) cf.getCompositeBinding(rbinding);
-	}
+    public CompositeCPPClassSpecializationScope(ICompositesFactory cf, IIndexFragmentBinding rbinding) {
+        super(cf, rbinding);
+    }
 
-	@Override
-	public ICPPClassType getOriginalClassType() {
-		return specialization().getSpecializedBinding();
-	}
+    private ICPPClassSpecialization specialization() {
+        return (ICPPClassSpecialization) cf.getCompositeBinding(rbinding);
+    }
 
-	@Override
-	public EScopeKind getKind() {
-		return EScopeKind.eClassType;
-	}
+    @Override
+    public ICPPClassType getOriginalClassType() {
+        return specialization().getSpecializedBinding();
+    }
 
-	@Override
-	public ICPPClassSpecialization getClassType() {
-		return (ICPPClassSpecialization) cf.getCompositeBinding(rbinding);
-	}
+    @Override
+    public EScopeKind getKind() {
+        return EScopeKind.eClassType;
+    }
 
-	@Override
-	public IIndexBinding getScopeBinding() {
-		return (IIndexBinding) getClassType();
-	}
+    @Override
+    public ICPPClassSpecialization getClassType() {
+        return (ICPPClassSpecialization) cf.getCompositeBinding(rbinding);
+    }
 
-	private void createDelegate() {
-		if (fDelegate == null) {
-			fDelegate = new AbstractCPPClassSpecializationScope(specialization()) {
-			};
-		}
-	}
+    @Override
+    public IIndexBinding getScopeBinding() {
+        return (IIndexBinding) getClassType();
+    }
 
-	@Override
-	public ICPPMethod[] getImplicitMethods() {
-		createDelegate();
-		return fDelegate.getImplicitMethods();
-	}
+    private void createDelegate() {
+        if (fDelegate == null) {
+            fDelegate = new AbstractCPPClassSpecializationScope(specialization()) {
+            };
+        }
+    }
 
-	@Override
-	public IBinding[] find(String name, IASTTranslationUnit tu) {
-		createDelegate();
-		return fDelegate.find(name, tu);
-	}
+    @Override
+    public ICPPMethod[] getImplicitMethods() {
+        createDelegate();
+        return fDelegate.getImplicitMethods();
+    }
 
-	@Override
-	@Deprecated
-	public IBinding[] find(String name) {
-		createDelegate();
-		return fDelegate.find(name);
-	}
+    @Override
+    public IBinding[] find(String name, IASTTranslationUnit tu) {
+        createDelegate();
+        return fDelegate.find(name, tu);
+    }
 
-	@Override
-	public IBinding getBinding(IASTName name, boolean resolve, IIndexFileSet acceptLocalBindings) {
-		createDelegate();
-		return fDelegate.getBinding(name, resolve, acceptLocalBindings);
-	}
+    @Override
+    @Deprecated
+    public IBinding[] find(String name) {
+        createDelegate();
+        return fDelegate.find(name);
+    }
 
-	@Deprecated
-	@Override
-	public IBinding[] getBindings(IASTName name, boolean resolve, boolean prefixLookup,
-			IIndexFileSet acceptLocalBindings) {
-		return getBindings(new ScopeLookupData(name, resolve, prefixLookup));
-	}
+    @Override
+    public IBinding getBinding(IASTName name, boolean resolve, IIndexFileSet acceptLocalBindings) {
+        createDelegate();
+        return fDelegate.getBinding(name, resolve, acceptLocalBindings);
+    }
 
-	@Override
-	public IBinding[] getBindings(ScopeLookupData lookup) {
-		createDelegate();
-		return fDelegate.getBindings(lookup);
-	}
+    @Deprecated
+    @Override
+    public IBinding[] getBindings(IASTName name, boolean resolve, boolean prefixLookup, IIndexFileSet acceptLocalBindings) {
+        return getBindings(new ScopeLookupData(name, resolve, prefixLookup));
+    }
 
-	@Override
-	public ICPPConstructor[] getConstructors() {
-		createDelegate();
-		return fDelegate.getConstructors();
-	}
+    @Override
+    public IBinding[] getBindings(ScopeLookupData lookup) {
+        createDelegate();
+        return fDelegate.getBindings(lookup);
+    }
 
-	@Override
-	public ICPPMethod[] getDeclaredMethods() {
-		createDelegate();
-		return fDelegate.getDeclaredMethods();
-	}
+    @Override
+    public ICPPConstructor[] getConstructors() {
+        createDelegate();
+        return fDelegate.getConstructors();
+    }
 
-	@Override
-	public ICPPBase[] getBases() {
-		createDelegate();
-		return fDelegate.getBases();
-	}
+    @Override
+    public ICPPMethod[] getDeclaredMethods() {
+        createDelegate();
+        return fDelegate.getDeclaredMethods();
+    }
 
-	@Override
-	public ICPPField[] getDeclaredFields() {
-		createDelegate();
-		return fDelegate.getDeclaredFields();
-	}
+    @Override
+    public ICPPBase[] getBases() {
+        createDelegate();
+        return fDelegate.getBases();
+    }
 
-	@Override
-	public IBinding[] getFriends() {
-		createDelegate();
-		return fDelegate.getFriends();
-	}
+    @Override
+    public ICPPField[] getDeclaredFields() {
+        createDelegate();
+        return fDelegate.getDeclaredFields();
+    }
 
-	@Override
-	public ICPPClassType[] getNestedClasses() {
-		createDelegate();
-		return fDelegate.getNestedClasses();
-	}
+    @Override
+    public IBinding[] getFriends() {
+        createDelegate();
+        return fDelegate.getFriends();
+    }
 
-	@Override
-	public ICPPUsingDeclaration[] getUsingDeclarations() {
-		createDelegate();
-		return fDelegate.getUsingDeclarations();
-	}
+    @Override
+    public ICPPClassType[] getNestedClasses() {
+        createDelegate();
+        return fDelegate.getNestedClasses();
+    }
+
+    @Override
+    public ICPPUsingDeclaration[] getUsingDeclarations() {
+        createDelegate();
+        return fDelegate.getUsingDeclarations();
+    }
 }

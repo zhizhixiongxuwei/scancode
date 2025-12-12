@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2015 Nathan Ridge.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2015 Nathan Ridge.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Nathan Ridge - Initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *      Nathan Ridge - Initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.parser.c;
 
 import org.eclipse.cdt.core.dom.ast.ASTVisitor;
@@ -20,53 +22,55 @@ import org.eclipse.cdt.core.dom.ast.IASTTypeId;
 import org.eclipse.cdt.internal.core.dom.parser.ASTNode;
 
 public class CASTAlignmentSpecifier extends ASTNode implements IASTAlignmentSpecifier {
-	// Precisely one of these is null.
-	private IASTExpression fExpression;
-	private IASTTypeId fTypeId;
 
-	CASTAlignmentSpecifier(IASTExpression expression) {
-		fExpression = expression;
-		fExpression.setParent(this);
-		fExpression.setPropertyInParent(ALIGNMENT_EXPRESSION);
-	}
+    // Precisely one of these is null.
+    public IASTExpression fExpression;
 
-	CASTAlignmentSpecifier(IASTTypeId typeId) {
-		fTypeId = typeId;
-		fTypeId.setParent(this);
-		fTypeId.setPropertyInParent(ALIGNMENT_TYPEID);
-	}
+    public IASTTypeId fTypeId;
 
-	@Override
-	public IASTExpression getExpression() {
-		return fExpression;
-	}
+    CASTAlignmentSpecifier(IASTExpression expression) {
+        fExpression = expression;
+        fExpression.setParent(this);
+        fExpression.setPropertyInParent(ALIGNMENT_EXPRESSION);
+    }
 
-	@Override
-	public IASTTypeId getTypeId() {
-		return fTypeId;
-	}
+    CASTAlignmentSpecifier(IASTTypeId typeId) {
+        fTypeId = typeId;
+        fTypeId.setParent(this);
+        fTypeId.setPropertyInParent(ALIGNMENT_TYPEID);
+    }
 
-	@Override
-	public IASTAlignmentSpecifier copy() {
-		return copy(CopyStyle.withoutLocations);
-	}
+    @Override
+    public IASTExpression getExpression() {
+        return fExpression;
+    }
 
-	@Override
-	public IASTAlignmentSpecifier copy(CopyStyle style) {
-		CASTAlignmentSpecifier copy;
-		if (fExpression != null) {
-			copy = new CASTAlignmentSpecifier(fExpression.copy(style));
-		} else {
-			copy = new CASTAlignmentSpecifier(fTypeId.copy(style));
-		}
-		return copy(copy, style);
-	}
+    @Override
+    public IASTTypeId getTypeId() {
+        return fTypeId;
+    }
 
-	@Override
-	public boolean accept(ASTVisitor visitor) {
-		if (fExpression != null) {
-			return fExpression.accept(visitor);
-		}
-		return fTypeId.accept(visitor);
-	}
+    @Override
+    public IASTAlignmentSpecifier copy() {
+        return copy(CopyStyle.withoutLocations);
+    }
+
+    @Override
+    public IASTAlignmentSpecifier copy(CopyStyle style) {
+        CASTAlignmentSpecifier copy;
+        if (fExpression != null) {
+            copy = new CASTAlignmentSpecifier(fExpression.copy(style));
+        } else {
+            copy = new CASTAlignmentSpecifier(fTypeId.copy(style));
+        }
+        return copy(copy, style);
+    }
+
+    @Override
+    public boolean accept(ASTVisitor visitor) {
+        if (fExpression != null) {
+            return fExpression.accept(visitor);
+        }
+        return fTypeId.accept(visitor);
+    }
 }

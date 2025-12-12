@@ -1,13 +1,15 @@
-/*******************************************************************************
- * Copyright (c) 2017 Nathan Ridge.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2017 Nathan Ridge.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
- *******************************************************************************/
+ *  SPDX-License-Identifier: EPL-2.0
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.parser.cpp;
 
 import org.eclipse.cdt.core.dom.ILinkage;
@@ -32,136 +34,137 @@ import org.eclipse.core.runtime.PlatformObject;
  *
  * Used for the template type parameters of implicit method templates.
  */
-public class CPPImplicitTemplateTypeParameter extends PlatformObject
-		implements ICPPTemplateTypeParameter, ICPPUnknownType, ICPPUnknownBinding {
-	private int fParameterID;
-	private boolean fIsParameterPack;
-	private ICPPScope fUnknownScope;
+public class CPPImplicitTemplateTypeParameter extends PlatformObject implements ICPPTemplateTypeParameter, ICPPUnknownType, ICPPUnknownBinding {
 
-	// The containing (implicit) template definition.
-	private ICPPTemplateDefinition fContainingTemplate;
+    public int fParameterID;
 
-	// The AST node that triggered the creation of the implicit template.
-	// For methods of generic lambdas, this is the lambda expression.
-	private IASTNode fNode;
+    public boolean fIsParameterPack;
 
-	public CPPImplicitTemplateTypeParameter(IASTNode node, int position, boolean isParameterPack) {
-		fParameterID = computeParameterID(position);
-		fIsParameterPack = isParameterPack;
-		fNode = node;
-	}
+    public ICPPScope fUnknownScope;
 
-	private int computeParameterID(int position) {
-		int nesting = 0;
-		for (IASTNode node = fNode; node != null; node = node.getParent()) {
-			if (node instanceof ICPPASTInternalTemplateDeclaration) {
-				nesting = ((ICPPASTInternalTemplateDeclaration) node).getNestingLevel();
-				break;
-			}
-		}
-		return (nesting << 16) + (position & 0xffff);
-	}
+    // The containing (implicit) template definition.
+    public ICPPTemplateDefinition fContainingTemplate;
 
-	public void setContainingTemplate(ICPPTemplateDefinition containingTemplate) {
-		fContainingTemplate = containingTemplate;
-	}
+    // The AST node that triggered the creation of the implicit template.
+    // For methods of generic lambdas, this is the lambda expression.
+    public IASTNode fNode;
 
-	@Override
-	public String[] getQualifiedName() throws DOMException {
-		return new String[] { getName() };
-	}
+    public CPPImplicitTemplateTypeParameter(IASTNode node, int position, boolean isParameterPack) {
+        fParameterID = computeParameterID(position);
+        fIsParameterPack = isParameterPack;
+        fNode = node;
+    }
 
-	@Override
-	public char[][] getQualifiedNameCharArray() throws DOMException {
-		return new char[][] { getNameCharArray() };
-	}
+    private int computeParameterID(int position) {
+        int nesting = 0;
+        for (IASTNode node = fNode; node != null; node = node.getParent()) {
+            if (node instanceof ICPPASTInternalTemplateDeclaration) {
+                nesting = ((ICPPASTInternalTemplateDeclaration) node).getNestingLevel();
+                break;
+            }
+        }
+        return (nesting << 16) + (position & 0xffff);
+    }
 
-	@Override
-	public boolean isGloballyQualified() throws DOMException {
-		return false;
-	}
+    public void setContainingTemplate(ICPPTemplateDefinition containingTemplate) {
+        fContainingTemplate = containingTemplate;
+    }
 
-	@Override
-	public String getName() {
-		return new String();
-	}
+    @Override
+    public String[] getQualifiedName() throws DOMException {
+        return new String[] { getName() };
+    }
 
-	@Override
-	public char[] getNameCharArray() {
-		// Implicit template parameters are unnamed.
-		return CharArrayUtils.EMPTY;
-	}
+    @Override
+    public char[][] getQualifiedNameCharArray() throws DOMException {
+        return new char[][] { getNameCharArray() };
+    }
 
-	@Override
-	public ILinkage getLinkage() {
-		return Linkage.CPP_LINKAGE;
-	}
+    @Override
+    public boolean isGloballyQualified() throws DOMException {
+        return false;
+    }
 
-	@Override
-	public IBinding getOwner() {
-		return fContainingTemplate;
-	}
+    @Override
+    public String getName() {
+        return new String();
+    }
 
-	@Override
-	public IScope getScope() throws DOMException {
-		// TODO: Do we need an implicit template scope for the implicit template
-		//       parameter to live in?
-		return CPPVisitor.getContainingScope(fNode);
-	}
+    @Override
+    public char[] getNameCharArray() {
+        // Implicit template parameters are unnamed.
+        return CharArrayUtils.EMPTY;
+    }
 
-	@Override
-	public short getParameterPosition() {
-		return (short) fParameterID;
-	}
+    @Override
+    public ILinkage getLinkage() {
+        return Linkage.CPP_LINKAGE;
+    }
 
-	@Override
-	public short getTemplateNestingLevel() {
-		return (short) (fParameterID >> 16);
-	}
+    @Override
+    public IBinding getOwner() {
+        return fContainingTemplate;
+    }
 
-	@Override
-	public int getParameterID() {
-		return fParameterID;
-	}
+    @Override
+    public IScope getScope() throws DOMException {
+        // TODO: Do we need an implicit template scope for the implicit template
+        //       parameter to live in?
+        return CPPVisitor.getContainingScope(fNode);
+    }
 
-	@Override
-	public ICPPTemplateArgument getDefaultValue() {
-		// Implicit template parameters do not have default arguments.
-		return null;
-	}
+    @Override
+    public short getParameterPosition() {
+        return (short) fParameterID;
+    }
 
-	@Override
-	public boolean isParameterPack() {
-		return fIsParameterPack;
-	}
+    @Override
+    public short getTemplateNestingLevel() {
+        return (short) (fParameterID >> 16);
+    }
 
-	@Override
-	public IType getDefault() throws DOMException {
-		return null;
-	}
+    @Override
+    public int getParameterID() {
+        return fParameterID;
+    }
 
-	@Override
-	public boolean isSameType(IType type) {
-		if (type == this)
-			return true;
-		if (type instanceof ITypedef)
-			return type.isSameType(this);
-		if (!(type instanceof ICPPTemplateTypeParameter))
-			return false;
+    @Override
+    public ICPPTemplateArgument getDefaultValue() {
+        // Implicit template parameters do not have default arguments.
+        return null;
+    }
 
-		return getParameterID() == ((ICPPTemplateParameter) type).getParameterID();
-	}
+    @Override
+    public boolean isParameterPack() {
+        return fIsParameterPack;
+    }
 
-	@Override
-	public Object clone() {
-		return new CPPImplicitTemplateTypeParameter(fNode, getParameterPosition(), fIsParameterPack);
-	}
+    @Override
+    public IType getDefault() throws DOMException {
+        return null;
+    }
 
-	@Override
-	public ICPPScope asScope() throws DOMException {
-		if (fUnknownScope == null) {
-			fUnknownScope = new CPPUnknownTypeScope(this, null);
-		}
-		return fUnknownScope;
-	}
+    @Override
+    public boolean isSameType(IType type) {
+        if (type == this)
+            return true;
+        if (type instanceof ITypedef)
+            return type.isSameType(this);
+        if (!(type instanceof ICPPTemplateTypeParameter))
+            return false;
+        return getParameterID() == ((ICPPTemplateParameter) type).getParameterID();
+    }
+
+    @Override
+    public Object clone() {
+        return new CPPImplicitTemplateTypeParameter(fNode, getParameterPosition(), fIsParameterPack);
+    }
+
+    @Override
+    public ICPPScope asScope() throws DOMException {
+        if (fUnknownScope == null) {
+            fUnknownScope = new CPPUnknownTypeScope(this, null);
+        }
+        return fUnknownScope;
+    }
 }

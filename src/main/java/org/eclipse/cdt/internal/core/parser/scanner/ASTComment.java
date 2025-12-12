@@ -5,9 +5,9 @@ import org.eclipse.cdt.core.dom.ast.IASTTranslationUnit;
 
 public class ASTComment extends ASTPreprocessorNode implements IASTComment {
 
-    private final boolean fIsBlockComment;
+    final public boolean fIsBlockComment;
 
-    private String fFilePath;
+    public String fFilePath;
 
     public ASTComment(IASTTranslationUnit parent, String filePath, int offset, int endOffset, boolean isBlockComment) {
         super(parent, IASTTranslationUnit.PREPROCESSOR_STATEMENT, offset, endOffset);

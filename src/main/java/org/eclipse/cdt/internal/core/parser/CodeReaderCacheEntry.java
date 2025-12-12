@@ -30,12 +30,12 @@ import org.eclipse.cdt.internal.core.util.ILRUCacheable;
 @Deprecated
 public class CodeReaderCacheEntry implements ILRUCacheable {
 
-    private static final double CHAR_TO_KB_FACTOR = 1024;
+    static final public double CHAR_TO_KB_FACTOR = 1024;
 
-    CodeReader reader = null;
+    public CodeReader reader = null;
 
     // used to specify the size of the CodeReader in terms of KB
-    int size = 0;
+    public int size = 0;
 
     public CodeReaderCacheEntry(CodeReader value) {
         this.reader = value;

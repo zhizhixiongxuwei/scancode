@@ -35,7 +35,7 @@ SiblingEnumeration implements Enumeration {
      * The current location in the linked list
      * of DOM nodes.
      */
-    protected IDOMNode fCurrentElement;
+    public IDOMNode fCurrentElement;
 
     /**
      * Creates an enumeration of silbings starting at the given node.

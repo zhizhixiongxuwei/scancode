@@ -22,14 +22,14 @@ final public class ImportComment {
     /**
      * The original location of this comment in the compilation unit.
      */
-    final IRegion region;
+    final public IRegion region;
 
     /**
      * The number of line delimiters following this comment and preceding the next comment or the
      * associated import declaration. Used to preserve blank lines between comments and/or import
      * declarations. Will be 0 for a trailing comment.
      */
-    final int succeedingLineDelimiters;
+    final public int succeedingLineDelimiters;
 
     ImportComment(IRegion region, int succeedingLineDelims) {
         this.region = region;

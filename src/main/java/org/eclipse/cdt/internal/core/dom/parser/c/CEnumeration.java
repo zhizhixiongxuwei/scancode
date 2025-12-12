@@ -1,18 +1,20 @@
-/*******************************************************************************
- * Copyright (c) 2004, 2013 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2004, 2013 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Andrew Niefer (IBM Corporation) - initial API and implementation
- *     Markus Schorn (Wind River Systems)
- *     Nathan Ridge
- *******************************************************************************/
+ *  Contributors:
+ *      Andrew Niefer (IBM Corporation) - initial API and implementation
+ *      Markus Schorn (Wind River Systems)
+ *      Nathan Ridge
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.parser.c;
 
 import org.eclipse.cdt.core.dom.ILinkage;
@@ -40,176 +42,168 @@ import org.eclipse.core.runtime.PlatformObject;
  * Binding for enumerations in C.
  */
 public class CEnumeration extends PlatformObject implements IEnumeration, ICInternalBinding {
-	private IASTName[] declarations = null;
-	private IASTName definition = null;
-	private Long fMinValue;
-	private Long fMaxValue;
 
-	public CEnumeration(IASTName enumeration) {
-		ASTNodeProperty prop = enumeration.getPropertyInParent();
-		if (prop == IASTElaboratedTypeSpecifier.TYPE_NAME)
-			declarations = new IASTName[] { enumeration };
-		else
-			definition = enumeration;
-		enumeration.setBinding(this);
-	}
+    public IASTName[] declarations = null;
 
-	public void addDeclaration(IASTName decl) {
-		if (!decl.isActive())
-			return;
+    public IASTName definition = null;
 
-		if (decl.getPropertyInParent() != IASTElaboratedTypeSpecifier.TYPE_NAME)
-			return;
+    public Long fMinValue;
 
-		decl.setBinding(this);
-		if (declarations == null) {
-			declarations = new IASTName[] { decl };
-			return;
-		}
-		for (int i = 0; i < declarations.length; i++) {
-			if (declarations[i] == null) {
-				declarations[i] = decl;
-				return;
-			}
-		}
-		IASTName tmp[] = new IASTName[declarations.length * 2];
-		System.arraycopy(declarations, 0, tmp, 0, declarations.length);
-		tmp[declarations.length] = decl;
-		declarations = tmp;
-	}
+    public Long fMaxValue;
 
-	@Override
-	public IASTNode getPhysicalNode() {
-		if (definition != null)
-			return definition;
+    public CEnumeration(IASTName enumeration) {
+        ASTNodeProperty prop = enumeration.getPropertyInParent();
+        if (prop == IASTElaboratedTypeSpecifier.TYPE_NAME)
+            declarations = new IASTName[] { enumeration };
+        else
+            definition = enumeration;
+        enumeration.setBinding(this);
+    }
 
-		return declarations[0];
-	}
+    public void addDeclaration(IASTName decl) {
+        if (!decl.isActive())
+            return;
+        if (decl.getPropertyInParent() != IASTElaboratedTypeSpecifier.TYPE_NAME)
+            return;
+        decl.setBinding(this);
+        if (declarations == null) {
+            declarations = new IASTName[] { decl };
+            return;
+        }
+        for (int i = 0; i < declarations.length; i++) {
+            if (declarations[i] == null) {
+                declarations[i] = decl;
+                return;
+            }
+        }
+        IASTName[] tmp = new IASTName[declarations.length * 2];
+        System.arraycopy(declarations, 0, tmp, 0, declarations.length);
+        tmp[declarations.length] = decl;
+        declarations = tmp;
+    }
 
-	private void checkForDefinition() {
-		IASTDeclSpecifier spec = CVisitor.findDefinition((ICASTElaboratedTypeSpecifier) declarations[0].getParent());
-		if (spec != null && spec instanceof ICASTEnumerationSpecifier) {
-			ICASTEnumerationSpecifier enumSpec = (ICASTEnumerationSpecifier) spec;
+    @Override
+    public IASTNode getPhysicalNode() {
+        if (definition != null)
+            return definition;
+        return declarations[0];
+    }
 
-			enumSpec.getName().setBinding(this);
-			definition = enumSpec.getName();
-		}
-		return;
-	}
+    private void checkForDefinition() {
+        IASTDeclSpecifier spec = CVisitor.findDefinition((ICASTElaboratedTypeSpecifier) declarations[0].getParent());
+        if (spec != null && spec instanceof ICASTEnumerationSpecifier) {
+            ICASTEnumerationSpecifier enumSpec = (ICASTEnumerationSpecifier) spec;
+            enumSpec.getName().setBinding(this);
+            definition = enumSpec.getName();
+        }
+        return;
+    }
 
-	@Override
-	public String getName() {
-		if (definition != null)
-			return definition.toString();
+    @Override
+    public String getName() {
+        if (definition != null)
+            return definition.toString();
+        return declarations[0].toString();
+    }
 
-		return declarations[0].toString();
-	}
+    @Override
+    public char[] getNameCharArray() {
+        if (definition != null)
+            return definition.toCharArray();
+        return declarations[0].toCharArray();
+    }
 
-	@Override
-	public char[] getNameCharArray() {
-		if (definition != null)
-			return definition.toCharArray();
+    @Override
+    public IScope getScope() {
+        return CVisitor.getContainingScope(definition != null ? definition : declarations[0].getParent());
+    }
 
-		return declarations[0].toCharArray();
-	}
+    @Override
+    public Object clone() {
+        IType t = null;
+        try {
+            t = (IType) super.clone();
+        } catch (CloneNotSupportedException e) {
+            //not going to happen
+        }
+        return t;
+    }
 
-	@Override
-	public IScope getScope() {
-		return CVisitor.getContainingScope(definition != null ? definition : declarations[0].getParent());
-	}
+    @Override
+    public IEnumerator[] getEnumerators() {
+        if (definition == null) {
+            checkForDefinition();
+            if (definition == null)
+                return new IEnumerator[] { new CEnumerator.CEnumeratorProblem(declarations[0], IProblemBinding.SEMANTIC_DEFINITION_NOT_FOUND, declarations[0].toCharArray()) };
+        }
+        IASTEnumerationSpecifier enumSpec = (IASTEnumerationSpecifier) definition.getParent();
+        IASTEnumerationSpecifier.IASTEnumerator[] enums = enumSpec.getEnumerators();
+        IEnumerator[] bindings = new IEnumerator[enums.length];
+        for (int i = 0; i < enums.length; i++) {
+            bindings[i] = (IEnumerator) enums[i].getName().resolveBinding();
+        }
+        return bindings;
+    }
 
-	@Override
-	public Object clone() {
-		IType t = null;
-		try {
-			t = (IType) super.clone();
-		} catch (CloneNotSupportedException e) {
-			//not going to happen
-		}
-		return t;
-	}
+    public void addDefinition(IASTName name) {
+        if (name.isActive())
+            definition = name;
+    }
 
-	@Override
-	public IEnumerator[] getEnumerators() {
-		if (definition == null) {
-			checkForDefinition();
-			if (definition == null)
-				return new IEnumerator[] { new CEnumerator.CEnumeratorProblem(declarations[0],
-						IProblemBinding.SEMANTIC_DEFINITION_NOT_FOUND, declarations[0].toCharArray()) };
-		}
+    @Override
+    public boolean isSameType(IType type) {
+        if (type == this)
+            return true;
+        if (type instanceof ITypedef || type instanceof IIndexBinding)
+            return type.isSameType(this);
+        return false;
+    }
 
-		IASTEnumerationSpecifier enumSpec = (IASTEnumerationSpecifier) definition.getParent();
-		IASTEnumerationSpecifier.IASTEnumerator[] enums = enumSpec.getEnumerators();
-		IEnumerator[] bindings = new IEnumerator[enums.length];
+    @Override
+    public ILinkage getLinkage() {
+        return Linkage.C_LINKAGE;
+    }
 
-		for (int i = 0; i < enums.length; i++) {
-			bindings[i] = (IEnumerator) enums[i].getName().resolveBinding();
-		}
-		return bindings;
-	}
+    @Override
+    public IASTNode[] getDeclarations() {
+        return declarations;
+    }
 
-	public void addDefinition(IASTName name) {
-		if (name.isActive())
-			definition = name;
-	}
+    @Override
+    public IASTNode getDefinition() {
+        return definition;
+    }
 
-	@Override
-	public boolean isSameType(IType type) {
-		if (type == this)
-			return true;
-		if (type instanceof ITypedef || type instanceof IIndexBinding)
-			return type.isSameType(this);
+    @Override
+    public IBinding getOwner() {
+        IASTNode node = definition;
+        if (node == null && declarations != null && declarations.length > 0) {
+            node = declarations[0];
+        }
+        // either local or global, never part of structs
+        return CVisitor.findEnclosingFunction(node);
+    }
 
-		return false;
-	}
+    @Override
+    public String toString() {
+        return getName();
+    }
 
-	@Override
-	public ILinkage getLinkage() {
-		return Linkage.C_LINKAGE;
-	}
+    @Override
+    public long getMinValue() {
+        if (fMinValue != null)
+            return fMinValue.longValue();
+        long minValue = SemanticUtil.computeMinValue(this);
+        fMinValue = minValue;
+        return minValue;
+    }
 
-	@Override
-	public IASTNode[] getDeclarations() {
-		return declarations;
-	}
-
-	@Override
-	public IASTNode getDefinition() {
-		return definition;
-	}
-
-	@Override
-	public IBinding getOwner() {
-		IASTNode node = definition;
-		if (node == null && declarations != null && declarations.length > 0) {
-			node = declarations[0];
-		}
-		// either local or global, never part of structs
-		return CVisitor.findEnclosingFunction(node);
-	}
-
-	@Override
-	public String toString() {
-		return getName();
-	}
-
-	@Override
-	public long getMinValue() {
-		if (fMinValue != null)
-			return fMinValue.longValue();
-
-		long minValue = SemanticUtil.computeMinValue(this);
-		fMinValue = minValue;
-		return minValue;
-	}
-
-	@Override
-	public long getMaxValue() {
-		if (fMaxValue != null)
-			return fMaxValue.longValue();
-
-		long maxValue = SemanticUtil.computeMaxValue(this);
-		fMaxValue = maxValue;
-		return maxValue;
-	}
+    @Override
+    public long getMaxValue() {
+        if (fMaxValue != null)
+            return fMaxValue.longValue();
+        long maxValue = SemanticUtil.computeMaxValue(this);
+        fMaxValue = maxValue;
+        return maxValue;
+    }
 }

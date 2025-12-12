@@ -1,18 +1,20 @@
-/*******************************************************************************
- * Copyright (c) 2005, 2013 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2005, 2013 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *    John Camelon (IBM Rational Software) - Initial API and implementation
- *    Yuan Zhang / Beth Tibbitts (IBM Research)
- *    Markus Schorn (Wind River Systems)
- *******************************************************************************/
+ *  Contributors:
+ *     John Camelon (IBM Rational Software) - Initial API and implementation
+ *     Yuan Zhang / Beth Tibbitts (IBM Research)
+ *     Markus Schorn (Wind River Systems)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.parser.c;
 
 import org.eclipse.cdt.core.dom.ast.ASTVisitor;
@@ -26,99 +28,98 @@ import org.eclipse.cdt.internal.core.dom.parser.ASTNode;
  */
 public class CASTTypeIdExpression extends ASTNode implements IASTTypeIdExpression {
 
-	private int op;
-	private IASTTypeId typeId;
+    public int op;
 
-	public CASTTypeIdExpression() {
-	}
+    public IASTTypeId typeId;
 
-	public CASTTypeIdExpression(int op, IASTTypeId typeId) {
-		this.op = op;
-		setTypeId(typeId);
-	}
+    public CASTTypeIdExpression() {
+    }
 
-	@Override
-	public CASTTypeIdExpression copy() {
-		return copy(CopyStyle.withoutLocations);
-	}
+    public CASTTypeIdExpression(int op, IASTTypeId typeId) {
+        this.op = op;
+        setTypeId(typeId);
+    }
 
-	@Override
-	public CASTTypeIdExpression copy(CopyStyle style) {
-		CASTTypeIdExpression copy = new CASTTypeIdExpression(op, typeId == null ? null : typeId.copy(style));
-		return copy(copy, style);
-	}
+    @Override
+    public CASTTypeIdExpression copy() {
+        return copy(CopyStyle.withoutLocations);
+    }
 
-	@Override
-	public int getOperator() {
-		return op;
-	}
+    @Override
+    public CASTTypeIdExpression copy(CopyStyle style) {
+        CASTTypeIdExpression copy = new CASTTypeIdExpression(op, typeId == null ? null : typeId.copy(style));
+        return copy(copy, style);
+    }
 
-	@Override
-	public void setOperator(int value) {
-		assertNotFrozen();
-		this.op = value;
-	}
+    @Override
+    public int getOperator() {
+        return op;
+    }
 
-	@Override
-	public void setTypeId(IASTTypeId typeId) {
-		assertNotFrozen();
-		this.typeId = typeId;
-		if (typeId != null) {
-			typeId.setParent(this);
-			typeId.setPropertyInParent(TYPE_ID);
-		}
-	}
+    @Override
+    public void setOperator(int value) {
+        assertNotFrozen();
+        this.op = value;
+    }
 
-	@Override
-	public IASTTypeId getTypeId() {
-		return typeId;
-	}
+    @Override
+    public void setTypeId(IASTTypeId typeId) {
+        assertNotFrozen();
+        this.typeId = typeId;
+        if (typeId != null) {
+            typeId.setParent(this);
+            typeId.setPropertyInParent(TYPE_ID);
+        }
+    }
 
-	@Override
-	public boolean accept(ASTVisitor action) {
-		if (action.shouldVisitExpressions) {
-			switch (action.visit(this)) {
-			case ASTVisitor.PROCESS_ABORT:
-				return false;
-			case ASTVisitor.PROCESS_SKIP:
-				return true;
-			default:
-				break;
-			}
-		}
+    @Override
+    public IASTTypeId getTypeId() {
+        return typeId;
+    }
 
-		if (typeId != null)
-			if (!typeId.accept(action))
-				return false;
+    @Override
+    public boolean accept(ASTVisitor action) {
+        if (action.shouldVisitExpressions) {
+            switch(action.visit(this)) {
+                case ASTVisitor.PROCESS_ABORT:
+                    return false;
+                case ASTVisitor.PROCESS_SKIP:
+                    return true;
+                default:
+                    break;
+            }
+        }
+        if (typeId != null)
+            if (!typeId.accept(action))
+                return false;
+        if (action.shouldVisitExpressions) {
+            switch(action.leave(this)) {
+                case ASTVisitor.PROCESS_ABORT:
+                    return false;
+                case ASTVisitor.PROCESS_SKIP:
+                    return true;
+                default:
+                    break;
+            }
+        }
+        return true;
+    }
 
-		if (action.shouldVisitExpressions) {
-			switch (action.leave(this)) {
-			case ASTVisitor.PROCESS_ABORT:
-				return false;
-			case ASTVisitor.PROCESS_SKIP:
-				return true;
-			default:
-				break;
-			}
-		}
-		return true;
-	}
+    @Override
+    public IType getExpressionType() {
+        if (getOperator() == op_sizeof) {
+            return CVisitor.get_SIZE_T(this);
+        }
+        return CVisitor.createType(typeId.getAbstractDeclarator());
+    }
 
-	@Override
-	public IType getExpressionType() {
-		if (getOperator() == op_sizeof) {
-			return CVisitor.get_SIZE_T(this);
-		}
-		return CVisitor.createType(typeId.getAbstractDeclarator());
-	}
+    @Override
+    public boolean isLValue() {
+        return false;
+    }
 
-	@Override
-	public boolean isLValue() {
-		return false;
-	}
-
-	@Override
-	public ValueCategory getValueCategory() {
-		return ValueCategory.PRVALUE;
-	}
+    @Override
+    public ValueCategory getValueCategory() {
+        return ValueCategory.PRVALUE;
+    }
 }

@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2011, 2013 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2011, 2013 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *      IBM Corporation - initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.jdt.internal.core.search.indexing;
 
 import java.io.File;
@@ -30,31 +32,33 @@ import org.eclipse.jdt.internal.core.index.IndexLocation;
 import org.eclipse.jdt.internal.core.search.JavaSearchDocument;
 
 public class DefaultJavaIndexer {
-	private static final char JAR_SEPARATOR = IJavaSearchScope.JAR_FILE_ENTRY_SEPARATOR.charAt(0);
 
-	public void generateIndexForJar(String pathToJar, String pathToIndexFile) throws IOException {
-		File f = new File(pathToJar);
-		if (!f.exists()) {
-			throw new FileNotFoundException(pathToJar + " not found"); //$NON-NLS-1$
-		}
-		IndexLocation indexLocation = new FileIndexLocation(new File(pathToIndexFile));
-		Index index = new Index(indexLocation, pathToJar, false /*reuse index file*/);
-		SearchParticipant participant = SearchEngine.getDefaultSearchParticipant();
-		index.separator = JAR_SEPARATOR;
-		try (ZipFile zip = new ZipFile(pathToJar)) {
-			for (Enumeration<? extends ZipEntry> e = zip.entries(); e.hasMoreElements();) {
-				// iterate each entry to index it
-				ZipEntry ze = e.nextElement();
-				String zipEntryName = ze.getName();
-				if (Util.isClassFileName(zipEntryName)) {
-					final byte[] classFileBytes = org.eclipse.jdt.internal.compiler.util.Util.getZipEntryByteContent(ze, zip);
-					JavaSearchDocument entryDocument = new JavaSearchDocument(ze, new Path(pathToJar), classFileBytes, participant);
-					entryDocument.setIndex(index);
-					new BinaryIndexer(entryDocument).indexDocument();
-				}
-			}
-			index.save();
-		}
-		return;
-	}
+    static final public char JAR_SEPARATOR = IJavaSearchScope.JAR_FILE_ENTRY_SEPARATOR.charAt(0);
+
+    public void generateIndexForJar(String pathToJar, String pathToIndexFile) throws IOException {
+        File f = new File(pathToJar);
+        if (!f.exists()) {
+            //$NON-NLS-1$
+            throw new FileNotFoundException(pathToJar + " not found");
+        }
+        IndexLocation indexLocation = new FileIndexLocation(new File(pathToIndexFile));
+        Index index = new Index(indexLocation, pathToJar, false);
+        SearchParticipant participant = SearchEngine.getDefaultSearchParticipant();
+        index.separator = JAR_SEPARATOR;
+        try (ZipFile zip = new ZipFile(pathToJar)) {
+            for (Enumeration<? extends ZipEntry> e = zip.entries(); e.hasMoreElements(); ) {
+                // iterate each entry to index it
+                ZipEntry ze = e.nextElement();
+                String zipEntryName = ze.getName();
+                if (Util.isClassFileName(zipEntryName)) {
+                    final byte[] classFileBytes = org.eclipse.jdt.internal.compiler.util.Util.getZipEntryByteContent(ze, zip);
+                    JavaSearchDocument entryDocument = new JavaSearchDocument(ze, new Path(pathToJar), classFileBytes, participant);
+                    entryDocument.setIndex(index);
+                    new BinaryIndexer(entryDocument).indexDocument();
+                }
+            }
+            index.save();
+        }
+        return;
+    }
 }

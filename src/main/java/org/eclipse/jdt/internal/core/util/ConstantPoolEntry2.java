@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2000, 2017 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2000, 2017 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *      IBM Corporation - initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.jdt.internal.core.util;
 
 import org.eclipse.jdt.core.util.IConstantPoolEntry3;
@@ -22,98 +24,104 @@ import org.eclipse.jdt.core.util.IConstantPoolEntry3;
  */
 public class ConstantPoolEntry2 extends ConstantPoolEntry implements IConstantPoolEntry3 {
 
-	private int descriptorIndex;
-	private int referenceKind;
-	private int referenceIndex;
-	private int bootstrapMethodAttributeIndex;
+    public int descriptorIndex;
 
-	private int moduleIndex;
-	private char[] moduleName;
-	private int packageIndex;
-	private char[] packageName;
+    public int referenceKind;
 
-	@Override
-	public int getDescriptorIndex() {
-		return this.descriptorIndex;
-	}
+    public int referenceIndex;
 
-	@Override
-	public int getReferenceKind() {
-		return this.referenceKind;
-	}
+    public int bootstrapMethodAttributeIndex;
 
-	@Override
-	public int getReferenceIndex() {
-		return this.referenceIndex;
-	}
+    public int moduleIndex;
 
-	@Override
-	public int getBootstrapMethodAttributeIndex() {
-		return this.bootstrapMethodAttributeIndex;
-	}
+    private char[] moduleName;
 
-	@Override
-	public int getModuleIndex() {
-		return this.moduleIndex;
-	}
+    private int packageIndex;
 
-	@Override
-	public char[] getModuleName() {
-		return this.moduleName;
-	}
+    private char[] packageName;
 
-	@Override
-	public int getPackageIndex() {
-		return this.packageIndex;
-	}
+    @Override
+    public int getDescriptorIndex() {
+        return this.descriptorIndex;
+    }
 
-	@Override
-	public char[] getPackageName() {
-		return this.packageName;
-	}
+    @Override
+    public int getReferenceKind() {
+        return this.referenceKind;
+    }
 
-	public void setDescriptorIndex(int descriptorIndex) {
-		this.descriptorIndex = descriptorIndex;
-	}
+    @Override
+    public int getReferenceIndex() {
+        return this.referenceIndex;
+    }
 
-	public void setReferenceKind(int referenceKind) {
-		this.referenceKind = referenceKind;
-	}
+    @Override
+    public int getBootstrapMethodAttributeIndex() {
+        return this.bootstrapMethodAttributeIndex;
+    }
 
-	public void setReferenceIndex(int referenceIndex) {
-		this.referenceIndex = referenceIndex;
-	}
+    @Override
+    public int getModuleIndex() {
+        return this.moduleIndex;
+    }
 
-	public void setBootstrapMethodAttributeIndex(int bootstrapMethodAttributeIndex) {
-		this.bootstrapMethodAttributeIndex = bootstrapMethodAttributeIndex;
-	}
+    @Override
+    public char[] getModuleName() {
+        return this.moduleName;
+    }
 
-	public void setModuleIndex(int moduleIndex) {
-		this.moduleIndex = moduleIndex;
-	}
+    @Override
+    public int getPackageIndex() {
+        return this.packageIndex;
+    }
 
-	public void setModuleName(char[] moduleName) {
-		this.moduleName = moduleName;
-	}
+    @Override
+    public char[] getPackageName() {
+        return this.packageName;
+    }
 
-	public void setPackageIndex(int packageIndex) {
-		this.packageIndex = packageIndex;
-	}
+    public void setDescriptorIndex(int descriptorIndex) {
+        this.descriptorIndex = descriptorIndex;
+    }
 
-	public void setPackageName(char[] packageName) {
-		this.packageName = packageName;
-	}
+    public void setReferenceKind(int referenceKind) {
+        this.referenceKind = referenceKind;
+    }
 
-	@Override
-	public void reset() {
-		super.reset();
-		this.descriptorIndex = 0;
-		this.referenceKind = 0;
-		this.referenceIndex = 0;
-		this.bootstrapMethodAttributeIndex = 0;
-		this.moduleIndex = 0;
-		this.moduleName = null;
-		this.packageIndex = 0;
-		this.packageName = null;
-	}
+    public void setReferenceIndex(int referenceIndex) {
+        this.referenceIndex = referenceIndex;
+    }
+
+    public void setBootstrapMethodAttributeIndex(int bootstrapMethodAttributeIndex) {
+        this.bootstrapMethodAttributeIndex = bootstrapMethodAttributeIndex;
+    }
+
+    public void setModuleIndex(int moduleIndex) {
+        this.moduleIndex = moduleIndex;
+    }
+
+    public void setModuleName(char[] moduleName) {
+        this.moduleName = moduleName;
+    }
+
+    public void setPackageIndex(int packageIndex) {
+        this.packageIndex = packageIndex;
+    }
+
+    public void setPackageName(char[] packageName) {
+        this.packageName = packageName;
+    }
+
+    @Override
+    public void reset() {
+        super.reset();
+        this.descriptorIndex = 0;
+        this.referenceKind = 0;
+        this.referenceIndex = 0;
+        this.bootstrapMethodAttributeIndex = 0;
+        this.moduleIndex = 0;
+        this.moduleName = null;
+        this.packageIndex = 0;
+        this.packageName = null;
+    }
 }

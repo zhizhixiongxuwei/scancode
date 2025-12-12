@@ -1,17 +1,19 @@
-/*******************************************************************************
- * Copyright (c) 2015, 2016, 2025 Institute for Software, HSR Hochschule fuer Technik
- * Rapperswil, University of applied sciences, and others
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2015, 2016, 2025 Institute for Software, HSR Hochschule fuer Technik
+ *  Rapperswil, University of applied sciences, and others
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Lukas Wegmann (IFS) - Initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *      Lukas Wegmann (IFS) - Initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.parser.cpp;
 
 import org.eclipse.cdt.core.dom.ast.IASTDeclSpecifier;
@@ -25,96 +27,96 @@ import org.eclipse.cdt.core.parser.util.ArrayUtil;
 import org.eclipse.cdt.internal.core.dom.parser.IntegralValue;
 import org.eclipse.cdt.internal.core.dom.parser.cpp.semantics.CPPVisitor;
 
-public class CPPVariableTemplate extends CPPTemplateDefinition
-		implements ICPPVariableTemplate, ICPPInternalDeclaredVariable {
-	private IType fType;
-	private IValue fInitialValue = IntegralValue.NOT_INITIALIZED;
-	private boolean fAllResolved;
-	private ICPPPartialSpecialization[] partialSpecializations = ICPPPartialSpecialization.EMPTY_ARRAY;
+public class CPPVariableTemplate extends CPPTemplateDefinition implements ICPPVariableTemplate, ICPPInternalDeclaredVariable {
 
-	public CPPVariableTemplate(IASTName name) {
-		super(name);
-	}
+    public IType fType;
 
-	@Override
-	public boolean isMutable() {
-		return false;
-	}
+    public IValue fInitialValue = IntegralValue.NOT_INITIALIZED;
 
-	@Override
-	public boolean isConstexpr() {
-		return VariableHelpers.isConstexpr((IASTName) getDefinition());
-	}
+    public boolean fAllResolved;
 
-	@Override
-	public boolean isExternC() {
-		return CPPVisitor.isExternC(getDefinition(), getDeclarations());
-	}
+    public ICPPPartialSpecialization[] partialSpecializations = ICPPPartialSpecialization.EMPTY_ARRAY;
 
-	@Override
-	public IType getType() {
-		if (fType != null) {
-			return fType;
-		}
+    public CPPVariableTemplate(IASTName name) {
+        super(name);
+    }
 
-		boolean allResolved = fAllResolved;
-		fAllResolved = true;
-		fType = VariableHelpers.createType(this, definition, declarations, allResolved);
+    @Override
+    public boolean isMutable() {
+        return false;
+    }
 
-		return fType;
-	}
+    @Override
+    public boolean isConstexpr() {
+        return VariableHelpers.isConstexpr((IASTName) getDefinition());
+    }
 
-	@Override
-	public IValue getInitialValue() {
-		if (fInitialValue == IntegralValue.NOT_INITIALIZED) {
-			fInitialValue = computeInitialValue();
-		}
-		return fInitialValue;
-	}
+    @Override
+    public boolean isExternC() {
+        return CPPVisitor.isExternC(getDefinition(), getDeclarations());
+    }
 
-	private IValue computeInitialValue() {
-		return VariableHelpers.getInitialValue((IASTName) getDefinition(), (IASTName[]) getDeclarations(), getType());
-	}
+    @Override
+    public IType getType() {
+        if (fType != null) {
+            return fType;
+        }
+        boolean allResolved = fAllResolved;
+        fAllResolved = true;
+        fType = VariableHelpers.createType(this, definition, declarations, allResolved);
+        return fType;
+    }
 
-	@Override
-	public boolean isStatic() {
-		return hasStorageClass(IASTDeclSpecifier.sc_static);
-	}
+    @Override
+    public IValue getInitialValue() {
+        if (fInitialValue == IntegralValue.NOT_INITIALIZED) {
+            fInitialValue = computeInitialValue();
+        }
+        return fInitialValue;
+    }
 
-	@Override
-	public boolean isExtern() {
-		return hasStorageClass(IASTDeclSpecifier.sc_extern);
-	}
+    private IValue computeInitialValue() {
+        return VariableHelpers.getInitialValue((IASTName) getDefinition(), (IASTName[]) getDeclarations(), getType());
+    }
 
-	@Override
-	public boolean isAuto() {
-		return hasStorageClass(IASTDeclSpecifier.sc_auto);
-	}
+    @Override
+    public boolean isStatic() {
+        return hasStorageClass(IASTDeclSpecifier.sc_static);
+    }
 
-	@Override
-	public boolean isRegister() {
-		return hasStorageClass(IASTDeclSpecifier.sc_register);
-	}
+    @Override
+    public boolean isExtern() {
+        return hasStorageClass(IASTDeclSpecifier.sc_extern);
+    }
 
-	public boolean hasStorageClass(int storage) {
-		IASTName name = (IASTName) getDefinition();
-		IASTNode[] ns = getDeclarations();
+    @Override
+    public boolean isAuto() {
+        return hasStorageClass(IASTDeclSpecifier.sc_auto);
+    }
 
-		return VariableHelpers.hasStorageClass(name, ns, storage);
-	}
+    @Override
+    public boolean isRegister() {
+        return hasStorageClass(IASTDeclSpecifier.sc_register);
+    }
 
-	@Override
-	public ICPPPartialSpecialization[] getPartialSpecializations() {
-		partialSpecializations = ArrayUtil.trim(partialSpecializations);
-		return partialSpecializations;
-	}
+    public boolean hasStorageClass(int storage) {
+        IASTName name = (IASTName) getDefinition();
+        IASTNode[] ns = getDeclarations();
+        return VariableHelpers.hasStorageClass(name, ns, storage);
+    }
 
-	public void addPartialSpecialization(ICPPPartialSpecialization partSpec) {
-		partialSpecializations = ArrayUtil.append(partialSpecializations, partSpec);
-	}
+    @Override
+    public ICPPPartialSpecialization[] getPartialSpecializations() {
+        partialSpecializations = ArrayUtil.trim(partialSpecializations);
+        return partialSpecializations;
+    }
 
-	@Override
-	public void allDeclarationsDefinitionsAdded() {
-		fAllResolved = true;
-	}
+    public void addPartialSpecialization(ICPPPartialSpecialization partSpec) {
+        partialSpecializations = ArrayUtil.append(partialSpecializations, partSpec);
+    }
+
+    @Override
+    public void allDeclarationsDefinitionsAdded() {
+        fAllResolved = true;
+    }
 }

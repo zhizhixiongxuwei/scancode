@@ -45,7 +45,7 @@ import org.eclipse.jdt.internal.core.util.Util;
 /* package */
 public class JavaProjectElementInfo extends OpenableElementInfo {
 
-    static final IPackageFragmentRoot[] NO_ROOTS = new IPackageFragmentRoot[0];
+    static final public IPackageFragmentRoot[] NO_ROOTS = new IPackageFragmentRoot[0];
 
     static class ProjectCache {
 
@@ -79,9 +79,9 @@ public class JavaProjectElementInfo extends OpenableElementInfo {
         public Map<IPackageFragmentRoot, IClasspathEntry> rootToResolvedEntries;
     }
 
-    ProjectCache projectCache;
+    public ProjectCache projectCache;
 
-    ProjectCache mainProjectCache;
+    public ProjectCache mainProjectCache;
 
     /*
 	 * Adds the given name and its super names to the given set

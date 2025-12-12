@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2007, 2008 Intel Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2007, 2008 Intel Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- * Intel Corporation - Initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *  Intel Corporation - Initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.core.settings.model.extension.impl;
 
 import org.eclipse.cdt.core.settings.model.extension.CConfigurationData;
@@ -20,123 +22,120 @@ import org.eclipse.cdt.core.settings.model.extension.CLanguageData;
 import org.eclipse.core.runtime.IPath;
 
 public class CDefaultFileData extends CFileData {
-	protected IPath fPath;
-	//	protected boolean fIsExcluded;
-	protected String fName;
-	protected String fId;
-	protected CLanguageData fLanguageData;
-	protected CConfigurationData fCfg;
-	private CDataFactory fFactory;
-	protected boolean fIsModified;
 
-	public CDefaultFileData(CConfigurationData cfg, CDataFactory factory) {
-		fCfg = cfg;
-		if (factory == null)
-			factory = new CDataFactory();
-		fFactory = factory;
-	}
+    public IPath fPath;
 
-	public CDefaultFileData(String id, IPath path, CConfigurationData cfg, CDataFactory factory) {
-		this(cfg, factory);
-		fId = id;
-		fName = path.toString();
-		fPath = path;
-	}
+    //	protected boolean fIsExcluded;
+    public String fName;
 
-	public CDefaultFileData(String id, IPath path, CFileData base, CConfigurationData cfg, CDataFactory factory,
-			boolean clone) {
-		this(id, path, cfg, factory);
+    public String fId;
 
-		copyDataFrom(base, clone);
-	}
+    public CLanguageData fLanguageData;
 
-	public CDefaultFileData(String id, IPath path, CFolderData base, CLanguageData baseLangData, CConfigurationData cfg,
-			CDataFactory factory) {
-		this(id, path, cfg, factory);
+    public CConfigurationData fCfg;
 
-		copyDataFrom(base, baseLangData);
-	}
+    private CDataFactory fFactory;
 
-	protected void copyDataFrom(CFileData base, boolean clone) {
-		CLanguageData baseLanguageData = base.getLanguageData();
-		if (baseLanguageData != null)
-			fLanguageData = copyLanguageData(baseLanguageData, clone);
+    protected boolean fIsModified;
 
-		//		fIsExcluded = base.isExcluded();
-	}
+    public CDefaultFileData(CConfigurationData cfg, CDataFactory factory) {
+        fCfg = cfg;
+        if (factory == null)
+            factory = new CDataFactory();
+        fFactory = factory;
+    }
 
-	protected void copyDataFrom(CFolderData base, CLanguageData baseLanguageData) {
-		//		fIsExcluded = base != null ? base.isExcluded() : false;
-		if (baseLanguageData != null)
-			fLanguageData = copyLanguageData(baseLanguageData, false);
-	}
+    public CDefaultFileData(String id, IPath path, CConfigurationData cfg, CDataFactory factory) {
+        this(cfg, factory);
+        fId = id;
+        fName = path.toString();
+        fPath = path;
+    }
 
-	protected CLanguageData copyLanguageData(CLanguageData data, boolean clone) {
-		return fFactory.createLanguageData(fCfg, this, data, null, clone);
-	}
+    public CDefaultFileData(String id, IPath path, CFileData base, CConfigurationData cfg, CDataFactory factory, boolean clone) {
+        this(id, path, cfg, factory);
+        copyDataFrom(base, clone);
+    }
 
-	@Override
-	public IPath getPath() {
-		return fPath;
-	}
+    public CDefaultFileData(String id, IPath path, CFolderData base, CLanguageData baseLangData, CConfigurationData cfg, CDataFactory factory) {
+        this(id, path, cfg, factory);
+        copyDataFrom(base, baseLangData);
+    }
 
-	//	public boolean isExcluded() {
-	//		return fIsExcluded;
-	//	}
+    protected void copyDataFrom(CFileData base, boolean clone) {
+        CLanguageData baseLanguageData = base.getLanguageData();
+        if (baseLanguageData != null)
+            fLanguageData = copyLanguageData(baseLanguageData, clone);
+        //		fIsExcluded = base.isExcluded();
+    }
 
-	//	public void setExcluded(boolean excluded) {
-	//		if(excluded == fIsExcluded)
-	//			return;
-	//
-	//		fIsExcluded = excluded;
-	//	}
+    protected void copyDataFrom(CFolderData base, CLanguageData baseLanguageData) {
+        //		fIsExcluded = base != null ? base.isExcluded() : false;
+        if (baseLanguageData != null)
+            fLanguageData = copyLanguageData(baseLanguageData, false);
+    }
 
-	@Override
-	public void setPath(IPath path) {
-		fPath = path;
-	}
+    protected CLanguageData copyLanguageData(CLanguageData data, boolean clone) {
+        return fFactory.createLanguageData(fCfg, this, data, null, clone);
+    }
 
-	@Override
-	public String getName() {
-		return fName;
-	}
+    @Override
+    public IPath getPath() {
+        return fPath;
+    }
 
-	public void setName(String name) {
-		fName = name;
-	}
+    //	public boolean isExcluded() {
+    //		return fIsExcluded;
+    //	}
+    //	public void setExcluded(boolean excluded) {
+    //		if(excluded == fIsExcluded)
+    //			return;
+    //
+    //		fIsExcluded = excluded;
+    //	}
+    @Override
+    public void setPath(IPath path) {
+        fPath = path;
+    }
 
-	@Override
-	public String getId() {
-		return fId;
-	}
+    @Override
+    public String getName() {
+        return fName;
+    }
 
-	@Override
-	public boolean isValid() {
-		return getId() != null;
-	}
+    public void setName(String name) {
+        fName = name;
+    }
 
-	@Override
-	public CLanguageData getLanguageData() {
-		return fLanguageData;
-	}
+    @Override
+    public String getId() {
+        return fId;
+    }
 
-	public boolean isModified() {
-		if (fIsModified)
-			return true;
+    @Override
+    public boolean isValid() {
+        return getId() != null;
+    }
 
-		return fFactory.isModified(fLanguageData);
-	}
+    @Override
+    public CLanguageData getLanguageData() {
+        return fLanguageData;
+    }
 
-	public void setModified(boolean modified) {
-		fIsModified = modified;
+    public boolean isModified() {
+        if (fIsModified)
+            return true;
+        return fFactory.isModified(fLanguageData);
+    }
 
-		if (!modified)
-			fFactory.setModified(fLanguageData, false);
-	}
+    public void setModified(boolean modified) {
+        fIsModified = modified;
+        if (!modified)
+            fFactory.setModified(fLanguageData, false);
+    }
 
-	@Override
-	public boolean hasCustomSettings() {
-		return false;
-	}
-
+    @Override
+    public boolean hasCustomSettings() {
+        return false;
+    }
 }

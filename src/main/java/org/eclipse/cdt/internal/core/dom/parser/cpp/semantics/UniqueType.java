@@ -22,7 +22,7 @@ import org.eclipse.cdt.core.dom.ast.IType;
  */
 public class UniqueType implements IType {
 
-    private boolean fForParameterPack;
+    public boolean fForParameterPack;
 
     public UniqueType(boolean forParameterPack) {
         fForParameterPack = forParameterPack;

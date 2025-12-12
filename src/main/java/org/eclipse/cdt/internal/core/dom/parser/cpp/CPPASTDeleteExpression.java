@@ -1,25 +1,25 @@
-/*******************************************************************************
- * Copyright (c) 2004, 2015 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2004, 2015 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     John Camelon (IBM) - Initial API and implementation
- *     Markus Schorn (Wind River Systems)
- *     Sergey Prigogin (Google)
- *******************************************************************************/
+ *  Contributors:
+ *      John Camelon (IBM) - Initial API and implementation
+ *      Markus Schorn (Wind River Systems)
+ *      Sergey Prigogin (Google)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.parser.cpp;
 
 import static org.eclipse.cdt.core.dom.ast.IASTExpression.ValueCategory.PRVALUE;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import org.eclipse.cdt.core.dom.ast.ASTVisitor;
 import org.eclipse.cdt.core.dom.ast.IASTExpression;
 import org.eclipse.cdt.core.dom.ast.IASTImplicitDestructorName;
@@ -36,186 +36,180 @@ import org.eclipse.cdt.internal.core.dom.parser.cpp.semantics.DestructorCallColl
 import org.eclipse.cdt.internal.core.dom.parser.cpp.semantics.EvalFixed;
 
 public class CPPASTDeleteExpression extends ASTNode implements ICPPASTDeleteExpression, IASTAmbiguityParent {
-	private static final ICPPEvaluation EVALUATION = new EvalFixed(CPPSemantics.VOID_TYPE, PRVALUE,
-			IntegralValue.UNKNOWN);
 
-	private IASTExpression operand;
-	private boolean isGlobal;
-	private boolean isVectored;
+    static final public ICPPEvaluation EVALUATION = new EvalFixed(CPPSemantics.VOID_TYPE, PRVALUE, IntegralValue.UNKNOWN);
 
-	private IASTImplicitName[] implicitNames;
-	private IASTImplicitDestructorName[] fImplicitDestructorNames;
+    public IASTExpression operand;
 
-	public CPPASTDeleteExpression() {
-	}
+    public boolean isGlobal;
 
-	public CPPASTDeleteExpression(IASTExpression operand) {
-		setOperand(operand);
-	}
+    public boolean isVectored;
 
-	public CPPASTDeleteExpression(CPPASTDeleteExpression from) {
-		setOperand(from.operand);
-	}
+    public IASTImplicitName[] implicitNames;
 
-	@Override
-	public CPPASTDeleteExpression copy() {
-		return copy(CopyStyle.withoutLocations);
-	}
+    private IASTImplicitDestructorName[] fImplicitDestructorNames;
 
-	@Override
-	public CPPASTDeleteExpression copy(CopyStyle style) {
-		CPPASTDeleteExpression copy = new CPPASTDeleteExpression(operand == null ? null : operand.copy(style));
-		copy.isGlobal = isGlobal;
-		copy.isVectored = isVectored;
-		return copy(copy, style);
-	}
+    public CPPASTDeleteExpression() {
+    }
 
-	@Override
-	public IASTExpression getOperand() {
-		return operand;
-	}
+    public CPPASTDeleteExpression(IASTExpression operand) {
+        setOperand(operand);
+    }
 
-	@Override
-	public void setOperand(IASTExpression expression) {
-		assertNotFrozen();
-		operand = expression;
-		if (expression != null) {
-			expression.setParent(this);
-			expression.setPropertyInParent(OPERAND);
-		}
-	}
+    public CPPASTDeleteExpression(CPPASTDeleteExpression from) {
+        setOperand(from.operand);
+    }
 
-	@Override
-	public void setIsGlobal(boolean global) {
-		assertNotFrozen();
-		isGlobal = global;
-	}
+    @Override
+    public CPPASTDeleteExpression copy() {
+        return copy(CopyStyle.withoutLocations);
+    }
 
-	@Override
-	public boolean isGlobal() {
-		return isGlobal;
-	}
+    @Override
+    public CPPASTDeleteExpression copy(CopyStyle style) {
+        CPPASTDeleteExpression copy = new CPPASTDeleteExpression(operand == null ? null : operand.copy(style));
+        copy.isGlobal = isGlobal;
+        copy.isVectored = isVectored;
+        return copy(copy, style);
+    }
 
-	@Override
-	public void setIsVectored(boolean vectored) {
-		assertNotFrozen();
-		isVectored = vectored;
-	}
+    @Override
+    public IASTExpression getOperand() {
+        return operand;
+    }
 
-	@Override
-	public boolean isVectored() {
-		return isVectored;
-	}
+    @Override
+    public void setOperand(IASTExpression expression) {
+        assertNotFrozen();
+        operand = expression;
+        if (expression != null) {
+            expression.setParent(this);
+            expression.setPropertyInParent(OPERAND);
+        }
+    }
 
-	/**
-	 * Tries to resolve both the destructor and operator delete.
-	 */
-	@Override
-	public IASTImplicitName[] getImplicitNames() {
-		if (implicitNames == null) {
-			List<IASTImplicitName> names = new ArrayList<>();
+    @Override
+    public void setIsGlobal(boolean global) {
+        assertNotFrozen();
+        isGlobal = global;
+    }
 
-			if (!isVectored) {
-				ICPPFunction destructor = CPPSemantics.findImplicitlyCalledDestructor(this);
-				if (destructor != null) {
-					CPPASTImplicitName destructorName = new CPPASTImplicitName(destructor.getNameCharArray(), this);
-					destructorName.setBinding(destructor);
-					destructorName.computeOperatorOffsets(operand, false);
-					names.add(destructorName);
-				}
-			}
+    @Override
+    public boolean isGlobal() {
+        return isGlobal;
+    }
 
-			if (!isGlobal) {
-				ICPPFunction deleteOperator = CPPSemantics.findOverloadedOperator(this);
-				if (deleteOperator != null && !(deleteOperator instanceof CPPImplicitFunction)) {
-					CPPASTImplicitName deleteName = new CPPASTImplicitName(deleteOperator.getNameCharArray(), this);
-					deleteName.setOperator(true);
-					deleteName.setBinding(deleteOperator);
-					deleteName.computeOperatorOffsets(operand, false);
-					names.add(deleteName);
-				}
-			}
+    @Override
+    public void setIsVectored(boolean vectored) {
+        assertNotFrozen();
+        isVectored = vectored;
+    }
 
-			if (names.isEmpty()) {
-				implicitNames = IASTImplicitName.EMPTY_NAME_ARRAY;
-			} else {
-				implicitNames = names.toArray(new IASTImplicitName[names.size()]);
-			}
-		}
+    @Override
+    public boolean isVectored() {
+        return isVectored;
+    }
 
-		return implicitNames;
-	}
+    /**
+     * Tries to resolve both the destructor and operator delete.
+     */
+    @Override
+    public IASTImplicitName[] getImplicitNames() {
+        if (implicitNames == null) {
+            List<IASTImplicitName> names = new ArrayList<>();
+            if (!isVectored) {
+                ICPPFunction destructor = CPPSemantics.findImplicitlyCalledDestructor(this);
+                if (destructor != null) {
+                    CPPASTImplicitName destructorName = new CPPASTImplicitName(destructor.getNameCharArray(), this);
+                    destructorName.setBinding(destructor);
+                    destructorName.computeOperatorOffsets(operand, false);
+                    names.add(destructorName);
+                }
+            }
+            if (!isGlobal) {
+                ICPPFunction deleteOperator = CPPSemantics.findOverloadedOperator(this);
+                if (deleteOperator != null && !(deleteOperator instanceof CPPImplicitFunction)) {
+                    CPPASTImplicitName deleteName = new CPPASTImplicitName(deleteOperator.getNameCharArray(), this);
+                    deleteName.setOperator(true);
+                    deleteName.setBinding(deleteOperator);
+                    deleteName.computeOperatorOffsets(operand, false);
+                    names.add(deleteName);
+                }
+            }
+            if (names.isEmpty()) {
+                implicitNames = IASTImplicitName.EMPTY_NAME_ARRAY;
+            } else {
+                implicitNames = names.toArray(new IASTImplicitName[names.size()]);
+            }
+        }
+        return implicitNames;
+    }
 
-	@Override
-	public IASTImplicitDestructorName[] getImplicitDestructorNames() {
-		if (fImplicitDestructorNames == null) {
-			fImplicitDestructorNames = DestructorCallCollector.getTemporariesDestructorCalls(this);
-		}
+    @Override
+    public IASTImplicitDestructorName[] getImplicitDestructorNames() {
+        if (fImplicitDestructorNames == null) {
+            fImplicitDestructorNames = DestructorCallCollector.getTemporariesDestructorCalls(this);
+        }
+        return fImplicitDestructorNames;
+    }
 
-		return fImplicitDestructorNames;
-	}
+    @Override
+    public boolean accept(ASTVisitor action) {
+        if (action.shouldVisitExpressions) {
+            switch(action.visit(this)) {
+                case ASTVisitor.PROCESS_ABORT:
+                    return false;
+                case ASTVisitor.PROCESS_SKIP:
+                    return true;
+                default:
+                    break;
+            }
+        }
+        if (action.shouldVisitImplicitNames && !acceptByNodes(getImplicitNames(), action))
+            return false;
+        if (operand != null && !operand.accept(action))
+            return false;
+        if (action.shouldVisitImplicitDestructorNames && !acceptByNodes(getImplicitDestructorNames(), action))
+            return false;
+        if (action.shouldVisitExpressions) {
+            switch(action.leave(this)) {
+                case ASTVisitor.PROCESS_ABORT:
+                    return false;
+                case ASTVisitor.PROCESS_SKIP:
+                    return true;
+                default:
+                    break;
+            }
+        }
+        return true;
+    }
 
-	@Override
-	public boolean accept(ASTVisitor action) {
-		if (action.shouldVisitExpressions) {
-			switch (action.visit(this)) {
-			case ASTVisitor.PROCESS_ABORT:
-				return false;
-			case ASTVisitor.PROCESS_SKIP:
-				return true;
-			default:
-				break;
-			}
-		}
+    @Override
+    public ICPPEvaluation getEvaluation() {
+        return EVALUATION;
+    }
 
-		if (action.shouldVisitImplicitNames && !acceptByNodes(getImplicitNames(), action))
-			return false;
+    @Override
+    public IType getExpressionType() {
+        return CPPSemantics.VOID_TYPE;
+    }
 
-		if (operand != null && !operand.accept(action))
-			return false;
+    @Override
+    public boolean isLValue() {
+        return false;
+    }
 
-		if (action.shouldVisitImplicitDestructorNames && !acceptByNodes(getImplicitDestructorNames(), action))
-			return false;
+    @Override
+    public ValueCategory getValueCategory() {
+        return PRVALUE;
+    }
 
-		if (action.shouldVisitExpressions) {
-			switch (action.leave(this)) {
-			case ASTVisitor.PROCESS_ABORT:
-				return false;
-			case ASTVisitor.PROCESS_SKIP:
-				return true;
-			default:
-				break;
-			}
-		}
-		return true;
-	}
-
-	@Override
-	public ICPPEvaluation getEvaluation() {
-		return EVALUATION;
-	}
-
-	@Override
-	public IType getExpressionType() {
-		return CPPSemantics.VOID_TYPE;
-	}
-
-	@Override
-	public boolean isLValue() {
-		return false;
-	}
-
-	@Override
-	public ValueCategory getValueCategory() {
-		return PRVALUE;
-	}
-
-	@Override
-	public void replace(IASTNode child, IASTNode other) {
-		if (child == operand) {
-			other.setPropertyInParent(child.getPropertyInParent());
-			other.setParent(child.getParent());
-			operand = (IASTExpression) other;
-		}
-	}
+    @Override
+    public void replace(IASTNode child, IASTNode other) {
+        if (child == operand) {
+            other.setPropertyInParent(child.getPropertyInParent());
+            other.setParent(child.getParent());
+            operand = (IASTExpression) other;
+        }
+    }
 }

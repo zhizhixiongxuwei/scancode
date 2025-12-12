@@ -37,13 +37,13 @@ final public class ImportComparator implements Comparator<ImportName> {
         };
     }
 
-    private final Comparator<ImportName> importGroupComparator;
+    final public Comparator<ImportName> importGroupComparator;
 
-    private final Comparator<ImportName> typeContainerComparator;
+    final public Comparator<ImportName> typeContainerComparator;
 
-    private final Comparator<ImportName> staticContainerComparator;
+    final public Comparator<ImportName> staticContainerComparator;
 
-    private final Comparator<ImportName> qualifiedNameComparator;
+    final public Comparator<ImportName> qualifiedNameComparator;
 
     ImportComparator(ImportGroupComparator importGroupComparator, Comparator<ImportName> typeContainerComparator, Comparator<ImportName> staticContainerComparator) {
         this.importGroupComparator = importGroupComparator;

@@ -43,25 +43,25 @@ public class PDOMCVariable extends PDOMBinding implements IVariable {
      * Offset of pointer to type information for this variable
      * (relative to the beginning of the record).
      */
-    private static final int TYPE_OFFSET = PDOMBinding.RECORD_SIZE;
+    static final public int TYPE_OFFSET = PDOMBinding.RECORD_SIZE;
 
     /**
      * Offset of pointer to value information for this variable
      * (relative to the beginning of the record).
      */
-    private static final int VALUE_OFFSET = TYPE_OFFSET + Database.TYPE_SIZE;
+    static final public int VALUE_OFFSET = TYPE_OFFSET + Database.TYPE_SIZE;
 
     /**
      * Offset of annotation information (relative to the beginning of the
      * record).
      */
-    private static final int ANNOTATIONS = VALUE_OFFSET + Database.VALUE_SIZE;
+    static final public int ANNOTATIONS = VALUE_OFFSET + Database.VALUE_SIZE;
 
     /**
      * The size in bytes of a PDOMCVariable record in the database.
      */
     @SuppressWarnings("hiding")
-    protected static final int RECORD_SIZE = ANNOTATIONS + 1;
+    static final public int RECORD_SIZE = ANNOTATIONS + 1;
 
     public PDOMCVariable(PDOMLinkage linkage, PDOMNode parent, IVariable variable) throws CoreException {
         super(linkage, parent, variable.getNameCharArray());

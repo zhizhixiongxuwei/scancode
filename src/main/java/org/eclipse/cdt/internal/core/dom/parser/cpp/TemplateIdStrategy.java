@@ -42,17 +42,17 @@ final public class TemplateIdStrategy implements ITemplateIdStrategy {
     // The current position in the current alternative.
     // The next call to shallParseAsTemplateID() will return whether in the current alternative,
     // the name at index (fCurrentBranchPoint + 1) should be parsed as a template-id.
-    private int fCurrentBranchPoint;
+    public int fCurrentBranchPoint;
 
     // The current alternative, represented as a bitset with one bit for each name.
     // A bit corresponding to a name is clear if the name should be parsed as a template-id, and set if
     // it should not.
     // For the first alternative, this bitset is null, and this is interpreted as all zeros (i.e. every name
     // is parsed as a template-id).
-    private BitSet fSimpleIDs;
+    public BitSet fSimpleIDs;
 
     // The set of names which are parsed as template-ids in the current alternative.
-    private IASTName[] fTemplateNames;
+    public IASTName[] fTemplateNames;
 
     public TemplateIdStrategy() {
         fCurrentBranchPoint = -1;

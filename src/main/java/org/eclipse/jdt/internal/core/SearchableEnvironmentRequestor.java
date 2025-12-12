@@ -39,19 +39,19 @@ public class SearchableEnvironmentRequestor extends JavaElementRequestor {
      * The <code>ISearchRequestor</code> this JavaElementRequestor wraps
      * and forwards results to.
      */
-    protected ISearchRequestor requestor;
+    public ISearchRequestor requestor;
 
     /**
      * The <code>ICompilationUNit</code> this JavaElementRequestor will not
      * accept types within.
      */
-    protected ICompilationUnit unitToSkip;
+    public ICompilationUnit unitToSkip;
 
-    protected IJavaProject project;
+    public IJavaProject project;
 
-    protected NameLookup nameLookup;
+    public NameLookup nameLookup;
 
-    protected boolean checkAccessRestrictions;
+    public boolean checkAccessRestrictions;
 
     /**
      * Constructs a SearchableEnvironmentRequestor that wraps the

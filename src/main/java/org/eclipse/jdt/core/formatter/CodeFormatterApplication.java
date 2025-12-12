@@ -1,19 +1,21 @@
-/*******************************************************************************
- *  Copyright (c) 2005, 2016 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *   Copyright (c) 2005, 2016 IBM Corporation and others.
  *
- *  This program and the accompanying materials
- *  are made available under the terms of the Eclipse Public License 2.0
- *  which accompanies this distribution, and is available at
- *  https://www.eclipse.org/legal/epl-2.0/
+ *   This program and the accompanying materials
+ *   are made available under the terms of the Eclipse Public License 2.0
+ *   which accompanies this distribution, and is available at
+ *   https://www.eclipse.org/legal/epl-2.0/
  *
- *  SPDX-License-Identifier: EPL-2.0
+ *   SPDX-License-Identifier: EPL-2.0
  *
- *  Contributors:
- *     Ben Konrath <ben@bagu.org> - initial implementation
- *     Red Hat Incorporated - improvements based on comments from JDT developers
- *     IBM Corporation - Code review and integration
- *     IBM Corporation - Fix for 340181
- *******************************************************************************/
+ *   Contributors:
+ *      Ben Konrath <ben@bagu.org> - initial implementation
+ *      Red Hat Incorporated - improvements based on comments from JDT developers
+ *      IBM Corporation - Code review and integration
+ *      IBM Corporation - Fix for 340181
+ * *****************************************************************************
+ */
 package org.eclipse.jdt.core.formatter;
 
 import java.io.BufferedInputStream;
@@ -51,364 +53,345 @@ import org.eclipse.text.edits.TextEdit;
  * @noinstantiate This class is not intended to be instantiated by clients.
  * @noextend This class is not intended to be subclassed by clients.
  */
-@SuppressWarnings({"rawtypes"})
+@SuppressWarnings({ "rawtypes" })
 public class CodeFormatterApplication implements IApplication {
 
-	/**
-	 * Deals with the messages in the properties file (cut n' pasted from a
-	 * generated class).
-	 */
-	private final static class Messages extends NLS {
-		private static final String BUNDLE_NAME = "org.eclipse.jdt.core.formatter.messages";//$NON-NLS-1$
+    /**
+     * Deals with the messages in the properties file (cut n' pasted from a
+     * generated class).
+     */
+    private final static class Messages extends NLS {
 
-		public static String CommandLineConfigFile;
+        //$NON-NLS-1$
+        private static final String BUNDLE_NAME = "org.eclipse.jdt.core.formatter.messages";
 
-		public static String CommandLineDone;
+        public static String CommandLineConfigFile;
 
-		public static String CommandLineErrorConfig;
+        public static String CommandLineDone;
 
-		public static String CommandLineErrorFileTryFullPath;
+        public static String CommandLineErrorConfig;
 
-		public static String CommandLineErrorFile;
+        public static String CommandLineErrorFileTryFullPath;
 
-		public static String CommandLineErrorFileDir;
+        public static String CommandLineErrorFile;
 
-		public static String CommandLineErrorQuietVerbose;
+        public static String CommandLineErrorFileDir;
 
-		public static String CommandLineErrorNoConfigFile;
+        public static String CommandLineErrorQuietVerbose;
 
-		public static String CommandLineFormatting;
+        public static String CommandLineErrorNoConfigFile;
 
-		public static String CommandLineStart;
+        public static String CommandLineFormatting;
 
-		public static String CommandLineUsage;
+        public static String CommandLineStart;
 
-		public static String ConfigFileNotFoundErrorTryFullPath;
+        public static String CommandLineUsage;
 
-		public static String ConfigFileReadingError;
+        public static String ConfigFileNotFoundErrorTryFullPath;
 
-		public static String FormatProblem;
+        public static String ConfigFileReadingError;
 
-		public static String CaughtException;
+        public static String FormatProblem;
 
-		public static String ExceptionSkip;
+        public static String CaughtException;
 
-		static {
-			NLS.initializeMessages(BUNDLE_NAME, Messages.class);
-		}
+        public static String ExceptionSkip;
 
-		/**
-		 * Bind the given message's substitution locations with the given string
-		 * values.
-		 *
-		 * @param message
-		 *            the message to be manipulated
-		 * @return the manipulated String
-		 */
-		public static String bind(String message) {
-			return bind(message, null);
-		}
+        static {
+            NLS.initializeMessages(BUNDLE_NAME, Messages.class);
+        }
 
-		/**
-		 * Bind the given message's substitution locations with the given string
-		 * values.
-		 *
-		 * @param message
-		 *            the message to be manipulated
-		 * @param binding
-		 *            the object to be inserted into the message
-		 * @return the manipulated String
-		 */
-		public static String bind(String message, Object binding) {
-			return bind(message, new Object[] {
-				binding
-			});
-		}
+        /**
+         * Bind the given message's substitution locations with the given string
+         * values.
+         *
+         * @param message
+         *            the message to be manipulated
+         * @return the manipulated String
+         */
+        public static String bind(String message) {
+            return bind(message, null);
+        }
 
-		/**
-		 * Bind the given message's substitution locations with the given string
-		 * values.
-		 *
-		 * @param message
-		 *            the message to be manipulated
-		 * @param binding1
-		 *            An object to be inserted into the message
-		 * @param binding2
-		 *            A second object to be inserted into the message
-		 * @return the manipulated String
-		 */
-		public static String bind(String message, Object binding1, Object binding2) {
-			return bind(message, new Object[] {
-					binding1, binding2
-			});
-		}
+        /**
+         * Bind the given message's substitution locations with the given string
+         * values.
+         *
+         * @param message
+         *            the message to be manipulated
+         * @param binding
+         *            the object to be inserted into the message
+         * @return the manipulated String
+         */
+        public static String bind(String message, Object binding) {
+            return bind(message, new Object[] { binding });
+        }
 
-		/**
-		 * Bind the given message's substitution locations with the given string
-		 * values.
-		 *
-		 * @param message
-		 *            the message to be manipulated
-		 * @param bindings
-		 *            An array of objects to be inserted into the message
-		 * @return the manipulated String
-		 */
-		public static String bind(String message, Object[] bindings) {
-			return MessageFormat.format(message, bindings);
-		}
-	}
+        /**
+         * Bind the given message's substitution locations with the given string
+         * values.
+         *
+         * @param message
+         *            the message to be manipulated
+         * @param binding1
+         *            An object to be inserted into the message
+         * @param binding2
+         *            A second object to be inserted into the message
+         * @return the manipulated String
+         */
+        public static String bind(String message, Object binding1, Object binding2) {
+            return bind(message, new Object[] { binding1, binding2 });
+        }
 
-	private static final String ARG_CONFIG = "-config"; //$NON-NLS-1$
+        /**
+         * Bind the given message's substitution locations with the given string
+         * values.
+         *
+         * @param message
+         *            the message to be manipulated
+         * @param bindings
+         *            An array of objects to be inserted into the message
+         * @return the manipulated String
+         */
+        public static String bind(String message, Object[] bindings) {
+            return MessageFormat.format(message, bindings);
+        }
+    }
 
-	private static final String ARG_HELP = "-help"; //$NON-NLS-1$
+    //$NON-NLS-1$
+    static final public String ARG_CONFIG = "-config";
 
-	private static final String ARG_QUIET = "-quiet"; //$NON-NLS-1$
+    //$NON-NLS-1$
+    static final public String ARG_HELP = "-help";
 
-	private static final String ARG_VERBOSE = "-verbose"; //$NON-NLS-1$
+    //$NON-NLS-1$
+    static final public String ARG_QUIET = "-quiet";
 
-	private String configName;
+    //$NON-NLS-1$
+    static final public String ARG_VERBOSE = "-verbose";
 
-	private Map options = null;
+    public String configName;
 
-	private static final String PDE_LAUNCH = "-pdelaunch"; //$NON-NLS-1$
+    private Map options = null;
 
-	private boolean quiet = false;
+    //$NON-NLS-1$
+    private static final String PDE_LAUNCH = "-pdelaunch";
 
-	private boolean verbose = false;
+    private boolean quiet = false;
 
-	/**
-	 * Display the command line usage message.
-	 */
-	private void displayHelp() {
-		System.out.println(Messages.bind(Messages.CommandLineUsage));
-	}
+    private boolean verbose = false;
 
-	private void displayHelp(String message) {
-		System.err.println(message);
-		System.out.println();
-		displayHelp();
-	}
+    /**
+     * Display the command line usage message.
+     */
+    private void displayHelp() {
+        System.out.println(Messages.bind(Messages.CommandLineUsage));
+    }
 
-	/**
-	 * Recursively format the Java source code that is contained in the
-	 * directory rooted at dir.
-	 */
-	private void formatDirTree(File dir, CodeFormatter codeFormatter) {
+    private void displayHelp(String message) {
+        System.err.println(message);
+        System.out.println();
+        displayHelp();
+    }
 
-		File[] files = dir.listFiles();
-		if (files == null)
-			return;
+    /**
+     * Recursively format the Java source code that is contained in the
+     * directory rooted at dir.
+     */
+    private void formatDirTree(File dir, CodeFormatter codeFormatter) {
+        File[] files = dir.listFiles();
+        if (files == null)
+            return;
+        for (File file : files) {
+            if (file.isDirectory()) {
+                formatDirTree(file, codeFormatter);
+            } else if (Util.isJavaLikeFileName(file.getPath())) {
+                formatFile(file, codeFormatter);
+            }
+        }
+    }
 
-		for (File file : files) {
-			if (file.isDirectory()) {
-				formatDirTree(file, codeFormatter);
-			} else if (Util.isJavaLikeFileName(file.getPath())) {
-				formatFile(file, codeFormatter);
-			}
-		}
-	}
+    /**
+     * Format the given Java source file.
+     */
+    private void formatFile(File file, CodeFormatter codeFormatter) {
+        IDocument doc = new Document();
+        try {
+            // read the file
+            if (this.verbose) {
+                System.out.println(Messages.bind(Messages.CommandLineFormatting, file.getAbsolutePath()));
+            }
+            String contents = new String(org.eclipse.jdt.internal.compiler.util.Util.getFileCharContent(file, null));
+            // format the file (the meat and potatoes)
+            doc.set(contents);
+            int kind = (file.getName().equals(IModule.MODULE_INFO_JAVA) ? CodeFormatter.K_MODULE_INFO : CodeFormatter.K_COMPILATION_UNIT) | CodeFormatter.F_INCLUDE_COMMENTS;
+            TextEdit edit = codeFormatter.format(kind, contents, 0, contents.length(), 0, null);
+            if (edit != null) {
+                edit.apply(doc);
+            } else {
+                System.err.println(Messages.bind(Messages.FormatProblem, file.getAbsolutePath()));
+                return;
+            }
+            // write the file
+            try (BufferedWriter out = new BufferedWriter(new FileWriter(file))) {
+                out.write(doc.get());
+                out.flush();
+            }
+        } catch (IOException e) {
+            //$NON-NLS-1$
+            String errorMessage = Messages.bind(Messages.CaughtException, "IOException", e.getLocalizedMessage());
+            Util.log(e, errorMessage);
+            System.err.println(Messages.bind(Messages.ExceptionSkip, errorMessage));
+        } catch (BadLocationException e) {
+            //$NON-NLS-1$
+            String errorMessage = Messages.bind(Messages.CaughtException, "BadLocationException", e.getLocalizedMessage());
+            Util.log(e, errorMessage);
+            System.err.println(Messages.bind(Messages.ExceptionSkip, errorMessage));
+        }
+    }
 
-	/**
-	 * Format the given Java source file.
-	 */
-	private void formatFile(File file, CodeFormatter codeFormatter) {
-		IDocument doc = new Document();
-		try {
-			// read the file
-			if (this.verbose) {
-				System.out.println(Messages.bind(Messages.CommandLineFormatting, file.getAbsolutePath()));
-			}
-			String contents = new String(org.eclipse.jdt.internal.compiler.util.Util.getFileCharContent(file, null));
-			// format the file (the meat and potatoes)
-			doc.set(contents);
-			int kind = (file.getName().equals(IModule.MODULE_INFO_JAVA)? CodeFormatter.K_MODULE_INFO
-					: CodeFormatter.K_COMPILATION_UNIT) | CodeFormatter.F_INCLUDE_COMMENTS;
-			TextEdit edit = codeFormatter.format(kind, contents, 0, contents.length(), 0, null);
-			if (edit != null) {
-				edit.apply(doc);
-			} else {
-				System.err.println(Messages.bind(Messages.FormatProblem, file.getAbsolutePath()));
-				return;
-			}
+    private File[] processCommandLine(String[] argsArray) {
+        int index = 0;
+        final int argCount = argsArray.length;
+        final int DEFAULT_MODE = 0;
+        final int CONFIG_MODE = 1;
+        int mode = DEFAULT_MODE;
+        final int INITIAL_SIZE = 1;
+        int fileCounter = 0;
+        File[] filesToFormat = new File[INITIAL_SIZE];
+        loop: while (index < argCount) {
+            String currentArg = argsArray[index++];
+            switch(mode) {
+                case DEFAULT_MODE:
+                    if (PDE_LAUNCH.equals(currentArg)) {
+                        continue loop;
+                    }
+                    if (ARG_HELP.equals(currentArg)) {
+                        displayHelp();
+                        return null;
+                    }
+                    if (ARG_VERBOSE.equals(currentArg)) {
+                        this.verbose = true;
+                        continue loop;
+                    }
+                    if (ARG_QUIET.equals(currentArg)) {
+                        this.quiet = true;
+                        continue loop;
+                    }
+                    if (ARG_CONFIG.equals(currentArg)) {
+                        mode = CONFIG_MODE;
+                        continue loop;
+                    }
+                    // the current arg should be a file or a directory name
+                    File file = new File(currentArg);
+                    if (file.exists()) {
+                        if (filesToFormat.length == fileCounter) {
+                            System.arraycopy(filesToFormat, 0, (filesToFormat = new File[fileCounter * 2]), 0, fileCounter);
+                        }
+                        filesToFormat[fileCounter++] = file;
+                    } else {
+                        String canonicalPath;
+                        try {
+                            canonicalPath = file.getCanonicalPath();
+                        } catch (IOException e2) {
+                            canonicalPath = file.getAbsolutePath();
+                        }
+                        String errorMsg = file.isAbsolute() ? Messages.bind(Messages.CommandLineErrorFile, canonicalPath) : Messages.bind(Messages.CommandLineErrorFileTryFullPath, canonicalPath);
+                        displayHelp(errorMsg);
+                        return null;
+                    }
+                    break;
+                case CONFIG_MODE:
+                    this.configName = currentArg;
+                    this.options = readConfig(currentArg);
+                    if (this.options == null) {
+                        displayHelp(Messages.bind(Messages.CommandLineErrorConfig, currentArg));
+                        return null;
+                    }
+                    mode = DEFAULT_MODE;
+                    continue loop;
+            }
+        }
+        if (mode == CONFIG_MODE || this.options == null) {
+            displayHelp(Messages.bind(Messages.CommandLineErrorNoConfigFile));
+            return null;
+        }
+        if (this.quiet && this.verbose) {
+            displayHelp(Messages.bind(Messages.CommandLineErrorQuietVerbose, new String[] { ARG_QUIET, ARG_VERBOSE }));
+            return null;
+        }
+        if (fileCounter == 0) {
+            displayHelp(Messages.bind(Messages.CommandLineErrorFileDir));
+            return null;
+        }
+        if (filesToFormat.length != fileCounter) {
+            System.arraycopy(filesToFormat, 0, (filesToFormat = new File[fileCounter]), 0, fileCounter);
+        }
+        return filesToFormat;
+    }
 
-			// write the file
-			try (BufferedWriter out = new BufferedWriter(new FileWriter(file))) {
-				out.write(doc.get());
-				out.flush();
-			}
-		} catch (IOException e) {
-			String errorMessage = Messages.bind(Messages.CaughtException, "IOException", e.getLocalizedMessage()); //$NON-NLS-1$
-			Util.log(e, errorMessage);
-			System.err.println(Messages.bind(Messages.ExceptionSkip ,errorMessage));
-		} catch (BadLocationException e) {
-			String errorMessage = Messages.bind(Messages.CaughtException, "BadLocationException", e.getLocalizedMessage()); //$NON-NLS-1$
-			Util.log(e, errorMessage);
-			System.err.println(Messages.bind(Messages.ExceptionSkip ,errorMessage));
-		}
-	}
+    /**
+     * Return a Java Properties file representing the options that are in the
+     * specified configuration file.
+     */
+    private Properties readConfig(String filename) {
+        File configFile = new File(filename);
+        try (BufferedInputStream stream = new BufferedInputStream(new FileInputStream(configFile))) {
+            final Properties formatterOptions = new Properties();
+            formatterOptions.load(stream);
+            return formatterOptions;
+        } catch (IOException e) {
+            String canonicalPath = null;
+            try {
+                canonicalPath = configFile.getCanonicalPath();
+            } catch (IOException e2) {
+                canonicalPath = configFile.getAbsolutePath();
+            }
+            String errorMessage;
+            if (!configFile.exists() && !configFile.isAbsolute()) {
+                errorMessage = Messages.bind(Messages.ConfigFileNotFoundErrorTryFullPath, new Object[] { canonicalPath, //$NON-NLS-1$
+                System.getProperty("user.dir") });
+            } else {
+                errorMessage = Messages.bind(Messages.ConfigFileReadingError, canonicalPath);
+            }
+            Util.log(e, errorMessage);
+            System.err.println(errorMessage);
+        }
+        return null;
+    }
 
-	private File[] processCommandLine(String[] argsArray) {
+    /**
+     * Runs the Java code formatter application
+     */
+    @Override
+    public Object start(IApplicationContext context) throws Exception {
+        File[] filesToFormat = processCommandLine((String[]) context.getArguments().get(IApplicationContext.APPLICATION_ARGS));
+        if (filesToFormat == null) {
+            return IApplication.EXIT_OK;
+        }
+        if (!this.quiet) {
+            if (this.configName != null) {
+                System.out.println(Messages.bind(Messages.CommandLineConfigFile, this.configName));
+            }
+            System.out.println(Messages.bind(Messages.CommandLineStart));
+        }
+        final CodeFormatter codeFormatter = ToolFactory.createCodeFormatter(this.options, ToolFactory.M_FORMAT_EXISTING);
+        // format the list of files and/or directories
+        for (final File file : filesToFormat) {
+            if (file.isDirectory()) {
+                formatDirTree(file, codeFormatter);
+            } else if (Util.isJavaLikeFileName(file.getPath())) {
+                formatFile(file, codeFormatter);
+            }
+        }
+        if (!this.quiet) {
+            System.out.println(Messages.bind(Messages.CommandLineDone));
+        }
+        return IApplication.EXIT_OK;
+    }
 
-		int index = 0;
-		final int argCount = argsArray.length;
-
-		final int DEFAULT_MODE = 0;
-		final int CONFIG_MODE = 1;
-
-		int mode = DEFAULT_MODE;
-		final int INITIAL_SIZE = 1;
-		int fileCounter = 0;
-
-		File[] filesToFormat = new File[INITIAL_SIZE];
-
-		loop: while (index < argCount) {
-			String currentArg = argsArray[index++];
-
-			switch(mode) {
-				case DEFAULT_MODE :
-					if (PDE_LAUNCH.equals(currentArg)) {
-						continue loop;
-					}
-					if (ARG_HELP.equals(currentArg)) {
-						displayHelp();
-						return null;
-					}
-					if (ARG_VERBOSE.equals(currentArg)) {
-						this.verbose = true;
-						continue loop;
-					}
-					if (ARG_QUIET.equals(currentArg)) {
-						this.quiet = true;
-						continue loop;
-					}
-					if (ARG_CONFIG.equals(currentArg)) {
-						mode = CONFIG_MODE;
-						continue loop;
-					}
-					// the current arg should be a file or a directory name
-					File file = new File(currentArg);
-					if (file.exists()) {
-						if (filesToFormat.length == fileCounter) {
-							System.arraycopy(filesToFormat, 0, (filesToFormat = new File[fileCounter * 2]), 0, fileCounter);
-						}
-						filesToFormat[fileCounter++] = file;
-					} else {
-						String canonicalPath;
-						try {
-							canonicalPath = file.getCanonicalPath();
-						} catch(IOException e2) {
-							canonicalPath = file.getAbsolutePath();
-						}
-						String errorMsg = file.isAbsolute()?
-										  Messages.bind(Messages.CommandLineErrorFile, canonicalPath):
-										  Messages.bind(Messages.CommandLineErrorFileTryFullPath, canonicalPath);
-						displayHelp(errorMsg);
-						return null;
-					}
-					break;
-				case CONFIG_MODE :
-					this.configName = currentArg;
-					this.options = readConfig(currentArg);
-					if (this.options == null) {
-						displayHelp(Messages.bind(Messages.CommandLineErrorConfig, currentArg));
-						return null;
-					}
-					mode = DEFAULT_MODE;
-					continue loop;
-			}
-		}
-
-		if (mode == CONFIG_MODE || this.options == null) {
-			displayHelp(Messages.bind(Messages.CommandLineErrorNoConfigFile));
-			return null;
-		}
-		if (this.quiet && this.verbose) {
-			displayHelp(
-				Messages.bind(
-					Messages.CommandLineErrorQuietVerbose,
-					new String[] { ARG_QUIET, ARG_VERBOSE }
-				));
-			return null;
-		}
-		if (fileCounter == 0) {
-			displayHelp(Messages.bind(Messages.CommandLineErrorFileDir));
-			return null;
-		}
-		if (filesToFormat.length != fileCounter) {
-			System.arraycopy(filesToFormat, 0, (filesToFormat = new File[fileCounter]), 0, fileCounter);
-		}
-		return filesToFormat;
-	}
-
-	/**
-	 * Return a Java Properties file representing the options that are in the
-	 * specified configuration file.
-	 */
-	private Properties readConfig(String filename) {
-		File configFile = new File(filename);
-		try (BufferedInputStream stream = new BufferedInputStream(new FileInputStream(configFile))) {
-			final Properties formatterOptions = new Properties();
-			formatterOptions.load(stream);
-			return formatterOptions;
-		} catch (IOException e) {
-			String canonicalPath = null;
-			try {
-				canonicalPath = configFile.getCanonicalPath();
-			} catch(IOException e2) {
-				canonicalPath = configFile.getAbsolutePath();
-			}
-			String errorMessage;
-			if (!configFile.exists() && !configFile.isAbsolute()) {
-				errorMessage = Messages.bind(Messages.ConfigFileNotFoundErrorTryFullPath, new Object[] {
-					canonicalPath,
-					System.getProperty("user.dir") //$NON-NLS-1$
-				});
-
-			} else {
-				errorMessage = Messages.bind(Messages.ConfigFileReadingError, canonicalPath);
-			}
-			Util.log(e, errorMessage);
-			System.err.println(errorMessage);
-		}
-		return null;
-	}
-
-	/**
-	 * Runs the Java code formatter application
-	 */
-	@Override
-	public Object start(IApplicationContext context) throws Exception {
-		File[] filesToFormat = processCommandLine((String[]) context.getArguments().get(IApplicationContext.APPLICATION_ARGS));
-
-		if (filesToFormat == null) {
-			return IApplication.EXIT_OK;
-		}
-
-		if (!this.quiet) {
-			if (this.configName != null) {
-				System.out.println(Messages.bind(Messages.CommandLineConfigFile, this.configName));
-			}
-			System.out.println(Messages.bind(Messages.CommandLineStart));
-		}
-
-		final CodeFormatter codeFormatter = ToolFactory.createCodeFormatter(this.options,
-				ToolFactory.M_FORMAT_EXISTING);
-		// format the list of files and/or directories
-		for (final File file : filesToFormat) {
-			if (file.isDirectory()) {
-				formatDirTree(file, codeFormatter);
-			} else if (Util.isJavaLikeFileName(file.getPath())) {
-				formatFile(file, codeFormatter);
-			}
-		}
-		if (!this.quiet) {
-			System.out.println(Messages.bind(Messages.CommandLineDone));
-		}
-
-		return IApplication.EXIT_OK;
-	}
-	@Override
-	public void stop() {
-		// do nothing
-	}
+    @Override
+    public void stop() {
+        // do nothing
+    }
 }

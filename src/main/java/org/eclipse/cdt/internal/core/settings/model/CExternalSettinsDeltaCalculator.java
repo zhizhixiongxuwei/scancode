@@ -35,7 +35,7 @@ import org.eclipse.cdt.core.settings.model.util.KindBasedStore;
 
 public class CExternalSettinsDeltaCalculator {
 
-    static private CExternalSettinsDeltaCalculator fInstance;
+    static public CExternalSettinsDeltaCalculator fInstance;
 
     private CExternalSettinsDeltaCalculator() {
     }

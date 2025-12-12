@@ -26,7 +26,7 @@ abstract public class MemberElementInfo extends SourceRefElementInfo {
      *
      * @see org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants
      */
-    protected int flags;
+    public int flags;
 
     /**
      * @see org.eclipse.jdt.internal.compiler.env.ISourceType#getNameSourceEnd()

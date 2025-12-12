@@ -25,7 +25,7 @@ import org.eclipse.core.runtime.CoreException;
 
 public class PDOMMacroDefinitionName implements IIndexFragmentName {
 
-    private final PDOMMacro fMacro;
+    final public PDOMMacro fMacro;
 
     PDOMMacroDefinitionName(PDOMMacro macro) {
         fMacro = macro;

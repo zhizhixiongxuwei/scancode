@@ -1,22 +1,23 @@
-/*******************************************************************************
- * Copyright (c) 2007, 2010 Intel Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2007, 2010 Intel Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- * Intel Corporation - Initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *  Intel Corporation - Initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.core.settings.model.extension.impl;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Objects;
-
 import org.eclipse.cdt.core.cdtvariables.ICdtVariablesContributor;
 import org.eclipse.cdt.core.settings.model.CConfigurationStatus;
 import org.eclipse.cdt.core.settings.model.ICSettingBase;
@@ -33,306 +34,294 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 
 public class CDefaultConfigurationData extends CConfigurationData {
-	protected String fDescription;
-	private HashMap<IPath, CResourceData> fResourceDataMap = new HashMap<>();
-	protected CFolderData fRootFolderData;
-	protected String fName;
-	protected String fId;
-	protected CTargetPlatformData fTargetPlatformData;
-	protected CBuildData fBuildData;
-	protected ICSourceEntry[] fSourceEntries;
-	private CDataFactory fFactory;
-	protected boolean fIsModified;
-	private CConfigurationStatus fStatus = CConfigurationStatus.CFG_STATUS_OK;
 
-	protected CDefaultConfigurationData(CDataFactory factory) {
-		if (factory == null)
-			factory = new CDataFactory();
-		fFactory = factory;
-	}
+    public String fDescription;
 
-	//	public CDefaultConfigurationData(String id, String name) {
-	//		this(id, name, (CDataFacroty)null);
-	//	}
+    public HashMap<IPath, CResourceData> fResourceDataMap = new HashMap<>();
 
-	public CDataFactory getFactory() {
-		return fFactory;
-	}
+    public CFolderData fRootFolderData;
 
-	public CDefaultConfigurationData(String id, String name, CDataFactory factory) {
-		fId = id;
-		fName = name;
-		if (factory == null)
-			factory = new CDataFactory();
-		fFactory = factory;
-	}
+    public String fName;
 
-	//	public CDefaultConfigurationData(String id, String name, CConfigurationData base) {
-	//		this(id, name, base, null);
-	//	}
+    public String fId;
 
-	public CDefaultConfigurationData(String id, String name, CConfigurationData base, CDataFactory facroty,
-			boolean clone) {
-		this(id, name, facroty);
+    protected CTargetPlatformData fTargetPlatformData;
 
-		copySettingsFrom(base, clone);
-	}
+    protected CBuildData fBuildData;
 
-	protected IPath standardizePath(IPath path) {
-		return path.makeRelative().setDevice(null);
-	}
+    protected ICSourceEntry[] fSourceEntries;
 
-	protected void addRcData(CResourceData data) {
-		IPath path = standardizePath(data.getPath());
-		if (path.segmentCount() == 0) {
-			if (data.getType() == ICSettingBase.SETTING_FOLDER)
-				fRootFolderData = (CFolderData) data;
-			else
-				return;
-		}
-		fResourceDataMap.put(path, data);
-	}
+    private CDataFactory fFactory;
 
-	protected void removeRcData(IPath path) {
-		path = standardizePath(path);
-		fResourceDataMap.remove(path);
-		if (path.segmentCount() == 0)
-			fRootFolderData = null;
-	}
+    protected boolean fIsModified;
 
-	protected void copySettingsFrom(CConfigurationData base, boolean clone) {
-		if (base == null)
-			return;
-		fDescription = base.getDescription();
+    private CConfigurationStatus fStatus = CConfigurationStatus.CFG_STATUS_OK;
 
-		fTargetPlatformData = copyTargetPlatformData(base.getTargetPlatformData(), clone);
-		fSourceEntries = base.getSourceEntries();
-		fBuildData = copyBuildData(base.getBuildData(), clone);
+    protected CDefaultConfigurationData(CDataFactory factory) {
+        if (factory == null)
+            factory = new CDataFactory();
+        fFactory = factory;
+    }
 
-		fStatus = base.getStatus();
-		if (fStatus == null)
-			fStatus = CConfigurationStatus.CFG_STATUS_OK;
+    //	public CDefaultConfigurationData(String id, String name) {
+    //		this(id, name, (CDataFacroty)null);
+    //	}
+    public CDataFactory getFactory() {
+        return fFactory;
+    }
 
-		CFolderData baseRootFolderData = base.getRootFolderData();
-		fRootFolderData = copyFolderData(baseRootFolderData.getPath(), baseRootFolderData, clone);
-		addRcData(fRootFolderData);
+    public CDefaultConfigurationData(String id, String name, CDataFactory factory) {
+        fId = id;
+        fName = name;
+        if (factory == null)
+            factory = new CDataFactory();
+        fFactory = factory;
+    }
 
-		CResourceData[] rcDatas = filterRcDatasToCopy(base);
+    //	public CDefaultConfigurationData(String id, String name, CConfigurationData base) {
+    //		this(id, name, base, null);
+    //	}
+    public CDefaultConfigurationData(String id, String name, CConfigurationData base, CDataFactory facroty, boolean clone) {
+        this(id, name, facroty);
+        copySettingsFrom(base, clone);
+    }
 
-		for (int i = 0; i < rcDatas.length; i++) {
-			CResourceData rcData = rcDatas[i];
-			if (baseRootFolderData == rcData)
-				continue;
+    protected IPath standardizePath(IPath path) {
+        return path.makeRelative().setDevice(null);
+    }
 
-			if (rcData instanceof CFolderData)
-				addRcData(copyFolderData(rcData.getPath(), (CFolderData) rcData, clone));
-			else if (rcData instanceof CFileData)
-				addRcData(copyFileData(rcData.getPath(), (CFileData) rcData, clone));
-		}
-	}
+    protected void addRcData(CResourceData data) {
+        IPath path = standardizePath(data.getPath());
+        if (path.segmentCount() == 0) {
+            if (data.getType() == ICSettingBase.SETTING_FOLDER)
+                fRootFolderData = (CFolderData) data;
+            else
+                return;
+        }
+        fResourceDataMap.put(path, data);
+    }
 
-	protected CResourceData[] filterRcDatasToCopy(CConfigurationData base) {
-		return base.getResourceDatas();
-	}
+    protected void removeRcData(IPath path) {
+        path = standardizePath(path);
+        fResourceDataMap.remove(path);
+        if (path.segmentCount() == 0)
+            fRootFolderData = null;
+    }
 
-	protected CFolderData copyFolderData(IPath path, CFolderData base, boolean clone) {
-		return fFactory.createFolderData(this, base, null, clone, path);
-	}
+    protected void copySettingsFrom(CConfigurationData base, boolean clone) {
+        if (base == null)
+            return;
+        fDescription = base.getDescription();
+        fTargetPlatformData = copyTargetPlatformData(base.getTargetPlatformData(), clone);
+        fSourceEntries = base.getSourceEntries();
+        fBuildData = copyBuildData(base.getBuildData(), clone);
+        fStatus = base.getStatus();
+        if (fStatus == null)
+            fStatus = CConfigurationStatus.CFG_STATUS_OK;
+        CFolderData baseRootFolderData = base.getRootFolderData();
+        fRootFolderData = copyFolderData(baseRootFolderData.getPath(), baseRootFolderData, clone);
+        addRcData(fRootFolderData);
+        CResourceData[] rcDatas = filterRcDatasToCopy(base);
+        for (int i = 0; i < rcDatas.length; i++) {
+            CResourceData rcData = rcDatas[i];
+            if (baseRootFolderData == rcData)
+                continue;
+            if (rcData instanceof CFolderData)
+                addRcData(copyFolderData(rcData.getPath(), (CFolderData) rcData, clone));
+            else if (rcData instanceof CFileData)
+                addRcData(copyFileData(rcData.getPath(), (CFileData) rcData, clone));
+        }
+    }
 
-	protected CFileData copyFileData(IPath path, CFileData base, boolean clone) {
-		return fFactory.createFileData(this, base, null, null, clone, path);
-	}
+    protected CResourceData[] filterRcDatasToCopy(CConfigurationData base) {
+        return base.getResourceDatas();
+    }
 
-	protected CFileData copyFileData(IPath path, CFolderData base, CLanguageData langData) {
-		return fFactory.createFileData(this, base, langData, null, false, path);
-	}
+    protected CFolderData copyFolderData(IPath path, CFolderData base, boolean clone) {
+        return fFactory.createFolderData(this, base, null, clone, path);
+    }
 
-	protected CTargetPlatformData copyTargetPlatformData(CTargetPlatformData base, boolean clone) {
-		return fFactory.createTargetPlatformData(this, base, null, base != null ? base.getName() : null, clone);
-	}
+    protected CFileData copyFileData(IPath path, CFileData base, boolean clone) {
+        return fFactory.createFileData(this, base, null, null, clone, path);
+    }
 
-	protected CBuildData copyBuildData(CBuildData data, boolean clone) {
-		return fFactory.createBuildData(this, data, null, data != null ? data.getName() : null, clone);
-	}
+    protected CFileData copyFileData(IPath path, CFolderData base, CLanguageData langData) {
+        return fFactory.createFileData(this, base, langData, null, false, path);
+    }
 
-	@Override
-	public CFolderData createFolderData(IPath path, CFolderData base) throws CoreException {
-		CFolderData data = copyFolderData(path, base, false);
-		addRcData(data);
+    protected CTargetPlatformData copyTargetPlatformData(CTargetPlatformData base, boolean clone) {
+        return fFactory.createTargetPlatformData(this, base, null, base != null ? base.getName() : null, clone);
+    }
 
-		setModified(true);
+    protected CBuildData copyBuildData(CBuildData data, boolean clone) {
+        return fFactory.createBuildData(this, data, null, data != null ? data.getName() : null, clone);
+    }
 
-		return data;
-	}
+    @Override
+    public CFolderData createFolderData(IPath path, CFolderData base) throws CoreException {
+        CFolderData data = copyFolderData(path, base, false);
+        addRcData(data);
+        setModified(true);
+        return data;
+    }
 
-	@Override
-	public CFileData createFileData(IPath path, CFileData base) throws CoreException {
-		CFileData data = copyFileData(path, base, false);
-		addRcData(data);
+    @Override
+    public CFileData createFileData(IPath path, CFileData base) throws CoreException {
+        CFileData data = copyFileData(path, base, false);
+        addRcData(data);
+        setModified(true);
+        return data;
+    }
 
-		setModified(true);
+    @Override
+    public CFileData createFileData(IPath path, CFolderData base, CLanguageData langData) throws CoreException {
+        CFileData data = copyFileData(path, base, langData);
+        addRcData(data);
+        setModified(true);
+        return data;
+    }
 
-		return data;
-	}
+    @Override
+    public String getDescription() {
+        return fDescription;
+    }
 
-	@Override
-	public CFileData createFileData(IPath path, CFolderData base, CLanguageData langData) throws CoreException {
-		CFileData data = copyFileData(path, base, langData);
-		addRcData(data);
+    @Override
+    public void setDescription(String description) {
+        if (Objects.equals(description, fDescription))
+            return;
+        fDescription = description;
+        setModified(true);
+    }
 
-		setModified(true);
+    @Override
+    public CResourceData[] getResourceDatas() {
+        return fResourceDataMap.values().toArray(new CResourceData[fResourceDataMap.size()]);
+    }
 
-		return data;
-	}
+    @Override
+    public CFolderData getRootFolderData() {
+        return fRootFolderData;
+    }
 
-	@Override
-	public String getDescription() {
-		return fDescription;
-	}
+    public CFolderData createRootFolderData() throws CoreException {
+        if (fRootFolderData == null) {
+            //$NON-NLS-1$
+            createFolderData(new Path(""), null);
+        }
+        return fRootFolderData;
+    }
 
-	@Override
-	public void setDescription(String description) {
-		if (Objects.equals(description, fDescription))
-			return;
-		fDescription = description;
+    @Override
+    public void removeResourceData(CResourceData data) throws CoreException {
+        if (data == getResourceData(data.getPath())) {
+            IPath path = standardizePath(data.getPath());
+            removeRcData(path);
+            setModified(true);
+        }
+    }
 
-		setModified(true);
-	}
+    public CResourceData getResourceData(IPath path) {
+        path = standardizePath(path);
+        return fResourceDataMap.get(path);
+    }
 
-	@Override
-	public CResourceData[] getResourceDatas() {
-		return fResourceDataMap.values().toArray(new CResourceData[fResourceDataMap.size()]);
-	}
+    @Override
+    public String getName() {
+        return fName;
+    }
 
-	@Override
-	public CFolderData getRootFolderData() {
-		return fRootFolderData;
-	}
+    @Override
+    public void setName(String name) {
+        if (Objects.equals(name, fName))
+            return;
+        fName = name;
+        setModified(true);
+    }
 
-	public CFolderData createRootFolderData() throws CoreException {
-		if (fRootFolderData == null) {
-			createFolderData(new Path(""), null); //$NON-NLS-1$
-		}
-		return fRootFolderData;
-	}
+    @Override
+    public String getId() {
+        return fId;
+    }
 
-	@Override
-	public void removeResourceData(CResourceData data) throws CoreException {
-		if (data == getResourceData(data.getPath())) {
-			IPath path = standardizePath(data.getPath());
-			removeRcData(path);
+    @Override
+    public boolean isValid() {
+        return getId() != null;
+    }
 
-			setModified(true);
-		}
-	}
+    @Override
+    public CTargetPlatformData getTargetPlatformData() {
+        return fTargetPlatformData;
+    }
 
-	public CResourceData getResourceData(IPath path) {
-		path = standardizePath(path);
-		return fResourceDataMap.get(path);
-	}
+    @Override
+    public ICSourceEntry[] getSourceEntries() {
+        return fSourceEntries != null ? (ICSourceEntry[]) fSourceEntries.clone() : null;
+    }
 
-	@Override
-	public String getName() {
-		return fName;
-	}
+    @Override
+    public void setSourceEntries(ICSourceEntry[] entries) {
+        if (Arrays.equals(entries, fSourceEntries))
+            return;
+        fSourceEntries = entries != null ? (ICSourceEntry[]) entries.clone() : null;
+        setModified(true);
+    }
 
-	@Override
-	public void setName(String name) {
-		if (Objects.equals(name, fName))
-			return;
-		fName = name;
-		setModified(true);
-	}
+    @Override
+    public CBuildData getBuildData() {
+        return fBuildData;
+    }
 
-	@Override
-	public String getId() {
-		return fId;
-	}
+    public void initEmptyData() throws CoreException {
+        if (getRootFolderData() == null)
+            createRootFolderData();
+        if (getTargetPlatformData() == null)
+            createTargetPlatformData();
+        if (getBuildData() == null)
+            createBuildData();
+    }
 
-	@Override
-	public boolean isValid() {
-		return getId() != null;
-	}
+    public CTargetPlatformData createTargetPlatformData() {
+        fTargetPlatformData = copyTargetPlatformData(null, false);
+        setModified(true);
+        return fTargetPlatformData;
+    }
 
-	@Override
-	public CTargetPlatformData getTargetPlatformData() {
-		return fTargetPlatformData;
-	}
+    public CBuildData createBuildData() {
+        fBuildData = copyBuildData(null, false);
+        setModified(true);
+        return fBuildData;
+    }
 
-	@Override
-	public ICSourceEntry[] getSourceEntries() {
-		return fSourceEntries != null ? (ICSourceEntry[]) fSourceEntries.clone() : null;
-	}
+    @Override
+    public ICdtVariablesContributor getBuildVariablesContributor() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
-	@Override
-	public void setSourceEntries(ICSourceEntry[] entries) {
-		if (Arrays.equals(entries, fSourceEntries))
-			return;
+    public boolean isModified() {
+        if (fIsModified)
+            return true;
+        CResourceData[] rcDatas = getResourceDatas();
+        for (int i = 0; i < rcDatas.length; i++) {
+            if (fFactory.isModified(rcDatas[i]))
+                return true;
+        }
+        return false;
+    }
 
-		fSourceEntries = entries != null ? (ICSourceEntry[]) entries.clone() : null;
-		setModified(true);
-	}
+    public void setModified(boolean modified) {
+        fIsModified = modified;
+        if (!modified) {
+            CResourceData[] rcDatas = getResourceDatas();
+            for (int i = 0; i < rcDatas.length; i++) {
+                fFactory.setModified(rcDatas[i], false);
+            }
+        }
+    }
 
-	@Override
-	public CBuildData getBuildData() {
-		return fBuildData;
-	}
-
-	public void initEmptyData() throws CoreException {
-		if (getRootFolderData() == null)
-			createRootFolderData();
-
-		if (getTargetPlatformData() == null)
-			createTargetPlatformData();
-
-		if (getBuildData() == null)
-			createBuildData();
-	}
-
-	public CTargetPlatformData createTargetPlatformData() {
-		fTargetPlatformData = copyTargetPlatformData(null, false);
-		setModified(true);
-		return fTargetPlatformData;
-	}
-
-	public CBuildData createBuildData() {
-		fBuildData = copyBuildData(null, false);
-		setModified(true);
-		return fBuildData;
-	}
-
-	@Override
-	public ICdtVariablesContributor getBuildVariablesContributor() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public boolean isModified() {
-		if (fIsModified)
-			return true;
-
-		CResourceData[] rcDatas = getResourceDatas();
-		for (int i = 0; i < rcDatas.length; i++) {
-			if (fFactory.isModified(rcDatas[i]))
-				return true;
-		}
-
-		return false;
-	}
-
-	public void setModified(boolean modified) {
-		fIsModified = modified;
-
-		if (!modified) {
-			CResourceData[] rcDatas = getResourceDatas();
-			for (int i = 0; i < rcDatas.length; i++) {
-				fFactory.setModified(rcDatas[i], false);
-			}
-		}
-	}
-
-	@Override
-	public CConfigurationStatus getStatus() {
-		return fStatus;
-	}
+    @Override
+    public CConfigurationStatus getStatus() {
+        return fStatus;
+    }
 }

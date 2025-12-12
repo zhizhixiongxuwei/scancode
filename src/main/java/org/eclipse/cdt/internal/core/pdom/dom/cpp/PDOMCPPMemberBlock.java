@@ -1,19 +1,20 @@
-/*******************************************************************************
- * Copyright (c) 2013, 2014 Institute for Software, HSR Hochschule fuer Technik
- * Rapperswil, University of applied sciences.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2013, 2014 Institute for Software, HSR Hochschule fuer Technik
+ *  Rapperswil, University of applied sciences.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Thomas Corbat (IFS) - Initial API and implementation
- *     Sergey Prigogin (Google)
- *******************************************************************************/
-
+ *  Contributors:
+ *      Thomas Corbat (IFS) - Initial API and implementation
+ *      Sergey Prigogin (Google)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.pdom.dom.cpp;
 
 import org.eclipse.cdt.core.dom.IPDOMVisitor;
@@ -30,182 +31,184 @@ import org.eclipse.core.runtime.CoreException;
  * the corresponding visibility.
  */
 public class PDOMCPPMemberBlock {
-	/*
+
+    /*
 	 * The MAX_MEMBER_COUNT was chosen empirically by comparing PDOM file sizes of a real-life
 	 * project. Six members per block resulted in the most compact PDOM.
 	 */
-	private static final int MAX_MEMBER_COUNT = 6;
-	private static final int VISIBILITY_BITS = 2;
-	private static final int VISIBILITY_MASK = (1 << VISIBILITY_BITS) - 1;
-	private static final int VISIBILITY_VALUES_PER_BYTE = 8 / VISIBILITY_BITS;
+    static final public int MAX_MEMBER_COUNT = 6;
 
-	private static final int MEMBER_POINTERS = 0;
-	private static final int MEMBER_VISIBILITIES = MEMBER_POINTERS + Database.PTR_SIZE * MAX_MEMBER_COUNT;
-	private static final int NEXT_MEMBER_BLOCK = MEMBER_VISIBILITIES
-			+ (MAX_MEMBER_COUNT + VISIBILITY_VALUES_PER_BYTE - 1) / VISIBILITY_VALUES_PER_BYTE;
+    static final public int VISIBILITY_BITS = 2;
 
-	protected static final int RECORD_SIZE = NEXT_MEMBER_BLOCK + Database.PTR_SIZE;
+    static final public int VISIBILITY_MASK = (1 << VISIBILITY_BITS) - 1;
 
-	static {
-		assert (MAX_MEMBER_COUNT > 0);
-	}
+    static final public int VISIBILITY_VALUES_PER_BYTE = 8 / VISIBILITY_BITS;
 
-	private final PDOMLinkage linkage;
-	private final long record;
-	private int nextMemberPosition;
+    static final public int MEMBER_POINTERS = 0;
 
-	public PDOMCPPMemberBlock(PDOMLinkage linkage, long record) throws CoreException {
-		this.linkage = linkage;
-		this.record = record;
-		this.nextMemberPosition = -1; // nextMemberPosition is unknown.
-	}
+    private static final int MEMBER_VISIBILITIES = MEMBER_POINTERS + Database.PTR_SIZE * MAX_MEMBER_COUNT;
 
-	public PDOMCPPMemberBlock(PDOMLinkage linkage) throws CoreException {
-		Database db = linkage.getDB();
-		this.linkage = linkage;
-		this.record = db.malloc(RECORD_SIZE);
-	}
+    private static final int NEXT_MEMBER_BLOCK = MEMBER_VISIBILITIES + (MAX_MEMBER_COUNT + VISIBILITY_VALUES_PER_BYTE - 1) / VISIBILITY_VALUES_PER_BYTE;
 
-	private int getNextPosition() throws CoreException {
-		if (nextMemberPosition < 0) {
-			nextMemberPosition = 0;
-			while (nextMemberPosition < MAX_MEMBER_COUNT && getMemberRecord(nextMemberPosition) != 0) {
-				nextMemberPosition++;
-			}
-		}
-		return nextMemberPosition;
-	}
+    protected static final int RECORD_SIZE = NEXT_MEMBER_BLOCK + Database.PTR_SIZE;
 
-	private Database getDB() {
-		return linkage.getDB();
-	}
+    static {
+        assert (MAX_MEMBER_COUNT > 0);
+    }
 
-	private PDOM getPDOM() {
-		return linkage.getPDOM();
-	}
+    private final PDOMLinkage linkage;
 
-	public long getRecord() {
-		return record;
-	}
+    private final long record;
 
-	public void setNextBlock(PDOMCPPMemberBlock nextBlock) throws CoreException {
-		long rec = nextBlock != null ? nextBlock.getRecord() : 0;
-		getDB().putRecPtr(record + NEXT_MEMBER_BLOCK, rec);
-	}
+    private int nextMemberPosition;
 
-	public PDOMCPPMemberBlock getNextBlock() throws CoreException {
-		long rec = getDB().getRecPtr(record + NEXT_MEMBER_BLOCK);
-		return rec != 0 ? new PDOMCPPMemberBlock(linkage, rec) : null;
-	}
+    public PDOMCPPMemberBlock(PDOMLinkage linkage, long record) throws CoreException {
+        this.linkage = linkage;
+        this.record = record;
+        // nextMemberPosition is unknown.
+        this.nextMemberPosition = -1;
+    }
 
-	public void addMember(PDOMNode member, int visibility) throws CoreException {
-		addMember(this, member, visibility);
-	}
+    public PDOMCPPMemberBlock(PDOMLinkage linkage) throws CoreException {
+        Database db = linkage.getDB();
+        this.linkage = linkage;
+        this.record = db.malloc(RECORD_SIZE);
+    }
 
-	private static void addMember(PDOMCPPMemberBlock block, PDOMNode member, int visibility) throws CoreException {
-		assert member.getPDOM() == block.getPDOM();
-		while (true) {
-			int pos = block.getNextPosition();
-			if (pos < MAX_MEMBER_COUNT) {
-				long memberLocationOffset = block.getMemberOffset(pos);
-				block.getDB().putRecPtr(memberLocationOffset, member.getRecord());
-				block.setVisibility(pos, visibility);
-				block.nextMemberPosition++;
-				break;
-			}
-			PDOMCPPMemberBlock previousBlock = block;
-			block = block.getNextBlock();
-			if (block == null) {
-				block = new PDOMCPPMemberBlock(previousBlock.linkage);
-				previousBlock.setNextBlock(block);
-			}
-		}
-	}
+    private int getNextPosition() throws CoreException {
+        if (nextMemberPosition < 0) {
+            nextMemberPosition = 0;
+            while (nextMemberPosition < MAX_MEMBER_COUNT && getMemberRecord(nextMemberPosition) != 0) {
+                nextMemberPosition++;
+            }
+        }
+        return nextMemberPosition;
+    }
 
-	public void accept(IPDOMVisitor visitor) throws CoreException {
-		PDOMCPPMemberBlock current = this;
-		do {
-			current.visitBlock(visitor);
-		} while ((current = current.getNextBlock()) != null);
-	}
+    private Database getDB() {
+        return linkage.getDB();
+    }
 
-	private void visitBlock(IPDOMVisitor visitor) throws CoreException {
-		if (record == 0) {
-			throw new NullPointerException();
-		}
+    private PDOM getPDOM() {
+        return linkage.getPDOM();
+    }
 
-		int item = 0;
-		long memberRecord;
-		while (item < MAX_MEMBER_COUNT && (memberRecord = getMemberRecord(item++)) != 0) {
-			PDOMNode node = PDOMNode.load(getPDOM(), memberRecord);
-			if (node != null) {
-				if (visitor.visit(node))
-					node.accept(visitor);
-				visitor.leave(node);
-			}
-		}
-	}
+    public long getRecord() {
+        return record;
+    }
 
-	public void delete() throws CoreException {
-		getDB().free(record);
-	}
+    public void setNextBlock(PDOMCPPMemberBlock nextBlock) throws CoreException {
+        long rec = nextBlock != null ? nextBlock.getRecord() : 0;
+        getDB().putRecPtr(record + NEXT_MEMBER_BLOCK, rec);
+    }
 
-	private long getMemberRecord(int memberIndex) throws CoreException {
-		return getDB().getRecPtr(getMemberOffset(memberIndex));
-	}
+    public PDOMCPPMemberBlock getNextBlock() throws CoreException {
+        long rec = getDB().getRecPtr(record + NEXT_MEMBER_BLOCK);
+        return rec != 0 ? new PDOMCPPMemberBlock(linkage, rec) : null;
+    }
 
-	private long getMemberOffset(int memberIndex) {
-		return record + MEMBER_POINTERS + Database.PTR_SIZE * memberIndex;
-	}
+    public void addMember(PDOMNode member, int visibility) throws CoreException {
+        addMember(this, member, visibility);
+    }
 
-	private void setVisibility(int memberIndex, int newVisibility) throws CoreException {
-		newVisibility &= VISIBILITY_MASK;
+    private static void addMember(PDOMCPPMemberBlock block, PDOMNode member, int visibility) throws CoreException {
+        assert member.getPDOM() == block.getPDOM();
+        while (true) {
+            int pos = block.getNextPosition();
+            if (pos < MAX_MEMBER_COUNT) {
+                long memberLocationOffset = block.getMemberOffset(pos);
+                block.getDB().putRecPtr(memberLocationOffset, member.getRecord());
+                block.setVisibility(pos, visibility);
+                block.nextMemberPosition++;
+                break;
+            }
+            PDOMCPPMemberBlock previousBlock = block;
+            block = block.getNextBlock();
+            if (block == null) {
+                block = new PDOMCPPMemberBlock(previousBlock.linkage);
+                previousBlock.setNextBlock(block);
+            }
+        }
+    }
 
-		int visibilityBitOffset = memberIndex % VISIBILITY_VALUES_PER_BYTE;
-		long visibilityOffset = record + MEMBER_VISIBILITIES + memberIndex / VISIBILITY_VALUES_PER_BYTE;
-		int visibility = getDB().getByte(visibilityOffset);
-		// Resetting the previous visibility bits of the target member.
-		visibility &= ~(VISIBILITY_MASK << visibilityBitOffset * VISIBILITY_BITS);
-		// Setting the new visibility bits of the target member.
-		visibility |= newVisibility << visibilityBitOffset * VISIBILITY_BITS;
+    public void accept(IPDOMVisitor visitor) throws CoreException {
+        PDOMCPPMemberBlock current = this;
+        do {
+            current.visitBlock(visitor);
+        } while ((current = current.getNextBlock()) != null);
+    }
 
-		getDB().putByte(visibilityOffset, (byte) visibility);
-	}
+    private void visitBlock(IPDOMVisitor visitor) throws CoreException {
+        if (record == 0) {
+            throw new NullPointerException();
+        }
+        int item = 0;
+        long memberRecord;
+        while (item < MAX_MEMBER_COUNT && (memberRecord = getMemberRecord(item++)) != 0) {
+            PDOMNode node = PDOMNode.load(getPDOM(), memberRecord);
+            if (node != null) {
+                if (visitor.visit(node))
+                    node.accept(visitor);
+                visitor.leave(node);
+            }
+        }
+    }
 
-	/**
-	 * Returns visibility of the member, or -1 if the given binding is not a member.
-	 */
-	public int getVisibility(IBinding member) throws CoreException {
-		IIndexFragmentBinding indexMember = getPDOM().adaptBinding(member);
-		if (!(indexMember instanceof PDOMNode))
-			return -1;
-		return getVisibility(this, (PDOMNode) indexMember);
-	}
+    public void delete() throws CoreException {
+        getDB().free(record);
+    }
 
-	private static int getVisibility(PDOMCPPMemberBlock block, PDOMNode memberNode) throws CoreException {
-		long memberRecord = memberNode.getRecord();
+    private long getMemberRecord(int memberIndex) throws CoreException {
+        return getDB().getRecPtr(getMemberOffset(memberIndex));
+    }
 
-		do {
-			for (int memberIndex = 0; memberIndex < MAX_MEMBER_COUNT; memberIndex++) {
-				long rec = block.getMemberRecord(memberIndex);
-				if (rec == 0)
-					return -1;
-				if (rec == memberRecord)
-					return block.getVisibility(memberIndex);
-			}
-		} while ((block = block.getNextBlock()) != null);
+    private long getMemberOffset(int memberIndex) {
+        return record + MEMBER_POINTERS + Database.PTR_SIZE * memberIndex;
+    }
 
-		return -1;
-	}
+    private void setVisibility(int memberIndex, int newVisibility) throws CoreException {
+        newVisibility &= VISIBILITY_MASK;
+        int visibilityBitOffset = memberIndex % VISIBILITY_VALUES_PER_BYTE;
+        long visibilityOffset = record + MEMBER_VISIBILITIES + memberIndex / VISIBILITY_VALUES_PER_BYTE;
+        int visibility = getDB().getByte(visibilityOffset);
+        // Resetting the previous visibility bits of the target member.
+        visibility &= ~(VISIBILITY_MASK << visibilityBitOffset * VISIBILITY_BITS);
+        // Setting the new visibility bits of the target member.
+        visibility |= newVisibility << visibilityBitOffset * VISIBILITY_BITS;
+        getDB().putByte(visibilityOffset, (byte) visibility);
+    }
 
-	private int getVisibility(int memberIndex) throws CoreException {
-		int visibilityBitOffset = memberIndex % VISIBILITY_VALUES_PER_BYTE;
-		long visibilityOffset = record + MEMBER_VISIBILITIES + memberIndex / VISIBILITY_VALUES_PER_BYTE;
-		int visibility = getDB().getByte(visibilityOffset);
+    /**
+     * Returns visibility of the member, or -1 if the given binding is not a member.
+     */
+    public int getVisibility(IBinding member) throws CoreException {
+        IIndexFragmentBinding indexMember = getPDOM().adaptBinding(member);
+        if (!(indexMember instanceof PDOMNode))
+            return -1;
+        return getVisibility(this, (PDOMNode) indexMember);
+    }
 
-		visibility >>>= visibilityBitOffset * VISIBILITY_BITS;
-		// Filtering the visibility bits of the target member.
-		visibility &= VISIBILITY_MASK;
-		return visibility;
-	}
+    private static int getVisibility(PDOMCPPMemberBlock block, PDOMNode memberNode) throws CoreException {
+        long memberRecord = memberNode.getRecord();
+        do {
+            for (int memberIndex = 0; memberIndex < MAX_MEMBER_COUNT; memberIndex++) {
+                long rec = block.getMemberRecord(memberIndex);
+                if (rec == 0)
+                    return -1;
+                if (rec == memberRecord)
+                    return block.getVisibility(memberIndex);
+            }
+        } while ((block = block.getNextBlock()) != null);
+        return -1;
+    }
+
+    private int getVisibility(int memberIndex) throws CoreException {
+        int visibilityBitOffset = memberIndex % VISIBILITY_VALUES_PER_BYTE;
+        long visibilityOffset = record + MEMBER_VISIBILITIES + memberIndex / VISIBILITY_VALUES_PER_BYTE;
+        int visibility = getDB().getByte(visibilityOffset);
+        visibility >>>= visibilityBitOffset * VISIBILITY_BITS;
+        // Filtering the visibility bits of the target member.
+        visibility &= VISIBILITY_MASK;
+        return visibility;
+    }
 }

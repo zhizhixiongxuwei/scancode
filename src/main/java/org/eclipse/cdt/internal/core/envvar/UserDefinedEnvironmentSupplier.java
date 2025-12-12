@@ -1,25 +1,26 @@
-/*******************************************************************************
- * Copyright (c) 2005, 2013 Intel Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2005, 2013 Intel Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *    Intel Corporation - Initial API and implementation
- *    James Blackburn (Broadcom Corp.)
- *    IBM Corporation
- *    Andrew Gvozdev     - Notification mechanism for changes to environment variables
- *******************************************************************************/
+ *  Contributors:
+ *     Intel Corporation - Initial API and implementation
+ *     James Blackburn (Broadcom Corp.)
+ *     IBM Corporation
+ *     Andrew Gvozdev     - Notification mechanism for changes to environment variables
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.envvar;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.eclipse.cdt.core.CCorePlugin;
 import org.eclipse.cdt.core.envvar.IEnvironmentVariable;
 import org.eclipse.cdt.core.settings.model.ICConfigurationDescription;
@@ -56,347 +57,338 @@ import org.osgi.service.prefs.Preferences;
  *
  * @since 3.0
  */
-public class UserDefinedEnvironmentSupplier extends StorableEnvironmentLoader
-		implements ICoreEnvironmentVariableSupplier {
-	public static final String NODENAME = "environment"; //$NON-NLS-1$
-	public static final String PREFNAME_WORKSPACE = "workspace"; //$NON-NLS-1$
-	public static final String PREFNAME_PROJECT = "project"; //$NON-NLS-1$
-	public static final String NODENAME_CFG = "project"; //$NON-NLS-1$
+public class UserDefinedEnvironmentSupplier extends StorableEnvironmentLoader implements ICoreEnvironmentVariableSupplier {
 
-	private PrefsStorableEnvironment fWorkspaceVariables;
-	private StorableEnvironment fOverrideVariables = new StorableEnvironment(false);
+    //$NON-NLS-1$
+    public static final String NODENAME = "environment";
 
-	public StorableEnvironment getEnvironment(Object context) {
-		return getEnvironment(context, false);
-	}
+    //$NON-NLS-1$
+    public static final String PREFNAME_WORKSPACE = "workspace";
 
-	protected StorableEnvironment getEnvironment(Object context, boolean forceLoad) {
-		StorableEnvironment env = null;
-		if (context instanceof IInternalCCfgInfo) {
-			try {
-				CConfigurationSpecSettings settings = ((IInternalCCfgInfo) context).getSpecSettings();
-				env = settings.getEnvironment();
-				if (env == null || forceLoad) {
-					env = loadEnvironment(context, settings.isReadOnly());
-					settings.setEnvironment(env);
-				}
-			} catch (CoreException e) {
-				CCorePlugin.log(e);
-			}
-		} else if (context == null || context instanceof IBuildConfiguration || context instanceof IWorkspace) {
-			if (fWorkspaceVariables == null || forceLoad)
-				fWorkspaceVariables = (PrefsStorableEnvironment) loadEnvironment(context, false);
-			env = fWorkspaceVariables;
-		}
+    //$NON-NLS-1$
+    public static final String PREFNAME_PROJECT = "project";
 
-		return env;
-	}
+    //$NON-NLS-1$
+    public static final String NODENAME_CFG = "project";
 
-	@Override
-	protected ISerializeInfo getSerializeInfo(Object context) {
-		ISerializeInfo serializeInfo = null;
+    public PrefsStorableEnvironment fWorkspaceVariables;
 
-		if (context instanceof ICConfigurationDescription) {
-			final ICConfigurationDescription cfg = (ICConfigurationDescription) context;
-			final String name = cfg.getId();
-			if (name != null)
-				serializeInfo = new ISerializeInfo() {
-					@Override
-					public Preferences getNode() {
-						return getConfigurationNode(cfg.getProjectDescription());
-					}
+    private StorableEnvironment fOverrideVariables = new StorableEnvironment(false);
 
-					@Override
-					public String getPrefName() {
-						return name;
-					}
-				};
-		} else if (context == null || context instanceof IWorkspace) {
-			final Preferences prefs = getWorkspaceNode();
-			final String name = PREFNAME_WORKSPACE;
-			if (prefs != null)
-				serializeInfo = new ISerializeInfo() {
-					@Override
-					public Preferences getNode() {
-						return prefs;
-					}
+    public StorableEnvironment getEnvironment(Object context) {
+        return getEnvironment(context, false);
+    }
 
-					@Override
-					public String getPrefName() {
-						return name;
-					}
-				};
-		}
-		return serializeInfo;
-	}
+    protected StorableEnvironment getEnvironment(Object context, boolean forceLoad) {
+        StorableEnvironment env = null;
+        if (context instanceof IInternalCCfgInfo) {
+            try {
+                CConfigurationSpecSettings settings = ((IInternalCCfgInfo) context).getSpecSettings();
+                env = settings.getEnvironment();
+                if (env == null || forceLoad) {
+                    env = loadEnvironment(context, settings.isReadOnly());
+                    settings.setEnvironment(env);
+                }
+            } catch (CoreException e) {
+                CCorePlugin.log(e);
+            }
+        } else if (context == null || context instanceof IBuildConfiguration || context instanceof IWorkspace) {
+            if (fWorkspaceVariables == null || forceLoad)
+                fWorkspaceVariables = (PrefsStorableEnvironment) loadEnvironment(context, false);
+            env = fWorkspaceVariables;
+        }
+        return env;
+    }
 
-	private Preferences getConfigurationNode(ICProjectDescription projDes) {
-		Preferences prefNode = getProjectNode(projDes);
-		if (prefNode == null)
-			return null;
+    @Override
+    protected ISerializeInfo getSerializeInfo(Object context) {
+        ISerializeInfo serializeInfo = null;
+        if (context instanceof ICConfigurationDescription) {
+            final ICConfigurationDescription cfg = (ICConfigurationDescription) context;
+            final String name = cfg.getId();
+            if (name != null)
+                serializeInfo = new ISerializeInfo() {
 
-		return prefNode.node(NODENAME_CFG);
-	}
+                    @Override
+                    public Preferences getNode() {
+                        return getConfigurationNode(cfg.getProjectDescription());
+                    }
 
-	private Preferences getProjectNode(ICProjectDescription projDes) {
-		if (projDes == null)
-			return null;
-		IProject project = projDes.getProject();
-		if (!project.exists())
-			return null;
+                    @Override
+                    public String getPrefName() {
+                        return name;
+                    }
+                };
+        } else if (context == null || context instanceof IWorkspace) {
+            final Preferences prefs = getWorkspaceNode();
+            final String name = PREFNAME_WORKSPACE;
+            if (prefs != null)
+                serializeInfo = new ISerializeInfo() {
 
-		Preferences prefNode = new ProjectScope(project).getNode(CCorePlugin.PLUGIN_ID);
-		if (prefNode == null)
-			return null;
+                    @Override
+                    public Preferences getNode() {
+                        return prefs;
+                    }
 
-		return prefNode.node(NODENAME);
-	}
+                    @Override
+                    public String getPrefName() {
+                        return name;
+                    }
+                };
+        }
+        return serializeInfo;
+    }
 
-	private Preferences getWorkspaceNode() {
-		Preferences prefNode = InstanceScope.INSTANCE.getNode(CCorePlugin.PLUGIN_ID);
-		if (prefNode == null)
-			return null;
+    private Preferences getConfigurationNode(ICProjectDescription projDes) {
+        Preferences prefNode = getProjectNode(projDes);
+        if (prefNode == null)
+            return null;
+        return prefNode.node(NODENAME_CFG);
+    }
 
-		return prefNode.node(NODENAME);
-	}
+    private Preferences getProjectNode(ICProjectDescription projDes) {
+        if (projDes == null)
+            return null;
+        IProject project = projDes.getProject();
+        if (!project.exists())
+            return null;
+        Preferences prefNode = new ProjectScope(project).getNode(CCorePlugin.PLUGIN_ID);
+        if (prefNode == null)
+            return null;
+        return prefNode.node(NODENAME);
+    }
 
-	public void checkInexistentConfigurations(ICProjectDescription projDes) {
-		Preferences prefNode = getConfigurationNode(projDes);
-		if (prefNode == null)
-			return;
+    private Preferences getWorkspaceNode() {
+        Preferences prefNode = InstanceScope.INSTANCE.getNode(CCorePlugin.PLUGIN_ID);
+        if (prefNode == null)
+            return null;
+        return prefNode.node(NODENAME);
+    }
 
-		try {
-			String ids[] = prefNode.keys();
-			boolean found = false;
-			for (String id : ids) {
-				if (projDes.getConfigurationById(id) == null) {
-					prefNode.remove(id);
-					found = true;
-				}
-			}
+    public void checkInexistentConfigurations(ICProjectDescription projDes) {
+        Preferences prefNode = getConfigurationNode(projDes);
+        if (prefNode == null)
+            return;
+        try {
+            String[] ids = prefNode.keys();
+            boolean found = false;
+            for (String id : ids) {
+                if (projDes.getConfigurationById(id) == null) {
+                    prefNode.remove(id);
+                    found = true;
+                }
+            }
+            if (found)
+                prefNode.flush();
+        } catch (BackingStoreException e) {
+        }
+    }
 
-			if (found)
-				prefNode.flush();
-		} catch (BackingStoreException e) {
-		}
-	}
+    public void storeWorkspaceEnvironment(boolean force) {
+        if (fWorkspaceVariables != null) {
+            try {
+                storeEnvironment(fWorkspaceVariables, ResourcesPlugin.getWorkspace(), force, true);
+            } catch (CoreException e) {
+            }
+        }
+    }
 
-	public void storeWorkspaceEnvironment(boolean force) {
-		if (fWorkspaceVariables != null) {
-			try {
-				storeEnvironment(fWorkspaceVariables, ResourcesPlugin.getWorkspace(), force, true);
-			} catch (CoreException e) {
+    public StorableEnvironment getWorkspaceEnvironmentCopy() {
+        StorableEnvironment envVar = getEnvironment(null);
+        return new StorableEnvironment(envVar, false);
+    }
 
-			}
-		}
-	}
+    public boolean setWorkspaceEnvironment(StorableEnvironment env) {
+        IEnvironmentVariable[] oldVariables = fWorkspaceVariables.getVariables();
+        IEnvironmentVariable[] newVariables = env.getVariables();
+        fWorkspaceVariables.deleteAll();
+        fWorkspaceVariables.setVariales(newVariables);
+        fWorkspaceVariables.setAppendEnvironment(env.appendEnvironment());
+        fWorkspaceVariables.setAppendContributedEnvironment(env.appendContributedEnvironment());
+        storeWorkspaceEnvironment(true);
+        return !Arrays.equals(oldVariables, newVariables);
+    }
 
-	public StorableEnvironment getWorkspaceEnvironmentCopy() {
-		StorableEnvironment envVar = getEnvironment(null);
-		return new StorableEnvironment(envVar, false);
-	}
+    public void storeProjectEnvironment(ICProjectDescription des, boolean force) {
+        ICConfigurationDescription[] cfgs = des.getConfigurations();
+        for (ICConfigurationDescription cfg : cfgs) {
+            storeEnvironment(cfg, force, false);
+        }
+        Preferences node = getProjectNode(des);
+        try {
+            node.flush();
+        } catch (BackingStoreException e) {
+        }
+    }
 
-	public boolean setWorkspaceEnvironment(StorableEnvironment env) {
-		IEnvironmentVariable[] oldVariables = fWorkspaceVariables.getVariables();
-		IEnvironmentVariable[] newVariables = env.getVariables();
+    private void storeEnvironment(Object context, boolean force, boolean flush) {
+        StorableEnvironment env = getEnvironment(context, false);
+        if (env != null) {
+            try {
+                storeEnvironment(env, context, force, flush);
+            } catch (CoreException e) {
+            }
+        }
+    }
 
-		fWorkspaceVariables.deleteAll();
-		fWorkspaceVariables.setVariales(newVariables);
-		fWorkspaceVariables.setAppendEnvironment(env.appendEnvironment());
-		fWorkspaceVariables.setAppendContributedEnvironment(env.appendContributedEnvironment());
+    @Override
+    public IEnvironmentVariable getVariable(String name, Object context) {
+        if (getValidName(name) == null)
+            return null;
+        IEnvironmentVariable var = fOverrideVariables.getVariable(name);
+        StorableEnvironment env = getEnvironment(context);
+        if (env == null)
+            return var;
+        return EnvVarOperationProcessor.performOperation(env.getVariable(name), var);
+    }
 
-		storeWorkspaceEnvironment(true);
+    @Override
+    public IEnvironmentVariable[] getVariables(Object context) {
+        StorableEnvironment env = getEnvironment(context);
+        if (env == null)
+            return null;
+        IEnvironmentVariable[] override = filterVariables(fOverrideVariables.getVariables());
+        IEnvironmentVariable[] normal = filterVariables(env.getVariables());
+        return combineVariables(normal, override);
+    }
 
-		return !Arrays.equals(oldVariables, newVariables);
-	}
+    private IEnvironmentVariable[] combineVariables(IEnvironmentVariable[] oldVariables, IEnvironmentVariable[] newVariables) {
+        Map<String, IEnvironmentVariable> vars = new HashMap<>(oldVariables.length + newVariables.length);
+        for (IEnvironmentVariable variable : oldVariables) vars.put(variable.getName(), variable);
+        for (IEnvironmentVariable variable : newVariables) {
+            if (!vars.containsKey(variable.getName()))
+                vars.put(variable.getName(), variable);
+            else
+                vars.put(variable.getName(), EnvVarOperationProcessor.performOperation(vars.get(variable.getName()), variable));
+        }
+        return vars.values().toArray(new IEnvironmentVariable[vars.size()]);
+    }
 
-	public void storeProjectEnvironment(ICProjectDescription des, boolean force) {
-		ICConfigurationDescription cfgs[] = des.getConfigurations();
-		for (ICConfigurationDescription cfg : cfgs) {
-			storeEnvironment(cfg, force, false);
-		}
+    /**
+     * Add an environment variable 'override'. This variable won't be persisted but will instead
+     * replace / remove / prepend / append any existing environment variable with the same name.
+     * This change is not persisted and remains for the current eclipse session.
+     *
+     * @param name Environment variable name
+     * @param value Environment variable value
+     * @param op one of the IBuildEnvironmentVariable.ENVVAR_* operation types
+     * @param delimiter delimiter to use or null for default
+     * @return Overriding IEnvironmentVariable or null if name is not valid
+     */
+    public IEnvironmentVariable createOverrideVariable(String name, String value, int op, String delimiter) {
+        if (getValidName(name) == null)
+            return null;
+        return fOverrideVariables.createVariable(name, value, op, delimiter);
+    }
 
-		Preferences node = getProjectNode(des);
-		try {
-			node.flush();
-		} catch (BackingStoreException e) {
-		}
-	}
+    public IEnvironmentVariable createVariable(String name, String value, int op, String delimiter, Object context) {
+        if (getValidName(name) == null)
+            return null;
+        StorableEnvironment env = getEnvironment(context);
+        if (env == null)
+            return null;
+        IEnvironmentVariable var = env.createVariable(name, value, op, delimiter);
+        if (env.isChanged()) {
+            env.setChanged(false);
+        }
+        return var;
+    }
 
-	private void storeEnvironment(Object context, boolean force, boolean flush) {
-		StorableEnvironment env = getEnvironment(context, false);
-		if (env != null) {
-			try {
-				storeEnvironment(env, context, force, flush);
-			} catch (CoreException e) {
-			}
-		}
-	}
+    public IEnvironmentVariable deleteVariable(String name, Object context) {
+        StorableEnvironment env = getEnvironment(context);
+        if (env == null)
+            return null;
+        IEnvironmentVariable var = env.deleteVariable(name);
+        return var;
+    }
 
-	@Override
-	public IEnvironmentVariable getVariable(String name, Object context) {
-		if (getValidName(name) == null)
-			return null;
-		IEnvironmentVariable var = fOverrideVariables.getVariable(name);
-		StorableEnvironment env = getEnvironment(context);
-		if (env == null)
-			return var;
-		return EnvVarOperationProcessor.performOperation(env.getVariable(name), var);
-	}
+    public void deleteAll(Object context) {
+        StorableEnvironment env = getEnvironment(context);
+        if (env == null)
+            return;
+        env.deleteAll();
+    }
 
-	@Override
-	public IEnvironmentVariable[] getVariables(Object context) {
-		StorableEnvironment env = getEnvironment(context);
-		if (env == null)
-			return null;
-		IEnvironmentVariable[] override = filterVariables(fOverrideVariables.getVariables());
-		IEnvironmentVariable[] normal = filterVariables(env.getVariables());
-		return combineVariables(normal, override);
-	}
+    public void setVariables(IEnvironmentVariable[] vars, Object context) {
+        StorableEnvironment env = getEnvironment(context);
+        if (env == null)
+            return;
+        env.setVariales(vars);
+        if (env.isChanged()) {
+            env.setChanged(false);
+        }
+    }
 
-	private IEnvironmentVariable[] combineVariables(IEnvironmentVariable[] oldVariables,
-			IEnvironmentVariable[] newVariables) {
-		Map<String, IEnvironmentVariable> vars = new HashMap<>(oldVariables.length + newVariables.length);
-		for (IEnvironmentVariable variable : oldVariables)
-			vars.put(variable.getName(), variable);
-		for (IEnvironmentVariable variable : newVariables) {
-			if (!vars.containsKey(variable.getName()))
-				vars.put(variable.getName(), variable);
-			else
-				vars.put(variable.getName(),
-						EnvVarOperationProcessor.performOperation(vars.get(variable.getName()), variable));
-		}
-		return vars.values().toArray(new IEnvironmentVariable[vars.size()]);
-	}
+    protected String getValidName(String name) {
+        if (name == null || (name = name.trim()).length() == 0)
+            return null;
+        return name;
+    }
 
-	/**
-	 * Add an environment variable 'override'. This variable won't be persisted but will instead
-	 * replace / remove / prepend / append any existing environment variable with the same name.
-	 * This change is not persisted and remains for the current eclipse session.
-	 *
-	 * @param name Environment variable name
-	 * @param value Environment variable value
-	 * @param op one of the IBuildEnvironmentVariable.ENVVAR_* operation types
-	 * @param delimiter delimiter to use or null for default
-	 * @return Overriding IEnvironmentVariable or null if name is not valid
-	 */
-	public IEnvironmentVariable createOverrideVariable(String name, String value, int op, String delimiter) {
-		if (getValidName(name) == null)
-			return null;
-		return fOverrideVariables.createVariable(name, value, op, delimiter);
-	}
+    protected IEnvironmentVariable[] filterVariables(IEnvironmentVariable[] variables) {
+        return EnvVarOperationProcessor.filterVariables(variables, null);
+    }
 
-	public IEnvironmentVariable createVariable(String name, String value, int op, String delimiter, Object context) {
-		if (getValidName(name) == null)
-			return null;
-		StorableEnvironment env = getEnvironment(context);
-		if (env == null)
-			return null;
-		IEnvironmentVariable var = env.createVariable(name, value, op, delimiter);
-		if (env.isChanged()) {
-			env.setChanged(false);
-		}
-		return var;
-	}
+    @Override
+    public boolean appendEnvironment(Object context) {
+        StorableEnvironment env = getEnvironment(context);
+        if (env == null)
+            return true;
+        return env.appendEnvironment();
+    }
 
-	public IEnvironmentVariable deleteVariable(String name, Object context) {
-		StorableEnvironment env = getEnvironment(context);
-		if (env == null)
-			return null;
-		IEnvironmentVariable var = env.deleteVariable(name);
-		return var;
-	}
+    public boolean appendContributedEnvironment(Object context) {
+        StorableEnvironment env = getEnvironment(context);
+        if (env == null)
+            return true;
+        return env.appendContributedEnvironment();
+    }
 
-	public void deleteAll(Object context) {
-		StorableEnvironment env = getEnvironment(context);
-		if (env == null)
-			return;
+    public void setAppendEnvironment(boolean append, Object context) {
+        StorableEnvironment env = getEnvironment(context);
+        if (env != null) {
+            env.setAppendEnvironment(append);
+        }
+    }
 
-		env.deleteAll();
-	}
+    public void setAppendContributedEnvironment(boolean append, Object context) {
+        StorableEnvironment env = getEnvironment(context);
+        if (env != null) {
+            env.setAppendContributedEnvironment(append);
+        }
+    }
 
-	public void setVariables(IEnvironmentVariable vars[], Object context) {
-		StorableEnvironment env = getEnvironment(context);
-		if (env == null)
-			return;
+    public void restoreDefaults(Object context) {
+        StorableEnvironment env = getEnvironment(context);
+        if (env != null) {
+            env.restoreDefaults();
+        }
+    }
 
-		env.setVariales(vars);
-		if (env.isChanged()) {
-			env.setChanged(false);
-		}
-	}
+    /**
+     * Adds a listener that will be notified of changes in environment variables.
+     *
+     * @param listener - the listener to add
+     * @since 5.5
+     */
+    public void registerEnvironmentChangeListener(IEnvironmentChangeListener listener) {
+        if (fWorkspaceVariables == null) {
+            getEnvironment(null, false);
+        }
+        if (fWorkspaceVariables != null) {
+            fWorkspaceVariables.registerEnvironmentChangeListener(listener);
+        }
+    }
 
-	protected String getValidName(String name) {
-		if (name == null || (name = name.trim()).length() == 0)
-			return null;
-
-		return name;
-	}
-
-	protected IEnvironmentVariable[] filterVariables(IEnvironmentVariable variables[]) {
-		return EnvVarOperationProcessor.filterVariables(variables, null);
-	}
-
-	@Override
-	public boolean appendEnvironment(Object context) {
-		StorableEnvironment env = getEnvironment(context);
-		if (env == null)
-			return true;
-		return env.appendEnvironment();
-	}
-
-	public boolean appendContributedEnvironment(Object context) {
-		StorableEnvironment env = getEnvironment(context);
-		if (env == null)
-			return true;
-		return env.appendContributedEnvironment();
-	}
-
-	public void setAppendEnvironment(boolean append, Object context) {
-		StorableEnvironment env = getEnvironment(context);
-		if (env != null) {
-			env.setAppendEnvironment(append);
-		}
-	}
-
-	public void setAppendContributedEnvironment(boolean append, Object context) {
-		StorableEnvironment env = getEnvironment(context);
-		if (env != null) {
-			env.setAppendContributedEnvironment(append);
-		}
-	}
-
-	public void restoreDefaults(Object context) {
-		StorableEnvironment env = getEnvironment(context);
-		if (env != null) {
-			env.restoreDefaults();
-		}
-	}
-
-	/**
-	 * Adds a listener that will be notified of changes in environment variables.
-	 *
-	 * @param listener - the listener to add
-	 * @since 5.5
-	 */
-	public void registerEnvironmentChangeListener(IEnvironmentChangeListener listener) {
-		if (fWorkspaceVariables == null) {
-			getEnvironment(null, false);
-		}
-		if (fWorkspaceVariables != null) {
-			fWorkspaceVariables.registerEnvironmentChangeListener(listener);
-		}
-	}
-
-	/**
-	 * Removes an environment variables change listener.
-	 *
-	 * @param listener - the listener to remove.
-	 * @since 5.5
-	 */
-	public void unregisterEnvironmentChangeListener(IEnvironmentChangeListener listener) {
-		if (fWorkspaceVariables != null) {
-			fWorkspaceVariables.unregisterEnvironmentChangeListener(listener);
-		}
-	}
+    /**
+     * Removes an environment variables change listener.
+     *
+     * @param listener - the listener to remove.
+     * @since 5.5
+     */
+    public void unregisterEnvironmentChangeListener(IEnvironmentChangeListener listener) {
+        if (fWorkspaceVariables != null) {
+            fWorkspaceVariables.unregisterEnvironmentChangeListener(listener);
+        }
+    }
 }

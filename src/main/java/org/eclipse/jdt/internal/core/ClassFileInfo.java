@@ -43,12 +43,12 @@ public class ClassFileInfo extends OpenableElementInfo implements SuffixConstant
      * <code>ClassFile</code>. These are kept here because we don't have
      * access to the <code>BinaryType</code> info (<code>ClassFileReader</code>).
      */
-    protected JavaElement[] binaryChildren = null;
+    public JavaElement[] binaryChildren = null;
 
     /*
 	 * The type parameters in this class file.
 	 */
-    protected ITypeParameter[] typeParameters;
+    public ITypeParameter[] typeParameters;
 
     private void generateAnnotationsInfos(JavaElement member, IBinaryAnnotation[] binaryAnnotations, long tagBits, Map<IJavaElement, IElementInfo> newElements) {
         generateAnnotationsInfos(member, null, binaryAnnotations, tagBits, newElements);

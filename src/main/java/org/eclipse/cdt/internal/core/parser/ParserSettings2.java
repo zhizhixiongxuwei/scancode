@@ -17,47 +17,45 @@ import org.eclipse.cdt.internal.core.model.CModelManager;
 import org.eclipse.core.resources.IProject;
 
 public class ParserSettings2 extends IParserSettings2.Default {
-	private final boolean limitTokensPerTU;
-	private final int maxTokensPerTU;
 
-	public ParserSettings2() {
-		this((ICProject) null);
-	}
+    final public boolean limitTokensPerTU;
 
-	public ParserSettings2(IProject project) {
-		this(CModelManager.getDefault().create(project));
-	}
+    final public int maxTokensPerTU;
 
-	/**
-	 * Use the specified project when looking for preferences for the settings object that is
-	 * being constructed.
-	 *
-	 * @param cProject The project from which the settings should be loaded, can be null.
-	 */
-	public ParserSettings2(ICProject cProject) {
-		this.limitTokensPerTU = CCorePreferenceConstants.getPreference(
-				CCorePreferenceConstants.SCALABILITY_LIMIT_TOKENS_PER_TU, cProject,
-				CCorePreferenceConstants.DEFAULT_SCALABILITY_LIMIT_TOKENS_PER_TU);
-		this.maxTokensPerTU = CCorePreferenceConstants.getPreference(
-				CCorePreferenceConstants.SCALABILITY_MAXIMUM_TOKENS, cProject,
-				CCorePreferenceConstants.DEFAULT_SCALABILITY_MAXIMUM_TOKENS);
-	}
+    public ParserSettings2() {
+        this((ICProject) null);
+    }
 
-	/**
-	 * Returns true if the parser should be aborted when a single translation unit has produced
-	 * more than {@link #getMaximumTokensPerTranslationUnit()} tokens.
-	 */
-	@Override
-	public boolean shouldLimitTokensPerTranslationUnit() {
-		return limitTokensPerTU;
-	}
+    public ParserSettings2(IProject project) {
+        this(CModelManager.getDefault().create(project));
+    }
 
-	/**
-	 * Returns the maximum number of tokens that should be created while parsing any one translation unit.
-	 * This value will only be used when {@link #shouldLimitTokensPerTranslationUnit()} returns true.
-	 */
-	@Override
-	public int getMaximumTokensPerTranslationUnit() {
-		return maxTokensPerTU;
-	}
+    /**
+     * Use the specified project when looking for preferences for the settings object that is
+     * being constructed.
+     *
+     * @param cProject The project from which the settings should be loaded, can be null.
+     */
+    public ParserSettings2(ICProject cProject) {
+        this.limitTokensPerTU = CCorePreferenceConstants.getPreference(CCorePreferenceConstants.SCALABILITY_LIMIT_TOKENS_PER_TU, cProject, CCorePreferenceConstants.DEFAULT_SCALABILITY_LIMIT_TOKENS_PER_TU);
+        this.maxTokensPerTU = CCorePreferenceConstants.getPreference(CCorePreferenceConstants.SCALABILITY_MAXIMUM_TOKENS, cProject, CCorePreferenceConstants.DEFAULT_SCALABILITY_MAXIMUM_TOKENS);
+    }
+
+    /**
+     * Returns true if the parser should be aborted when a single translation unit has produced
+     * more than {@link #getMaximumTokensPerTranslationUnit()} tokens.
+     */
+    @Override
+    public boolean shouldLimitTokensPerTranslationUnit() {
+        return limitTokensPerTU;
+    }
+
+    /**
+     * Returns the maximum number of tokens that should be created while parsing any one translation unit.
+     * This value will only be used when {@link #shouldLimitTokensPerTranslationUnit()} returns true.
+     */
+    @Override
+    public int getMaximumTokensPerTranslationUnit() {
+        return maxTokensPerTU;
+    }
 }

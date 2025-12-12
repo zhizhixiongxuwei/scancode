@@ -20,7 +20,7 @@ import java.util.ResourceBundle;
 
 public class Messages {
 
-    private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle(Messages.class.getName());
+    static final public ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle(Messages.class.getName());
 
     private Messages() {
     }

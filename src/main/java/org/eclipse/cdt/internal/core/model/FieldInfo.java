@@ -1,97 +1,100 @@
-/*******************************************************************************
- * Copyright (c) 2002, 2008 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2002, 2008 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- * Rational Software - Initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *  Rational Software - Initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.model;
 
 import org.eclipse.cdt.core.parser.ast.ASTAccessVisibility;
 
 public class FieldInfo extends SourceManipulationInfo {
 
-	String typeStr = ""; //$NON-NLS-1$
-	boolean isConst = false;
-	boolean isVolatile = false;
-	boolean isMutable = false;
-	boolean isStatic = false;
-	ASTAccessVisibility visibility;
+    //$NON-NLS-1$
+    public String typeStr = "";
 
-	protected FieldInfo(CElement element) {
-		super(element);
-		visibility = ASTAccessVisibility.PRIVATE;
-	}
+    public boolean isConst = false;
 
-	protected String getTypeName() {
-		return typeStr;
-	}
+    public boolean isVolatile = false;
 
-	protected void setTypeName(String type) {
-		typeStr = type;
-	}
+    public boolean isMutable = false;
 
-	protected boolean isConst() {
-		return isConst;
-	}
+    public boolean isStatic = false;
 
-	protected void setConst(boolean isConst) {
-		this.isConst = isConst;
-	}
+    ASTAccessVisibility visibility;
 
-	protected boolean isVolatile() {
-		return isVolatile;
-	}
+    protected FieldInfo(CElement element) {
+        super(element);
+        visibility = ASTAccessVisibility.PRIVATE;
+    }
 
-	protected void setVolatile(boolean isVolatile) {
-		this.isVolatile = isVolatile;
-	}
+    protected String getTypeName() {
+        return typeStr;
+    }
 
-	public boolean isStatic() {
-		return isStatic;
-	}
+    protected void setTypeName(String type) {
+        typeStr = type;
+    }
 
-	public void setStatic(boolean isStatic) {
-		this.isStatic = isStatic;
-	}
+    protected boolean isConst() {
+        return isConst;
+    }
 
-	protected boolean isMutable() {
-		return isMutable;
-	}
+    protected void setConst(boolean isConst) {
+        this.isConst = isConst;
+    }
 
-	protected void setMutable(boolean mutable) {
-		this.isMutable = mutable;
-	}
+    protected boolean isVolatile() {
+        return isVolatile;
+    }
 
-	/**
-	 * Returns the visibility.
-	 * @return int
-	 */
-	public ASTAccessVisibility getVisibility() {
-		return visibility;
-	}
+    protected void setVolatile(boolean isVolatile) {
+        this.isVolatile = isVolatile;
+    }
 
-	/**
-	 * Sets the visibility.
-	 * @param visibility The visibility to set
-	 */
-	public void setVisibility(ASTAccessVisibility visibility) {
-		this.visibility = visibility;
-	}
+    public boolean isStatic() {
+        return isStatic;
+    }
 
-	@Override
-	public boolean hasSameContentsAs(SourceManipulationInfo info) {
+    public void setStatic(boolean isStatic) {
+        this.isStatic = isStatic;
+    }
 
-		return (super.hasSameContentsAs(info) && (typeStr.equals(((FieldInfo) info).getTypeName()))
-				&& (isConst == ((FieldInfo) info).isConst()) && (isVolatile == ((FieldInfo) info).isVolatile())
-				&& (isMutable == ((FieldInfo) info).isMutable()) && (visibility == ((FieldInfo) info).getVisibility())
-				&& (isStatic == ((FieldInfo) info).isStatic()));
-	}
+    protected boolean isMutable() {
+        return isMutable;
+    }
 
+    protected void setMutable(boolean mutable) {
+        this.isMutable = mutable;
+    }
+
+    /**
+     * Returns the visibility.
+     * @return int
+     */
+    public ASTAccessVisibility getVisibility() {
+        return visibility;
+    }
+
+    /**
+     * Sets the visibility.
+     * @param visibility The visibility to set
+     */
+    public void setVisibility(ASTAccessVisibility visibility) {
+        this.visibility = visibility;
+    }
+
+    @Override
+    public boolean hasSameContentsAs(SourceManipulationInfo info) {
+        return (super.hasSameContentsAs(info) && (typeStr.equals(((FieldInfo) info).getTypeName())) && (isConst == ((FieldInfo) info).isConst()) && (isVolatile == ((FieldInfo) info).isVolatile()) && (isMutable == ((FieldInfo) info).isMutable()) && (visibility == ((FieldInfo) info).getVisibility()) && (isStatic == ((FieldInfo) info).isStatic()));
+    }
 }

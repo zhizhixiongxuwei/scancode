@@ -1,20 +1,22 @@
-/*******************************************************************************
- * Copyright (c) 2004, 2014 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2004, 2014 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Andrew Niefer (IBM Corporation) - initial API and implementation
- *     Markus Schorn (Wind River Systems)
- *     Bryan Wilkinson (QNX)
- *     Sergey Prigogin (Google)
- *     Andrew Ferguson (Symbian)
- *******************************************************************************/
+ *  Contributors:
+ *      Andrew Niefer (IBM Corporation) - initial API and implementation
+ *      Markus Schorn (Wind River Systems)
+ *      Bryan Wilkinson (QNX)
+ *      Sergey Prigogin (Google)
+ *      Andrew Ferguson (Symbian)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.parser.cpp;
 
 import org.eclipse.cdt.core.dom.ILinkage;
@@ -56,429 +58,426 @@ import org.eclipse.core.runtime.PlatformObject;
  */
 public class CPPClassType extends PlatformObject implements ICPPInternalClassTypeMixinHost {
 
-	public static class CPPClassTypeProblem extends ProblemBinding implements ICPPClassType {
-		public CPPClassTypeProblem(IASTName name, int id) {
-			super(name, id);
-		}
+    public static class CPPClassTypeProblem extends ProblemBinding implements ICPPClassType {
 
-		public CPPClassTypeProblem(ICPPASTNameSpecifier nameSpec, int id) {
-			super(nameSpec, id, nameSpec instanceof IASTName ? null : nameSpec.toCharArray());
-		}
+        public CPPClassTypeProblem(IASTName name, int id) {
+            super(name, id);
+        }
 
-		public CPPClassTypeProblem(IASTNode node, int id, char[] arg) {
-			super(node, id, arg);
-		}
+        public CPPClassTypeProblem(ICPPASTNameSpecifier nameSpec, int id) {
+            super(nameSpec, id, nameSpec instanceof IASTName ? null : nameSpec.toCharArray());
+        }
 
-		@Override
-		public ICPPBase[] getBases() {
-			return ICPPBase.EMPTY_BASE_ARRAY;
-		}
+        public CPPClassTypeProblem(IASTNode node, int id, char[] arg) {
+            super(node, id, arg);
+        }
 
-		@Override
-		public IField[] getFields() {
-			return IField.EMPTY_FIELD_ARRAY;
-		}
+        @Override
+        public ICPPBase[] getBases() {
+            return ICPPBase.EMPTY_BASE_ARRAY;
+        }
 
-		@Override
-		public ICPPField[] getDeclaredFields() {
-			return ICPPField.EMPTY_CPPFIELD_ARRAY;
-		}
+        @Override
+        public IField[] getFields() {
+            return IField.EMPTY_FIELD_ARRAY;
+        }
 
-		@Override
-		public ICPPMethod[] getMethods() {
-			return ICPPMethod.EMPTY_CPPMETHOD_ARRAY;
-		}
+        @Override
+        public ICPPField[] getDeclaredFields() {
+            return ICPPField.EMPTY_CPPFIELD_ARRAY;
+        }
 
-		@Override
-		public ICPPMethod[] getAllDeclaredMethods() {
-			return ICPPMethod.EMPTY_CPPMETHOD_ARRAY;
-		}
+        @Override
+        public ICPPMethod[] getMethods() {
+            return ICPPMethod.EMPTY_CPPMETHOD_ARRAY;
+        }
 
-		@Override
-		public ICPPMethod[] getDeclaredMethods() {
-			return ICPPMethod.EMPTY_CPPMETHOD_ARRAY;
-		}
+        @Override
+        public ICPPMethod[] getAllDeclaredMethods() {
+            return ICPPMethod.EMPTY_CPPMETHOD_ARRAY;
+        }
 
-		@Override
-		public ICPPConstructor[] getConstructors() {
-			return ICPPConstructor.EMPTY_CONSTRUCTOR_ARRAY;
-		}
+        @Override
+        public ICPPMethod[] getDeclaredMethods() {
+            return ICPPMethod.EMPTY_CPPMETHOD_ARRAY;
+        }
 
-		@Override
-		public int getKey() {
-			return k_class;
-		}
+        @Override
+        public ICPPConstructor[] getConstructors() {
+            return ICPPConstructor.EMPTY_CONSTRUCTOR_ARRAY;
+        }
 
-		@Override
-		public IField findField(String name) {
-			return null;
-		}
+        @Override
+        public int getKey() {
+            return k_class;
+        }
 
-		@Override
-		public IScope getCompositeScope() {
-			return this;
-		}
+        @Override
+        public IField findField(String name) {
+            return null;
+        }
 
-		@Override
-		public IBinding[] getFriends() {
-			return IBinding.EMPTY_BINDING_ARRAY;
-		}
+        @Override
+        public IScope getCompositeScope() {
+            return this;
+        }
 
-		@Override
-		public ICPPClassType[] getNestedClasses() {
-			return ICPPClassType.EMPTY_CLASS_ARRAY;
-		}
+        @Override
+        public IBinding[] getFriends() {
+            return IBinding.EMPTY_BINDING_ARRAY;
+        }
 
-		@Override
-		public ICPPUsingDeclaration[] getUsingDeclarations() {
-			return ICPPUsingDeclaration.EMPTY_USING_DECL_ARRAY;
-		}
+        @Override
+        public ICPPClassType[] getNestedClasses() {
+            return ICPPClassType.EMPTY_CLASS_ARRAY;
+        }
 
-		@Override
-		public boolean isFinal() {
-			return false;
-		}
+        @Override
+        public ICPPUsingDeclaration[] getUsingDeclarations() {
+            return ICPPUsingDeclaration.EMPTY_USING_DECL_ARRAY;
+        }
 
-		@Override
-		public int getVisibility(IBinding member) {
-			throw new IllegalArgumentException(member.getName() + " is not a member of " + getName()); //$NON-NLS-1$
-		}
+        @Override
+        public boolean isFinal() {
+            return false;
+        }
 
-		@Override
-		public boolean isNoDiscard() {
-			return false;
-		}
-	}
+        @Override
+        public int getVisibility(IBinding member) {
+            //$NON-NLS-1$
+            throw new IllegalArgumentException(member.getName() + " is not a member of " + getName());
+        }
 
-	private IASTName definition;
-	private IASTName[] declarations;
-	private boolean checked;
-	private ICPPClassType typeInIndex;
-	private ICPPBase[] bases;
+        @Override
+        public boolean isNoDiscard() {
+            return false;
+        }
+    }
 
-	public CPPClassType(IASTName name, IBinding indexBinding) {
-		name = stripQualifier(name);
-		IASTNode parent = name.getParent();
-		while (parent instanceof IASTName) {
-			parent = parent.getParent();
-		}
+    public IASTName definition;
 
-		if (parent instanceof IASTCompositeTypeSpecifier) {
-			definition = name;
-		} else {
-			declarations = new IASTName[] { name };
-		}
-		name.setBinding(this);
-		if (indexBinding instanceof ICPPClassType && indexBinding instanceof IIndexBinding) {
-			typeInIndex = (ICPPClassType) indexBinding;
-		}
-	}
+    public IASTName[] declarations;
 
-	@Override
-	public IASTNode[] getDeclarations() {
-		return declarations;
-	}
+    public boolean checked;
 
-	@Override
-	public IASTNode getDefinition() {
-		return definition;
-	}
+    public ICPPClassType typeInIndex;
 
-	@Override
-	public void checkForDefinition() {
-		// Ambiguity resolution ensures that definitions are resolved.
-		if (!checked) {
-			if (definition == null && typeInIndex == null) {
-				IIndex index = getPhysicalNode().getTranslationUnit().getIndex();
-				if (index != null) {
-					typeInIndex = (ICPPClassType) index.adaptBinding(this);
-				}
-			}
-			checked = true;
-		}
-	}
+    public ICPPBase[] bases;
 
-	@Override
-	public ICPPASTCompositeTypeSpecifier getCompositeTypeSpecifier() {
-		if (definition != null) {
-			IASTNode node = definition;
-			while (node instanceof IASTName)
-				node = node.getParent();
-			if (node instanceof ICPPASTCompositeTypeSpecifier)
-				return (ICPPASTCompositeTypeSpecifier) node;
-		}
-		return null;
-	}
+    public CPPClassType(IASTName name, IBinding indexBinding) {
+        name = stripQualifier(name);
+        IASTNode parent = name.getParent();
+        while (parent instanceof IASTName) {
+            parent = parent.getParent();
+        }
+        if (parent instanceof IASTCompositeTypeSpecifier) {
+            definition = name;
+        } else {
+            declarations = new IASTName[] { name };
+        }
+        name.setBinding(this);
+        if (indexBinding instanceof ICPPClassType && indexBinding instanceof IIndexBinding) {
+            typeInIndex = (ICPPClassType) indexBinding;
+        }
+    }
 
-	private ICPPASTElaboratedTypeSpecifier getElaboratedTypeSpecifier() {
-		if (declarations != null) {
-			IASTNode node = declarations[0];
-			while (node instanceof IASTName)
-				node = node.getParent();
-			if (node instanceof ICPPASTElaboratedTypeSpecifier)
-				return (ICPPASTElaboratedTypeSpecifier) node;
-		}
-		return null;
-	}
+    @Override
+    public IASTNode[] getDeclarations() {
+        return declarations;
+    }
 
-	@Override
-	public final String getName() {
-		return new String(getNameCharArray());
-	}
+    @Override
+    public IASTNode getDefinition() {
+        return definition;
+    }
 
-	@Override
-	public char[] getNameCharArray() {
-		return (definition != null) ? definition.getSimpleID() : declarations[0].getSimpleID();
-	}
+    @Override
+    public void checkForDefinition() {
+        // Ambiguity resolution ensures that definitions are resolved.
+        if (!checked) {
+            if (definition == null && typeInIndex == null) {
+                IIndex index = getPhysicalNode().getTranslationUnit().getIndex();
+                if (index != null) {
+                    typeInIndex = (ICPPClassType) index.adaptBinding(this);
+                }
+            }
+            checked = true;
+        }
+    }
 
-	@Override
-	public IScope getScope() {
-		IASTName name = definition != null ? definition : declarations[0];
-		name = stripQualifier(name);
+    @Override
+    public ICPPASTCompositeTypeSpecifier getCompositeTypeSpecifier() {
+        if (definition != null) {
+            IASTNode node = definition;
+            while (node instanceof IASTName) node = node.getParent();
+            if (node instanceof ICPPASTCompositeTypeSpecifier)
+                return (ICPPASTCompositeTypeSpecifier) node;
+        }
+        return null;
+    }
 
-		IScope scope = CPPVisitor.getContainingScope(name);
-		if (definition == null && name.getPropertyInParent() != ICPPASTQualifiedName.SEGMENT_NAME) {
-			IASTNode node = declarations[0].getParent().getParent();
-			if (node instanceof IASTSimpleDeclaration && ((IASTSimpleDeclaration) node).getDeclarators().length == 0
-					&& !getElaboratedTypeSpecifier().isFriend()) {
-				// 3.3.1.5 class-key identifier ;
-			} else {
-				while (scope instanceof ICPPClassScope || scope instanceof ICPPFunctionScope) {
-					try {
-						scope = scope.getParent();
-					} catch (DOMException e1) {
-					}
-				}
-			}
-		}
-		return scope;
-	}
+    private ICPPASTElaboratedTypeSpecifier getElaboratedTypeSpecifier() {
+        if (declarations != null) {
+            IASTNode node = declarations[0];
+            while (node instanceof IASTName) node = node.getParent();
+            if (node instanceof ICPPASTElaboratedTypeSpecifier)
+                return (ICPPASTElaboratedTypeSpecifier) node;
+        }
+        return null;
+    }
 
-	@Override
-	public ICPPClassScope getCompositeScope() {
-		checkForDefinition();
-		if (definition != null) {
-			return getCompositeTypeSpecifier().getScope();
-		}
-		// fwd-declarations must be backed up from the index
-		if (typeInIndex != null) {
-			IScope scope = typeInIndex.getCompositeScope();
-			if (scope instanceof ICPPClassScope)
-				return (ICPPClassScope) scope;
-		}
-		return null;
-	}
+    @Override
+    public final String getName() {
+        return new String(getNameCharArray());
+    }
 
-	public IASTNode getPhysicalNode() {
-		return definition != null ? (IASTNode) definition : declarations[0];
-	}
+    @Override
+    public char[] getNameCharArray() {
+        return (definition != null) ? definition.getSimpleID() : declarations[0].getSimpleID();
+    }
 
-	@Override
-	public int getKey() {
-		if (definition != null)
-			return getCompositeTypeSpecifier().getKey();
+    @Override
+    public IScope getScope() {
+        IASTName name = definition != null ? definition : declarations[0];
+        name = stripQualifier(name);
+        IScope scope = CPPVisitor.getContainingScope(name);
+        if (definition == null && name.getPropertyInParent() != ICPPASTQualifiedName.SEGMENT_NAME) {
+            IASTNode node = declarations[0].getParent().getParent();
+            if (node instanceof IASTSimpleDeclaration && ((IASTSimpleDeclaration) node).getDeclarators().length == 0 && !getElaboratedTypeSpecifier().isFriend()) {
+                // 3.3.1.5 class-key identifier ;
+            } else {
+                while (scope instanceof ICPPClassScope || scope instanceof ICPPFunctionScope) {
+                    try {
+                        scope = scope.getParent();
+                    } catch (DOMException e1) {
+                    }
+                }
+            }
+        }
+        return scope;
+    }
 
-		return getElaboratedTypeSpecifier().getKind();
-	}
+    @Override
+    public ICPPClassScope getCompositeScope() {
+        checkForDefinition();
+        if (definition != null) {
+            return getCompositeTypeSpecifier().getScope();
+        }
+        // fwd-declarations must be backed up from the index
+        if (typeInIndex != null) {
+            IScope scope = typeInIndex.getCompositeScope();
+            if (scope instanceof ICPPClassScope)
+                return (ICPPClassScope) scope;
+        }
+        return null;
+    }
 
-	@Override
-	public void addDefinition(IASTNode node) {
-		if (node instanceof ICPPASTCompositeTypeSpecifier) {
-			definition = ((ICPPASTCompositeTypeSpecifier) node).getName();
-		} else {
-			assert false;
-		}
-	}
+    public IASTNode getPhysicalNode() {
+        return definition != null ? (IASTNode) definition : declarations[0];
+    }
 
-	@Override
-	public void addDeclaration(IASTNode node) {
-		if (node instanceof ICPPASTElaboratedTypeSpecifier) {
-			IASTName name = ((ICPPASTElaboratedTypeSpecifier) node).getName();
+    @Override
+    public int getKey() {
+        if (definition != null)
+            return getCompositeTypeSpecifier().getKey();
+        return getElaboratedTypeSpecifier().getKind();
+    }
 
-			if (declarations == null) {
-				declarations = new IASTName[] { name };
-				return;
-			}
+    @Override
+    public void addDefinition(IASTNode node) {
+        if (node instanceof ICPPASTCompositeTypeSpecifier) {
+            definition = ((ICPPASTCompositeTypeSpecifier) node).getName();
+        } else {
+            assert false;
+        }
+    }
 
-			// Keep the lowest offset declaration in [0]
-			if (declarations.length > 0 && ((ASTNode) node).getOffset() < ((ASTNode) declarations[0]).getOffset()) {
-				declarations = ArrayUtil.prepend(IASTName.class, declarations, name);
-			} else {
-				declarations = ArrayUtil.append(IASTName.class, declarations, name);
-			}
-		} else {
-			assert false;
-		}
-	}
+    @Override
+    public void addDeclaration(IASTNode node) {
+        if (node instanceof ICPPASTElaboratedTypeSpecifier) {
+            IASTName name = ((ICPPASTElaboratedTypeSpecifier) node).getName();
+            if (declarations == null) {
+                declarations = new IASTName[] { name };
+                return;
+            }
+            // Keep the lowest offset declaration in [0]
+            if (declarations.length > 0 && ((ASTNode) node).getOffset() < ((ASTNode) declarations[0]).getOffset()) {
+                declarations = ArrayUtil.prepend(IASTName.class, declarations, name);
+            } else {
+                declarations = ArrayUtil.append(IASTName.class, declarations, name);
+            }
+        } else {
+            assert false;
+        }
+    }
 
-	@Override
-	public String[] getQualifiedName() {
-		return CPPVisitor.getQualifiedName(this);
-	}
+    @Override
+    public String[] getQualifiedName() {
+        return CPPVisitor.getQualifiedName(this);
+    }
 
-	@Override
-	public char[][] getQualifiedNameCharArray() {
-		return CPPVisitor.getQualifiedNameCharArray(this);
-	}
+    @Override
+    public char[][] getQualifiedNameCharArray() {
+        return CPPVisitor.getQualifiedNameCharArray(this);
+    }
 
-	@Override
-	public boolean isGloballyQualified() throws DOMException {
-		IScope scope = getScope();
-		while (scope != null) {
-			if (scope instanceof ICPPBlockScope)
-				return false;
-			scope = scope.getParent();
-		}
-		return true;
-	}
+    @Override
+    public boolean isGloballyQualified() throws DOMException {
+        IScope scope = getScope();
+        while (scope != null) {
+            if (scope instanceof ICPPBlockScope)
+                return false;
+            scope = scope.getParent();
+        }
+        return true;
+    }
 
-	@Override
-	public ILinkage getLinkage() {
-		return Linkage.CPP_LINKAGE;
-	}
+    @Override
+    public ILinkage getLinkage() {
+        return Linkage.CPP_LINKAGE;
+    }
 
-	@Override
-	public boolean isSameType(IType type) {
-		if (type == this)
-			return true;
-		if (type instanceof ITypedef || type instanceof IIndexBinding)
-			return type.isSameType(this);
-		return false;
-	}
+    @Override
+    public boolean isSameType(IType type) {
+        if (type == this)
+            return true;
+        if (type instanceof ITypedef || type instanceof IIndexBinding)
+            return type.isSameType(this);
+        return false;
+    }
 
-	@Override
-	public ICPPBase[] getBases() {
-		if (bases == null) {
-			ICPPBase[] result = ClassTypeHelper.getBases(this);
-			// Do not cache the computed bases if the class is incomplete.
-			// When the class becomes complete, the answer may be different.
-			if (result != ICPPBase.NO_BASES_BECAUSE_TYPE_IS_INCOMPLETE) {
-				bases = result;
-			}
-			return result;
-		}
-		return bases;
-	}
+    @Override
+    public ICPPBase[] getBases() {
+        if (bases == null) {
+            ICPPBase[] result = ClassTypeHelper.getBases(this);
+            // Do not cache the computed bases if the class is incomplete.
+            // When the class becomes complete, the answer may be different.
+            if (result != ICPPBase.NO_BASES_BECAUSE_TYPE_IS_INCOMPLETE) {
+                bases = result;
+            }
+            return result;
+        }
+        return bases;
+    }
 
-	@Override
-	public IField[] getFields() {
-		return ClassTypeHelper.getFields(this);
-	}
+    @Override
+    public IField[] getFields() {
+        return ClassTypeHelper.getFields(this);
+    }
 
-	@Override
-	public ICPPField[] getDeclaredFields() {
-		return ClassTypeHelper.getDeclaredFields(this);
-	}
+    @Override
+    public ICPPField[] getDeclaredFields() {
+        return ClassTypeHelper.getDeclaredFields(this);
+    }
 
-	@Override
-	public ICPPMethod[] getMethods() {
-		return ClassTypeHelper.getMethods(this);
-	}
+    @Override
+    public ICPPMethod[] getMethods() {
+        return ClassTypeHelper.getMethods(this);
+    }
 
-	@Override
-	public ICPPMethod[] getAllDeclaredMethods() {
-		return ClassTypeHelper.getAllDeclaredMethods(this);
-	}
+    @Override
+    public ICPPMethod[] getAllDeclaredMethods() {
+        return ClassTypeHelper.getAllDeclaredMethods(this);
+    }
 
-	@Override
-	public ICPPMethod[] getDeclaredMethods() {
-		return ClassTypeHelper.getDeclaredMethods(this);
-	}
+    @Override
+    public ICPPMethod[] getDeclaredMethods() {
+        return ClassTypeHelper.getDeclaredMethods(this);
+    }
 
-	@Override
-	public ICPPConstructor[] getConstructors() {
-		return ClassTypeHelper.getConstructors(this);
-	}
+    @Override
+    public ICPPConstructor[] getConstructors() {
+        return ClassTypeHelper.getConstructors(this);
+    }
 
-	@Override
-	public IBinding[] getFriends() {
-		return ClassTypeHelper.getFriends(this);
-	}
+    @Override
+    public IBinding[] getFriends() {
+        return ClassTypeHelper.getFriends(this);
+    }
 
-	@Override
-	public ICPPClassType[] getNestedClasses() {
-		return ClassTypeHelper.getNestedClasses(this);
-	}
+    @Override
+    public ICPPClassType[] getNestedClasses() {
+        return ClassTypeHelper.getNestedClasses(this);
+    }
 
-	@Override
-	public ICPPUsingDeclaration[] getUsingDeclarations() {
-		return ClassTypeHelper.getUsingDeclarations(this);
-	}
+    @Override
+    public ICPPUsingDeclaration[] getUsingDeclarations() {
+        return ClassTypeHelper.getUsingDeclarations(this);
+    }
 
-	@Override
-	public IField findField(String name) {
-		return ClassTypeHelper.findField(this, name);
-	}
+    @Override
+    public IField findField(String name) {
+        return ClassTypeHelper.findField(this, name);
+    }
 
-	@Override
-	public Object clone() {
-		try {
-			return super.clone();
-		} catch (CloneNotSupportedException e) {
-		}
-		return null;
-	}
+    @Override
+    public Object clone() {
+        try {
+            return super.clone();
+        } catch (CloneNotSupportedException e) {
+        }
+        return null;
+    }
 
-	/**
-	 * For debugging purposes, only.
-	 */
-	@Override
-	public String toString() {
-		return getName();
-	}
+    /**
+     * For debugging purposes, only.
+     */
+    @Override
+    public String toString() {
+        return getName();
+    }
 
-	@Override
-	public IBinding getOwner() {
-		if (definition != null) {
-			return CPPVisitor.findNameOwner(definition, true);
-		}
-		return CPPVisitor.findDeclarationOwner(declarations[0], true);
-	}
+    @Override
+    public IBinding getOwner() {
+        if (definition != null) {
+            return CPPVisitor.findNameOwner(definition, true);
+        }
+        return CPPVisitor.findDeclarationOwner(declarations[0], true);
+    }
 
-	@Override
-	public boolean isAnonymous() {
-		if (getNameCharArray().length > 0)
-			return false;
+    @Override
+    public boolean isAnonymous() {
+        if (getNameCharArray().length > 0)
+            return false;
+        ICPPASTCompositeTypeSpecifier spec = getCompositeTypeSpecifier();
+        if (spec != null) {
+            IASTNode node = spec.getParent();
+            if (node instanceof IASTSimpleDeclaration) {
+                if (((IASTSimpleDeclaration) node).getDeclarators().length == 0) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
-		ICPPASTCompositeTypeSpecifier spec = getCompositeTypeSpecifier();
-		if (spec != null) {
-			IASTNode node = spec.getParent();
-			if (node instanceof IASTSimpleDeclaration) {
-				if (((IASTSimpleDeclaration) node).getDeclarators().length == 0) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
+    @Override
+    public boolean isFinal() {
+        ICPPASTCompositeTypeSpecifier typeSpecifier = getCompositeTypeSpecifier();
+        if (typeSpecifier != null) {
+            return typeSpecifier.isFinal();
+        }
+        return false;
+    }
 
-	@Override
-	public boolean isFinal() {
-		ICPPASTCompositeTypeSpecifier typeSpecifier = getCompositeTypeSpecifier();
-		if (typeSpecifier != null) {
-			return typeSpecifier.isFinal();
-		}
-		return false;
-	}
+    @Override
+    public boolean isNoDiscard() {
+        ICPPASTCompositeTypeSpecifier typeSpecifier = getCompositeTypeSpecifier();
+        if (typeSpecifier != null) {
+            return AttributeUtil.hasNodiscardAttribute(typeSpecifier);
+        }
+        return false;
+    }
 
-	@Override
-	public boolean isNoDiscard() {
-		ICPPASTCompositeTypeSpecifier typeSpecifier = getCompositeTypeSpecifier();
-		if (typeSpecifier != null) {
-			return AttributeUtil.hasNodiscardAttribute(typeSpecifier);
-		}
-		return false;
-	}
+    private IASTName stripQualifier(IASTName name) {
+        if (name instanceof ICPPASTQualifiedName) {
+            name = ((ICPPASTQualifiedName) name).getLastName();
+        }
+        return name;
+    }
 
-	private IASTName stripQualifier(IASTName name) {
-		if (name instanceof ICPPASTQualifiedName) {
-			name = ((ICPPASTQualifiedName) name).getLastName();
-		}
-		return name;
-	}
-
-	@Override
-	public int getVisibility(IBinding member) {
-		return ClassTypeHelper.getVisibility(this, member);
-	}
+    @Override
+    public int getVisibility(IBinding member) {
+        return ClassTypeHelper.getVisibility(this, member);
+    }
 }

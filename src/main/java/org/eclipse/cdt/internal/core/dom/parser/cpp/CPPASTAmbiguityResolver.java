@@ -52,22 +52,22 @@ import org.eclipse.cdt.internal.core.dom.parser.cpp.semantics.CPPVisitor;
  */
 final public class CPPASTAmbiguityResolver extends ASTVisitor {
 
-    private int fSkipInitializers = 0;
+    public int fSkipInitializers = 0;
 
     /*
 	 * The current nesting level of class definitions.
 	 * Used to handle processing of method bodies, which are deferred
 	 * until the end of the outermost class definition.
 	 */
-    private int fClassNestingLevel = 0;
+    public int fClassNestingLevel = 0;
 
-    private HashSet<IASTDeclaration> fRepopulate = new HashSet<>();
+    public HashSet<IASTDeclaration> fRepopulate = new HashSet<>();
 
     /*
 	 * Nodes that have been deferred for later processing.
 	 * Currently used only for method bodies.
 	 */
-    private Deque<IASTNode> fDeferredNodes = new ArrayDeque<>();
+    public Deque<IASTNode> fDeferredNodes = new ArrayDeque<>();
 
     /*
 	 * Used by visit(IASTDeclaration) to determine whether it should
@@ -75,7 +75,7 @@ final public class CPPASTAmbiguityResolver extends ASTVisitor {
 	 * to later. There is a stack of them because, thanks to local
 	 * classes, function definitions can be nested inside each other.
 	 */
-    private Stack<IASTFunctionDefinition> fProcessNow = new Stack<>();
+    public Stack<IASTFunctionDefinition> fProcessNow = new Stack<>();
 
     public CPPASTAmbiguityResolver() {
         super(false);

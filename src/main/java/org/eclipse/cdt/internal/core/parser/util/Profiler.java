@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2009, 2012 Google, Inc and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2009, 2012 Google, Inc and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- * 	   Sergey Prigogin (Google) - initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *  	   Sergey Prigogin (Google) - initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.parser.util;
 
 import java.util.ArrayList;
@@ -50,122 +52,135 @@ import java.util.Map.Entry;
  * </pre>
  */
 public class Profiler {
-	private static class Timer {
-		long elapsedTime; // In nanoseconds
-		long counter;
-		long startTime; // Time in nanoseconds when the timer was started.
-		int recursionDepth;
 
-		final long getElapsedTime() {
-			return elapsedTime;
-		}
+    private static class Timer {
 
-		final long getCounter() {
-			return counter;
-		}
+        // In nanoseconds
+        long elapsedTime;
 
-		final void recordEntry() {
-			if (recursionDepth++ == 0) {
-				startTime = System.nanoTime();
-			}
-		}
+        long counter;
 
-		final void recordExit() {
-			if (--recursionDepth == 0) {
-				elapsedTime += System.nanoTime() - startTime;
-				counter++;
-			}
-		}
-	}
+        // Time in nanoseconds when the timer was started.
+        long startTime;
 
-	private Map<String, Timer> timers;
-	private Map<String, int[]> counters;
+        int recursionDepth;
 
-	private Profiler() {
-		timers = new HashMap<>();
-		counters = new HashMap<>();
-	}
+        final long getElapsedTime() {
+            return elapsedTime;
+        }
 
-	private static ThreadLocal<Profiler> threadProfiler = new ThreadLocal<>();
+        final long getCounter() {
+            return counter;
+        }
 
-	/**
-	 *
-	 * @param name
-	 */
-	public static void startTimer(String name) {
-		Profiler profiler = threadProfiler.get();
-		if (profiler != null) {
-			Timer timer = profiler.timers.get(name);
-			if (timer == null) {
-				timer = new Timer();
-				profiler.timers.put(name, timer);
-			}
-			timer.recordEntry();
-		}
-	}
+        final void recordEntry() {
+            if (recursionDepth++ == 0) {
+                startTime = System.nanoTime();
+            }
+        }
 
-	public static void stopTimer(String name) {
-		Profiler profiler = threadProfiler.get();
-		if (profiler != null) {
-			Timer timer = profiler.timers.get(name);
-			timer.recordExit();
-		}
-	}
+        final void recordExit() {
+            if (--recursionDepth == 0) {
+                elapsedTime += System.nanoTime() - startTime;
+                counter++;
+            }
+        }
+    }
 
-	public static void incrementCounter(String name) {
-		Profiler profiler = threadProfiler.get();
-		if (profiler != null) {
-			int[] n = profiler.counters.get(name);
-			if (n == null) {
-				n = new int[] { 1 };
-			} else {
-				n[0]++;
-			}
-			profiler.counters.put(name, n);
-		}
-	}
+    public Map<String, Timer> timers;
 
-	public static void activate() {
-		threadProfiler.set(new Profiler());
-	}
+    public Map<String, int[]> counters;
 
-	public static void deactivate() {
-		threadProfiler.set(null);
-	}
+    private Profiler() {
+        timers = new HashMap<>();
+        counters = new HashMap<>();
+    }
 
-	public static void printStats() {
-		Profiler profiler = threadProfiler.get();
-		if (profiler != null) {
-			List<Map.Entry<String, Timer>> list = new ArrayList<>(profiler.timers.entrySet());
-			Comparator<Map.Entry<String, Timer>> c = new Comparator<>() {
-				@Override
-				public int compare(Entry<String, Timer> o1, Entry<String, Timer> o2) {
-					long diff = o2.getValue().getElapsedTime() - o1.getValue().getElapsedTime();
-					return diff < 0 ? -1 : diff > 0 ? 1 : 0;
-				}
-			};
-			Collections.sort(list, c);
-			System.out.println("==="); //$NON-NLS-1$
-			for (Entry<String, Timer> item : list) {
-				System.out.println("===\t" + ((item.getValue().getElapsedTime() + 500000) / 1000000) + //$NON-NLS-1$
-						"\t" + item.getValue().getCounter() + "\t" + item.getKey()); //$NON-NLS-1$ //$NON-NLS-2$
-			}
+    static public ThreadLocal<Profiler> threadProfiler = new ThreadLocal<>();
 
-			if (!profiler.counters.isEmpty()) {
-				List<Map.Entry<String, int[]>> keyList = new ArrayList<>(profiler.counters.entrySet());
-				Comparator<Map.Entry<String, int[]>> c2 = new Comparator<>() {
-					@Override
-					public int compare(Entry<String, int[]> o1, Entry<String, int[]> o2) {
-						return o2.getValue()[0] - o1.getValue()[0];
-					}
-				};
-				Collections.sort(keyList, c2);
-				System.out.println("==="); //$NON-NLS-1$
-				System.out.println("===\t" + profiler.counters.size() + " counters"); //$NON-NLS-1$ //$NON-NLS-2$
-				for (Entry<String, int[]> item : keyList) {
-					System.out.println("===\t" + item.getValue()[0] + "\t" + item.getKey()); //$NON-NLS-1$ //$NON-NLS-2$
-				}
-			}
-		}
-	}
+    /**
+     * @param name
+     */
+    public static void startTimer(String name) {
+        Profiler profiler = threadProfiler.get();
+        if (profiler != null) {
+            Timer timer = profiler.timers.get(name);
+            if (timer == null) {
+                timer = new Timer();
+                profiler.timers.put(name, timer);
+            }
+            timer.recordEntry();
+        }
+    }
+
+    public static void stopTimer(String name) {
+        Profiler profiler = threadProfiler.get();
+        if (profiler != null) {
+            Timer timer = profiler.timers.get(name);
+            timer.recordExit();
+        }
+    }
+
+    public static void incrementCounter(String name) {
+        Profiler profiler = threadProfiler.get();
+        if (profiler != null) {
+            int[] n = profiler.counters.get(name);
+            if (n == null) {
+                n = new int[] { 1 };
+            } else {
+                n[0]++;
+            }
+            profiler.counters.put(name, n);
+        }
+    }
+
+    public static void activate() {
+        threadProfiler.set(new Profiler());
+    }
+
+    public static void deactivate() {
+        threadProfiler.set(null);
+    }
+
+    public static void printStats() {
+        Profiler profiler = threadProfiler.get();
+        if (profiler != null) {
+            List<Map.Entry<String, Timer>> list = new ArrayList<>(profiler.timers.entrySet());
+            Comparator<Map.Entry<String, Timer>> c = new Comparator<>() {
+
+                @Override
+                public int compare(Entry<String, Timer> o1, Entry<String, Timer> o2) {
+                    long diff = o2.getValue().getElapsedTime() - o1.getValue().getElapsedTime();
+                    return diff < 0 ? -1 : diff > 0 ? 1 : 0;
+                }
+            };
+            Collections.sort(list, c);
+            //$NON-NLS-1$
+            System.out.println("===");
+            for (Entry<String, Timer> item : list) {
+                System.out.println(//$NON-NLS-1$
+                "===\t" + ((item.getValue().getElapsedTime() + 500000) / 1000000) + "\t" + item.getValue().getCounter() + "\t" + //$NON-NLS-1$ //$NON-NLS-2$
+                item.getKey());
+            }
+            if (!profiler.counters.isEmpty()) {
+                List<Map.Entry<String, int[]>> keyList = new ArrayList<>(profiler.counters.entrySet());
+                Comparator<Map.Entry<String, int[]>> c2 = new Comparator<>() {
+
+                    @Override
+                    public int compare(Entry<String, int[]> o1, Entry<String, int[]> o2) {
+                        return o2.getValue()[0] - o1.getValue()[0];
+                    }
+                };
+                Collections.sort(keyList, c2);
+                //$NON-NLS-1$
+                System.out.println("===");
+                //$NON-NLS-1$ //$NON-NLS-2$
+                System.out.println("===\t" + profiler.counters.size() + " counters");
+                for (Entry<String, int[]> item : keyList) {
+                    //$NON-NLS-1$ //$NON-NLS-2$
+                    System.out.println("===\t" + item.getValue()[0] + "\t" + item.getKey());
+                }
+            }
+        }
+    }
 }

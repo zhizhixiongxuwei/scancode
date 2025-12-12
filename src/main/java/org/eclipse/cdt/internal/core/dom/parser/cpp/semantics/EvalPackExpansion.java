@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2013, 2014 Nathan Ridge.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2013, 2014 Nathan Ridge.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Nathan Ridge - initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *      Nathan Ridge - initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.parser.cpp.semantics;
 
 import org.eclipse.cdt.core.dom.ast.IASTExpression.ValueCategory;
@@ -31,124 +33,126 @@ import org.eclipse.core.runtime.CoreException;
  * Evaluation for a pack expansion expression.
  */
 public class EvalPackExpansion extends CPPDependentEvaluation {
-	private ICPPEvaluation fExpansionPattern;
-	private IType fType;
 
-	public EvalPackExpansion(ICPPEvaluation expansionPattern, IASTNode pointOfDefinition) {
-		this(expansionPattern, findEnclosingTemplate(pointOfDefinition));
-	}
+    public ICPPEvaluation fExpansionPattern;
 
-	public EvalPackExpansion(ICPPEvaluation expansionPattern, IBinding templateDefinition) {
-		super(templateDefinition);
-		fExpansionPattern = expansionPattern;
-	}
+    public IType fType;
 
-	public ICPPEvaluation getExpansionPattern() {
-		return fExpansionPattern;
-	}
+    public EvalPackExpansion(ICPPEvaluation expansionPattern, IASTNode pointOfDefinition) {
+        this(expansionPattern, findEnclosingTemplate(pointOfDefinition));
+    }
 
-	@Override
-	public boolean isInitializerList() {
-		return fExpansionPattern.isInitializerList();
-	}
+    public EvalPackExpansion(ICPPEvaluation expansionPattern, IBinding templateDefinition) {
+        super(templateDefinition);
+        fExpansionPattern = expansionPattern;
+    }
 
-	@Override
-	public boolean isFunctionSet() {
-		return fExpansionPattern.isFunctionSet();
-	}
+    public ICPPEvaluation getExpansionPattern() {
+        return fExpansionPattern;
+    }
 
-	@Override
-	public boolean isTypeDependent() {
-		return fExpansionPattern.isTypeDependent();
-	}
+    @Override
+    public boolean isInitializerList() {
+        return fExpansionPattern.isInitializerList();
+    }
 
-	@Override
-	public boolean isValueDependent() {
-		return fExpansionPattern.isValueDependent();
-	}
+    @Override
+    public boolean isFunctionSet() {
+        return fExpansionPattern.isFunctionSet();
+    }
 
-	@Override
-	public boolean isConstantExpression() {
-		return false;
-	}
+    @Override
+    public boolean isTypeDependent() {
+        return fExpansionPattern.isTypeDependent();
+    }
 
-	@Override
-	public boolean isEquivalentTo(ICPPEvaluation other) {
-		if (!(other instanceof EvalPackExpansion)) {
-			return false;
-		}
-		EvalPackExpansion o = (EvalPackExpansion) other;
-		return fExpansionPattern.isEquivalentTo(o.fExpansionPattern);
-	}
+    @Override
+    public boolean isValueDependent() {
+        return fExpansionPattern.isValueDependent();
+    }
 
-	@Override
-	public IType getType() {
-		if (fType == null) {
-			IType type = fExpansionPattern.getType();
-			if (type == null) {
-				fType = ProblemType.UNKNOWN_FOR_EXPRESSION;
-			} else {
-				fType = new CPPParameterPackType(type);
-			}
-		}
-		return fType;
-	}
+    @Override
+    public boolean isConstantExpression() {
+        return false;
+    }
 
-	@Override
-	public IValue getValue() {
-		return DependentValue.create(fExpansionPattern);
-	}
+    @Override
+    public boolean isEquivalentTo(ICPPEvaluation other) {
+        if (!(other instanceof EvalPackExpansion)) {
+            return false;
+        }
+        EvalPackExpansion o = (EvalPackExpansion) other;
+        return fExpansionPattern.isEquivalentTo(o.fExpansionPattern);
+    }
 
-	@Override
-	public ValueCategory getValueCategory() {
-		return ValueCategory.PRVALUE;
-	}
+    @Override
+    public IType getType() {
+        if (fType == null) {
+            IType type = fExpansionPattern.getType();
+            if (type == null) {
+                fType = ProblemType.UNKNOWN_FOR_EXPRESSION;
+            } else {
+                fType = new CPPParameterPackType(type);
+            }
+        }
+        return fType;
+    }
 
-	@Override
-	public ICPPEvaluation instantiate(InstantiationContext context, int maxDepth) {
-		ICPPEvaluation expansionPattern = fExpansionPattern.instantiate(context, maxDepth);
-		if (expansionPattern == fExpansionPattern)
-			return this;
-		return new EvalPackExpansion(expansionPattern, getTemplateDefinition());
-	}
+    @Override
+    public IValue getValue() {
+        return DependentValue.create(fExpansionPattern);
+    }
 
-	@Override
-	public ICPPEvaluation computeForFunctionCall(ActivationRecord record, ConstexprEvaluationContext context) {
-		ICPPEvaluation expansionPattern = fExpansionPattern.computeForFunctionCall(record, context.recordStep());
-		if (expansionPattern == fExpansionPattern) {
-			return this;
-		}
+    @Override
+    public ValueCategory getValueCategory() {
+        return ValueCategory.PRVALUE;
+    }
 
-		EvalPackExpansion evalParamPack = new EvalPackExpansion(expansionPattern, getTemplateDefinition());
-		return evalParamPack;
-	}
+    @Override
+    public ICPPEvaluation instantiate(InstantiationContext context, int maxDepth) {
+        ICPPEvaluation expansionPattern = fExpansionPattern.instantiate(context, maxDepth);
+        if (expansionPattern == fExpansionPattern)
+            return this;
+        return new EvalPackExpansion(expansionPattern, getTemplateDefinition());
+    }
 
-	@Override
-	public int determinePackSize(ICPPTemplateParameterMap tpMap) {
-		return CPPTemplates.PACK_SIZE_NOT_FOUND;
-	}
+    @Override
+    public ICPPEvaluation computeForFunctionCall(ActivationRecord record, ConstexprEvaluationContext context) {
+        ICPPEvaluation expansionPattern = fExpansionPattern.computeForFunctionCall(record, context.recordStep());
+        if (expansionPattern == fExpansionPattern) {
+            return this;
+        }
+        EvalPackExpansion evalParamPack = new EvalPackExpansion(expansionPattern, getTemplateDefinition());
+        return evalParamPack;
+    }
 
-	@Override
-	public boolean referencesTemplateParameter() {
-		return fExpansionPattern.referencesTemplateParameter();
-	}
+    @Override
+    public int determinePackSize(ICPPTemplateParameterMap tpMap) {
+        return CPPTemplates.PACK_SIZE_NOT_FOUND;
+    }
 
-	@Override
-	public void marshal(ITypeMarshalBuffer buffer, boolean includeValue) throws CoreException {
-		buffer.putShort(ITypeMarshalBuffer.EVAL_PACK_EXPANSION);
-		buffer.marshalEvaluation(fExpansionPattern, includeValue);
-		marshalTemplateDefinition(buffer);
-	}
+    @Override
+    public boolean referencesTemplateParameter() {
+        return fExpansionPattern.referencesTemplateParameter();
+    }
 
-	public static ICPPEvaluation unmarshal(short firstBytes, ITypeMarshalBuffer buffer) throws CoreException {
-		ICPPEvaluation expansionPattern = buffer.unmarshalEvaluation();
-		IBinding templateDefinition = buffer.unmarshalBinding();
-		return new EvalPackExpansion(expansionPattern, templateDefinition);
-	}
+    @Override
+    public void marshal(ITypeMarshalBuffer buffer, boolean includeValue) throws CoreException {
+        buffer.putShort(ITypeMarshalBuffer.EVAL_PACK_EXPANSION);
+        buffer.marshalEvaluation(fExpansionPattern, includeValue);
+        marshalTemplateDefinition(buffer);
+    }
 
-	@Override
-	public boolean isNoexcept() {
-		assert false; // Shouldn't exist outside of a dependent context
-		return true;
-	}
+    public static ICPPEvaluation unmarshal(short firstBytes, ITypeMarshalBuffer buffer) throws CoreException {
+        ICPPEvaluation expansionPattern = buffer.unmarshalEvaluation();
+        IBinding templateDefinition = buffer.unmarshalBinding();
+        return new EvalPackExpansion(expansionPattern, templateDefinition);
+    }
+
+    @Override
+    public boolean isNoexcept() {
+        // Shouldn't exist outside of a dependent context
+        assert false;
+        return true;
+    }
 }

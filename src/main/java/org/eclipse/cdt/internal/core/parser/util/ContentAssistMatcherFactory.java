@@ -1,17 +1,19 @@
-/*******************************************************************************
- * Copyright (c) 2011, 2012 Jens Elmenthaler and others
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2011, 2012 Jens Elmenthaler and others
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Jens Elmenthaler - http://bugs.eclipse.org/173458 (camel case completion)
- *     IBM Corporation
- *******************************************************************************/
+ *  Contributors:
+ *      Jens Elmenthaler - http://bugs.eclipse.org/173458 (camel case completion)
+ *      IBM Corporation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.parser.util;
 
 import org.eclipse.cdt.core.parser.util.CharArrayUtils;
@@ -28,117 +30,112 @@ import org.eclipse.cdt.core.parser.util.SegmentMatcher;
  */
 public class ContentAssistMatcherFactory {
 
-	private static ContentAssistMatcherFactory instance = null;
+    static public ContentAssistMatcherFactory instance = null;
 
-	private boolean showCamelCaseMatches = true;
+    public boolean showCamelCaseMatches = true;
 
-	private static class CamelCaseMatcher implements IContentAssistMatcher {
+    private static class CamelCaseMatcher implements IContentAssistMatcher {
 
-		private final SegmentMatcher matcher;
+        private final SegmentMatcher matcher;
 
-		public CamelCaseMatcher(char[] pattern) {
-			matcher = new SegmentMatcher(pattern);
-		}
+        public CamelCaseMatcher(char[] pattern) {
+            matcher = new SegmentMatcher(pattern);
+        }
 
-		@Override
-		public char[] getPrefixForBinarySearch() {
-			return matcher.getPrefixForBinarySearch();
-		}
+        @Override
+        public char[] getPrefixForBinarySearch() {
+            return matcher.getPrefixForBinarySearch();
+        }
 
-		@Override
-		public boolean matchRequiredAfterBinarySearch() {
-			return matcher.matchRequiredAfterBinarySearch();
-		}
+        @Override
+        public boolean matchRequiredAfterBinarySearch() {
+            return matcher.matchRequiredAfterBinarySearch();
+        }
 
-		@Override
-		public boolean match(char[] name) {
-			return matcher.match(name);
-		}
-	}
+        @Override
+        public boolean match(char[] name) {
+            return matcher.match(name);
+        }
+    }
 
-	private static class PrefixMatcher implements IContentAssistMatcher {
+    private static class PrefixMatcher implements IContentAssistMatcher {
 
-		private final char[] prefix;
+        private final char[] prefix;
 
-		public PrefixMatcher(char[] prefix) {
-			this.prefix = prefix;
-		}
+        public PrefixMatcher(char[] prefix) {
+            this.prefix = prefix;
+        }
 
-		@Override
-		public char[] getPrefixForBinarySearch() {
-			return prefix;
-		}
+        @Override
+        public char[] getPrefixForBinarySearch() {
+            return prefix;
+        }
 
-		@Override
-		public boolean matchRequiredAfterBinarySearch() {
-			return false;
-		}
+        @Override
+        public boolean matchRequiredAfterBinarySearch() {
+            return false;
+        }
 
-		@Override
-		public boolean match(char[] name) {
-			return CharArrayUtils.equals(name, 0, prefix.length, prefix, true);
-		}
+        @Override
+        public boolean match(char[] name) {
+            return CharArrayUtils.equals(name, 0, prefix.length, prefix, true);
+        }
+    }
 
-	}
+    private ContentAssistMatcherFactory() {
+    }
 
-	private ContentAssistMatcherFactory() {
+    public static synchronized ContentAssistMatcherFactory getInstance() {
+        if (instance == null) {
+            instance = new ContentAssistMatcherFactory();
+        }
+        return instance;
+    }
 
-	}
+    /**
+     * This function is not supposed to be called from any functions except
+     * for ContentAssistMatcherPreference.updateOnPreferences.
+     *
+     * @param showCamelCaseMatches
+     */
+    public synchronized void setShowCamelCaseMatches(boolean showCamelCaseMatches) {
+        this.showCamelCaseMatches = showCamelCaseMatches;
+    }
 
-	public static synchronized ContentAssistMatcherFactory getInstance() {
-		if (instance == null) {
-			instance = new ContentAssistMatcherFactory();
-		}
+    /**
+     * @return <code>true</code> if showCamelCaseMatches is set from the content assist preference page.
+     */
+    public boolean getShowCamelCaseMatches() {
+        return showCamelCaseMatches;
+    }
 
-		return instance;
-	}
+    /**
+     * @param pattern The pattern for which to create a matcher.
+     * @return A suitable matcher.
+     */
+    public synchronized IContentAssistMatcher createMatcher(char[] pattern) {
+        return showCamelCaseMatches ? new CamelCaseMatcher(pattern) : new PrefixMatcher(pattern);
+    }
 
-	/**
-	 * This function is not supposed to be called from any functions except
-	 * for ContentAssistMatcherPreference.updateOnPreferences.
-	 *
-	 * @param showCamelCaseMatches
-	 */
-	public synchronized void setShowCamelCaseMatches(boolean showCamelCaseMatches) {
-		this.showCamelCaseMatches = showCamelCaseMatches;
-	}
+    /**
+     * @param pattern The pattern for which to create a matcher.
+     * @return A suitable matcher.
+     */
+    public IContentAssistMatcher createMatcher(String pattern) {
+        return createMatcher(pattern.toCharArray());
+    }
 
-	/**
-	 *
-	 * @return <code>true</code> if showCamelCaseMatches is set from the content assist preference page.
-	 */
-	public boolean getShowCamelCaseMatches() {
-		return showCamelCaseMatches;
-	}
-
-	/**
-	 * @param pattern The pattern for which to create a matcher.
-	 * @return A suitable matcher.
-	 */
-	public synchronized IContentAssistMatcher createMatcher(char[] pattern) {
-
-		return showCamelCaseMatches ? new CamelCaseMatcher(pattern) : new PrefixMatcher(pattern);
-	}
-
-	/**
-	 * @param pattern The pattern for which to create a matcher.
-	 * @return A suitable matcher.
-	 */
-	public IContentAssistMatcher createMatcher(String pattern) {
-		return createMatcher(pattern.toCharArray());
-	}
-
-	/**
-	 * A helper method to match a name against the pattern typed by the user.
-	 * If you need to match many names at once against the same pattern, use
-	 * {@link #createMatcher(char[])} and re-use the returned matcher instead.
-	 *
-	 * @param pattern The user provided pattern.
-	 * @param name The name to match against the pattern.
-	 *
-	 * @return <code>true</code> if the name matches the given pattern.
-	 */
-	public boolean match(char[] pattern, char[] name) {
-		return createMatcher(pattern).match(name);
-	}
+    /**
+     * A helper method to match a name against the pattern typed by the user.
+     * If you need to match many names at once against the same pattern, use
+     * {@link #createMatcher(char[])} and re-use the returned matcher instead.
+     *
+     * @param pattern The user provided pattern.
+     * @param name The name to match against the pattern.
+     *
+     * @return <code>true</code> if the name matches the given pattern.
+     */
+    public boolean match(char[] pattern, char[] name) {
+        return createMatcher(pattern).match(name);
+    }
 }

@@ -1,17 +1,19 @@
-/*******************************************************************************
- * Copyright (c) 2005, 2014 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2005, 2014 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Andrew Niefer (IBM Corporation) - initial API and implementation
- *     Markus Schorn (Wind River Systems)
- *******************************************************************************/
+ *  Contributors:
+ *      Andrew Niefer (IBM Corporation) - initial API and implementation
+ *      Markus Schorn (Wind River Systems)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.parser.cpp;
 
 import org.eclipse.cdt.core.dom.ILinkage;
@@ -29,104 +31,106 @@ import org.eclipse.cdt.internal.core.dom.parser.cpp.semantics.CPPVisitor;
 import org.eclipse.core.runtime.PlatformObject;
 
 public class CPPNamespaceAlias extends PlatformObject implements ICPPNamespaceAlias, ICPPInternalBinding {
-	private ICPPNamespace namespace;
-	private IASTName alias;
 
-	public CPPNamespaceAlias(IASTName aliasName, ICPPNamespace namespace) {
-		super();
-		this.namespace = namespace;
-		this.alias = aliasName;
-	}
+    public ICPPNamespace namespace;
 
-	@Override
-	public ICPPNamespaceScope getNamespaceScope() {
-		return namespace.getNamespaceScope();
-	}
+    public IASTName alias;
 
-	@Override
-	public IBinding getBinding() {
-		return namespace;
-	}
+    public CPPNamespaceAlias(IASTName aliasName, ICPPNamespace namespace) {
+        super();
+        this.namespace = namespace;
+        this.alias = aliasName;
+    }
 
-	@Override
-	public String getName() {
-		return new String(getNameCharArray());
-	}
+    @Override
+    public ICPPNamespaceScope getNamespaceScope() {
+        return namespace.getNamespaceScope();
+    }
 
-	@Override
-	public char[] getNameCharArray() {
-		return alias.getSimpleID();
-	}
+    @Override
+    public IBinding getBinding() {
+        return namespace;
+    }
 
-	@Override
-	public String[] getQualifiedName() {
-		return CPPVisitor.getQualifiedName(this);
-	}
+    @Override
+    public String getName() {
+        return new String(getNameCharArray());
+    }
 
-	@Override
-	public char[][] getQualifiedNameCharArray() {
-		return CPPVisitor.getQualifiedNameCharArray(this);
-	}
+    @Override
+    public char[] getNameCharArray() {
+        return alias.getSimpleID();
+    }
 
-	@Override
-	public IScope getScope() {
-		return CPPVisitor.getContainingScope(alias);
-	}
+    @Override
+    public String[] getQualifiedName() {
+        return CPPVisitor.getQualifiedName(this);
+    }
 
-	@Override
-	public boolean isGloballyQualified() throws DOMException {
-		IScope scope = getScope();
-		while (scope != null) {
-			if (scope instanceof ICPPBlockScope)
-				return false;
-			scope = scope.getParent();
-		}
-		return true;
-	}
+    @Override
+    public char[][] getQualifiedNameCharArray() {
+        return CPPVisitor.getQualifiedNameCharArray(this);
+    }
 
-	@Override
-	public IASTNode[] getDeclarations() {
-		return null;
-	}
+    @Override
+    public IScope getScope() {
+        return CPPVisitor.getContainingScope(alias);
+    }
 
-	@Override
-	public IASTNode getDefinition() {
-		return alias;
-	}
+    @Override
+    public boolean isGloballyQualified() throws DOMException {
+        IScope scope = getScope();
+        while (scope != null) {
+            if (scope instanceof ICPPBlockScope)
+                return false;
+            scope = scope.getParent();
+        }
+        return true;
+    }
 
-	@Override
-	public void addDefinition(IASTNode node) {
-	}
+    @Override
+    public IASTNode[] getDeclarations() {
+        return null;
+    }
 
-	@Override
-	public void addDeclaration(IASTNode node) {
-	}
+    @Override
+    public IASTNode getDefinition() {
+        return alias;
+    }
 
-	@Override
-	public IBinding[] getMemberBindings() {
-		return namespace.getMemberBindings();
-	}
+    @Override
+    public void addDefinition(IASTNode node) {
+    }
 
-	@Override
-	public ILinkage getLinkage() {
-		return Linkage.CPP_LINKAGE;
-	}
+    @Override
+    public void addDeclaration(IASTNode node) {
+    }
 
-	@Override
-	public IBinding getOwner() {
-		return CPPVisitor.findDeclarationOwner(alias, false);
-	}
+    @Override
+    public IBinding[] getMemberBindings() {
+        return namespace.getMemberBindings();
+    }
 
-	@Override
-	public boolean isInline() {
-		return false;
-	}
+    @Override
+    public ILinkage getLinkage() {
+        return Linkage.CPP_LINKAGE;
+    }
 
-	/**
-	 * For debugging use only.
-	 */
-	@Override
-	public String toString() {
-		return getName();
-	}
+    @Override
+    public IBinding getOwner() {
+        return CPPVisitor.findDeclarationOwner(alias, false);
+    }
+
+    @Override
+    public boolean isInline() {
+        return false;
+    }
+
+    /**
+     * For debugging use only.
+     */
+    @Override
+    public String toString() {
+        return getName();
+    }
 }

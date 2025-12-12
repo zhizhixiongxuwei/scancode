@@ -43,7 +43,7 @@ public class DOMMethod extends DOMMember implements IDOMMethod {
      * return type has been altered from the contents
      * in the document, otherwise <code>null</code>.
      */
-    protected String fReturnType;
+    public String fReturnType;
 
     /**
      * The original inclusive source range of the
@@ -55,7 +55,7 @@ public class DOMMethod extends DOMMember implements IDOMMethod {
      * of the array are the inclusive source range of
      * the array qualifiers.
      */
-    protected int[] fReturnTypeRange;
+    public int[] fReturnTypeRange;
 
     /**
      * Contains the textual representation of the method's
@@ -63,13 +63,13 @@ public class DOMMethod extends DOMMember implements IDOMMethod {
      * when the parameters had been altered from the contents
      * in the document, otherwise <code>null</code>.
      */
-    protected char[] fParameterList;
+    public char[] fParameterList;
 
     /**
      * The original inclusive source range of the
      * method's parameter list in the document.
      */
-    protected int[] fParameterRange;
+    public int[] fParameterRange;
 
     /**
      * Contains the textual representation of the method's
@@ -79,7 +79,7 @@ public class DOMMethod extends DOMMember implements IDOMMethod {
      * delimited list of exceptions, not including the "throws"
      * keyword.
      */
-    protected char[] fExceptionList;
+    public char[] fExceptionList;
 
     /**
      * The original inclusive source range of the

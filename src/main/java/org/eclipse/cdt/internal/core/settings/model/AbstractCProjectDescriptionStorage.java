@@ -1,22 +1,23 @@
-/*******************************************************************************
- * Copyright (c) 2008, 2020 Broadcom Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2008, 2020 Broadcom Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     James Blackburn (Broadcom Corp.)
- *     IBM Corporation
- *     Alexander Fedorov (ArSysOp) - Bug 561992
- *******************************************************************************/
+ *  Contributors:
+ *      James Blackburn (Broadcom Corp.)
+ *      IBM Corporation
+ *      Alexander Fedorov (ArSysOp) - Bug 561992
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.settings.model;
 
 import java.text.MessageFormat;
-
 import org.eclipse.cdt.core.CCorePlugin;
 import org.eclipse.cdt.core.model.ICProject;
 import org.eclipse.cdt.core.settings.model.CProjectDescriptionEvent;
@@ -61,67 +62,78 @@ import org.osgi.framework.Version;
  */
 public abstract class AbstractCProjectDescriptionStorage {
 
-	/** The {@link ICProjectDescriptionStorageType} extension parent of this */
-	public final CProjectDescriptionStorageTypeProxy type;
-	/** The version of the project description storage that was loaded */
-	public final Version version;
+    /**
+     * The {@link ICProjectDescriptionStorageType} extension parent of this
+     */
+    public final CProjectDescriptionStorageTypeProxy type;
 
-	/** The project this project-storage is responsible for */
-	protected volatile IProject project;
+    /**
+     * The version of the project description storage that was loaded
+     */
+    public final Version version;
 
-	/** Flag used to detect if setProjectDescription(...) is called by the thread already in a setProjectDescription(...) */
-	final private ThreadLocal<Boolean> setProjectDescriptionOperationRunning = new ThreadLocal<>() {
-		@Override
-		protected Boolean initialValue() {
-			return false;
-		}
-	};
-	/** Before the description is fully applied / loaded, consumers of CProjectDescriptionEvent and CProjectDescription.applyDatas()
-	 *  assume that getProjectDescription(...) will return the writable project description in the process of being created / modified...
-	 *  Cached temporarily in a thread local variable for this very purpose. */
-	final private ThreadLocal<ICProjectDescription> currentThreadProjectDescription = new ThreadLocal<>();
+    /**
+     * The project this project-storage is responsible for
+     */
+    volatile public IProject project;
 
-	/**
-	 * @param type CProjectDescriptionStorageTypeProxy
-	 * @param project IProject
-	 * @param version Version
-	 */
-	public AbstractCProjectDescriptionStorage(CProjectDescriptionStorageTypeProxy type, IProject project,
-			Version version) {
-		this.type = type;
-		this.project = project;
-		this.version = version;
-	}
+    /**
+     * Flag used to detect if setProjectDescription(...) is called by the thread already in a setProjectDescription(...)
+     */
+    final public ThreadLocal<Boolean> setProjectDescriptionOperationRunning = new ThreadLocal<>() {
 
-	/**
-	 * Returns the project associated with this storage
-	 * @return the IProject associated with the current project
-	 */
-	public final IProject getProject() {
-		return project;
-	}
+        @Override
+        protected Boolean initialValue() {
+            return false;
+        }
+    };
 
-	/**
-	 * Called in response to a project move event
-	 * @param newProject
-	 * @param oldProject
-	 */
-	public void handleProjectMove(IProject newProject, IProject oldProject) {
-		project = newProject;
-	}
+    /**
+     * Before the description is fully applied / loaded, consumers of CProjectDescriptionEvent and CProjectDescription.applyDatas()
+     *  assume that getProjectDescription(...) will return the writable project description in the process of being created / modified...
+     *  Cached temporarily in a thread local variable for this very purpose.
+     */
+    final public ThreadLocal<ICProjectDescription> currentThreadProjectDescription = new ThreadLocal<>();
 
-	/**
-	 * Return an ICSettingsStorage root for the given ICStorageElement
-	 * @param element
-	 * @return ICSettingsStorage based off of ICStorageElement
-	 */
-	public abstract ICSettingsStorage getStorageForElement(ICStorageElement element) throws CoreException;
+    /**
+     * @param type CProjectDescriptionStorageTypeProxy
+     * @param project IProject
+     * @param version Version
+     */
+    public AbstractCProjectDescriptionStorage(CProjectDescriptionStorageTypeProxy type, IProject project, Version version) {
+        this.type = type;
+        this.project = project;
+        this.version = version;
+    }
 
-	/*
+    /**
+     * Returns the project associated with this storage
+     * @return the IProject associated with the current project
+     */
+    public final IProject getProject() {
+        return project;
+    }
+
+    /**
+     * Called in response to a project move event
+     * @param newProject
+     * @param oldProject
+     */
+    public void handleProjectMove(IProject newProject, IProject oldProject) {
+        project = newProject;
+    }
+
+    /**
+     * Return an ICSettingsStorage root for the given ICStorageElement
+     * @param element
+     * @return ICSettingsStorage based off of ICStorageElement
+     */
+    public abstract ICSettingsStorage getStorageForElement(ICStorageElement element) throws CoreException;
+
+    /*
 	 * T O    C L E A N U P
 	 */
-
-	/*
+    /*
 	 * FIXME REMOVE
 	 *
 	 *  We shouldn't have this in this interface, but SetCProjectDescription creates
@@ -130,217 +142,205 @@ public abstract class AbstractCProjectDescriptionStorage {
 	 *
 	 * Returns a 'writable' ICStorageElement tree clone of el
 	 */
-	public ICStorageElement copyElement(ICStorageElement el, boolean writable) throws CoreException {
-		return null;
-	}
+    public ICStorageElement copyElement(ICStorageElement el, boolean writable) throws CoreException {
+        return null;
+    }
 
-	/*
+    /*
 	 * get/setProjectDescription methods
 	 */
+    /**
+     * Return the ICProjectDescription for the specified project.
+     *
+     * Use the ICProjectDescriptionManager flags to control the project
+     * description to be returned
+     *
+     * Implementors should call super.getProjectDescription(...) first
+     * so that current 'threadLocal' project description is returned
+     *
+     * @param flags Or of {@link ICProjectDescriptionManager} flags
+     * @param monitor
+     * @return an ICProjectDescription corresponding to the given
+     * @see ICProjectDescriptionManager#GET_WRITABLE
+     * @see ICProjectDescriptionManager#GET_IF_LOADDED
+     * @see ICProjectDescriptionManager#GET_EMPTY_PROJECT_DESCRIPTION
+     * @see ICProjectDescriptionManager#GET_CREATE_DESCRIPTION
+     * @see ICProjectDescriptionManager#PROJECT_CREATING
+     */
+    public ICProjectDescription getProjectDescription(int flags, IProgressMonitor monitor) throws CoreException {
+        if (!project.isAccessible())
+            throw ExceptionFactory.createCoreException(//$NON-NLS-1$
+            MessageFormat.//$NON-NLS-1$
+            format(//$NON-NLS-1$
+            CCorePlugin.getResourceString("ProjectDescription.ProjectNotAccessible"), new Object[] { getProject().getName() }));
+        return currentThreadProjectDescription.get();
+    }
 
-	/**
-	 * Return the ICProjectDescription for the specified project.
-	 *
-	 * Use the ICProjectDescriptionManager flags to control the project
-	 * description to be returned
-	 *
-	 * Implementors should call super.getProjectDescription(...) first
-	 * so that current 'threadLocal' project description is returned
-	 *
-	 * @param flags Or of {@link ICProjectDescriptionManager} flags
-	 * @param monitor
-	 * @return an ICProjectDescription corresponding to the given
-	 * @see ICProjectDescriptionManager#GET_WRITABLE
-	 * @see ICProjectDescriptionManager#GET_IF_LOADDED
-	 * @see ICProjectDescriptionManager#GET_EMPTY_PROJECT_DESCRIPTION
-	 * @see ICProjectDescriptionManager#GET_CREATE_DESCRIPTION
-	 * @see ICProjectDescriptionManager#PROJECT_CREATING
-	 */
-	public ICProjectDescription getProjectDescription(int flags, IProgressMonitor monitor) throws CoreException {
-		if (!project.isAccessible())
-			throw ExceptionFactory.createCoreException(
-					MessageFormat.format(CCorePlugin.getResourceString("ProjectDescription.ProjectNotAccessible"), //$NON-NLS-1$
-							new Object[] { getProject().getName() }));
-		return currentThreadProjectDescription.get();
-	}
+    /**
+     * The method called by the CProjectDescriptionManager for serializing the project settings
+     * @param description the project description being set
+     * @param flags
+     * @param monitor
+     * @throws CoreException
+     */
+    public void setProjectDescription(final ICProjectDescription description, final int flags, IProgressMonitor monitor) throws CoreException {
+        try {
+            if (monitor == null)
+                monitor = new NullProgressMonitor();
+            ICProject cproject = CModelManager.getDefault().create(project);
+            // The CProjectDescriptionOperation fires the appropriate CElementDeltas calling the callbacks
+            // below for actual project serialization
+            SetCProjectDescriptionOperation op = new SetCProjectDescriptionOperation(this, cproject, (CProjectDescription) description, flags);
+            // Safety: Verify that the listeners of the event call-backs don't recursively call setProjectDescription(...)
+            //         While in the past this recursion hasn't been infinite, the behaviour is 'undefined'.
+            if (setProjectDescriptionOperationRunning.get()) {
+                //$NON-NLS-1$
+                CCorePlugin.log("API Error: setProjectDescription() shouldn't be called recursively.", new Exception());
+                Job j = new //$NON-NLS-1$
+                Job(//$NON-NLS-1$
+                "setProjectDescription rescheduled") {
 
-	/**
-	 * The method called by the CProjectDescriptionManager for serializing the project settings
-	 * @param description the project description being set
-	 * @param flags
-	 * @param monitor
-	 * @throws CoreException
-	 */
-	public void setProjectDescription(final ICProjectDescription description, final int flags, IProgressMonitor monitor)
-			throws CoreException {
-		try {
-			if (monitor == null)
-				monitor = new NullProgressMonitor();
+                    @Override
+                    protected IStatus run(IProgressMonitor monitor) {
+                        try {
+                            setProjectDescription(description, flags, monitor);
+                        } catch (CoreException e) {
+                            CCorePlugin.log(e);
+                        }
+                        return Status.OK_STATUS;
+                    }
+                };
+                j.setSystem(true);
+                j.schedule();
+                return;
+            }
+            try {
+                setProjectDescriptionOperationRunning.set(true);
+                op.runOperation(monitor);
+            } catch (IllegalArgumentException e) {
+                throw ExceptionFactory.createCoreException(e);
+            } finally {
+                setProjectDescriptionOperationRunning.set(false);
+            }
+        } finally {
+            monitor.done();
+        }
+    }
 
-			ICProject cproject = CModelManager.getDefault().create(project);
-
-			// The CProjectDescriptionOperation fires the appropriate CElementDeltas calling the callbacks
-			// below for actual project serialization
-			SetCProjectDescriptionOperation op = new SetCProjectDescriptionOperation(this, cproject,
-					(CProjectDescription) description, flags);
-
-			// Safety: Verify that the listeners of the event call-backs don't recursively call setProjectDescription(...)
-			//         While in the past this recursion hasn't been infinite, the behaviour is 'undefined'.
-			if (setProjectDescriptionOperationRunning.get()) {
-				CCorePlugin.log("API Error: setProjectDescription() shouldn't be called recursively.", new Exception()); //$NON-NLS-1$
-				Job j = new Job("setProjectDescription rescheduled") { //$NON-NLS-1$
-					@Override
-					protected IStatus run(IProgressMonitor monitor) {
-						try {
-							setProjectDescription(description, flags, monitor);
-						} catch (CoreException e) {
-							CCorePlugin.log(e);
-						}
-						return Status.OK_STATUS;
-					}
-				};
-				j.setSystem(true);
-				j.schedule();
-				return;
-			}
-
-			try {
-				setProjectDescriptionOperationRunning.set(true);
-				op.runOperation(monitor);
-			} catch (IllegalArgumentException e) {
-				throw ExceptionFactory.createCoreException(e);
-			} finally {
-				setProjectDescriptionOperationRunning.set(false);
-			}
-		} finally {
-			monitor.done();
-		}
-	}
-
-	/*
+    /*
 	 * C A L L B A C K S
 	 * Callbacks for the SetCProjectDescriptionOperation to allow AbstractCProjectDescriptionStorage overrides
 	 *
 	 */
+    /**
+     * Callback
+     *
+     * 	 - Actually set the current in memory ICProjectDescription to this
+     *   - If this requires modification of workspace resources then don't serialize
+     *
+     * @param des
+     * @param overwriteIfExists
+     * @return boolean indicating whether existing read-only project description should be replaced
+     */
+    public abstract boolean setCurrentDescription(ICProjectDescription des, boolean overwriteIfExists);
 
-	/**
-	 * Callback
-	 *
-	 * 	 - Actually set the current in memory ICProjectDescription to this
-	 *   - If this requires modification of workspace resources then don't serialize
-	 *
-	 * @param des
-	 * @param overwriteIfExists
-	 * @return boolean indicating whether existing read-only project description should be replaced
-	 */
-	public abstract boolean setCurrentDescription(ICProjectDescription des, boolean overwriteIfExists);
+    /**
+     * Callback
+     *   -  Return an IWorkspaceRunnable which will actually perform the serialization of the
+     *      current project description or null if not required
+     * @return IWorkspaceRunnable that will perform the serialization
+     */
+    public abstract IWorkspaceRunnable createDesSerializationRunnable() throws CoreException;
 
-	/**
-	 * Callback
-	 *   -  Return an IWorkspaceRunnable which will actually perform the serialization of the
-	 *      current project description or null if not required
-	 * @return IWorkspaceRunnable that will perform the serialization
-	 */
-	public abstract IWorkspaceRunnable createDesSerializationRunnable() throws CoreException;
-
-	/*
+    /*
 	 * R E S O U R C E     C H A N G E    E V E N T S
 	 */
+    /**
+     * Event fired as a result of a project being moved
+     */
+    public void projectMove(IProject newProject) {
+        project = newProject;
+    }
 
-	/**
-	 * Event fired as a result of a project being moved
-	 */
-	public void projectMove(IProject newProject) {
-		project = newProject;
-	}
+    /**
+     * Event fired as a result of the project being closed or removed
+     * to allow cleanup of state
+     */
+    public void projectCloseRemove() {
+        // NOP
+    }
 
-	/**
-	 * Event fired as a result of the project being closed or removed
-	 * to allow cleanup of state
-	 */
-	public void projectCloseRemove() {
-		// NOP
-	}
-
-	/*
+    /*
 	 * C P R O J E C T        D E L T A          E V E N T S        F I R E D
 	 * Protected methods for notifying project description listeners of changes to the proj desc
 	 */
+    public static final void fireLoadedEvent(ICProjectDescription desc) {
+        CProjectDescriptionManager.getInstance().notifyListeners(new CProjectDescriptionEvent(CProjectDescriptionEvent.LOADED, null, desc, null, null));
+    }
 
-	public static final void fireLoadedEvent(ICProjectDescription desc) {
-		CProjectDescriptionManager.getInstance()
-				.notifyListeners(new CProjectDescriptionEvent(CProjectDescriptionEvent.LOADED, null, desc, null, null));
-	}
+    /**
+     * Fire an event stating that a copy of a description has been created
+     *
+     * This is fired when:
+     *   - New writable description is created from read-only store
+     * @param newDes The new description copy
+     * @param oldDes The old description
+     */
+    public static final void fireCopyCreatedEvent(ICProjectDescription newDes, ICProjectDescription oldDes) {
+        CProjectDescriptionManager.getInstance().notifyListeners(new CProjectDescriptionEvent(CProjectDescriptionEvent.COPY_CREATED, null, newDes, oldDes, null));
+    }
 
-	/**
-	 * Fire an event stating that a copy of a description has been created
-	 *
-	 * This is fired when:
-	 *   - New writable description is created from read-only store
-	 * @param newDes The new description copy
-	 * @param oldDes The old description
-	 */
-	public static final void fireCopyCreatedEvent(ICProjectDescription newDes, ICProjectDescription oldDes) {
-		CProjectDescriptionManager.getInstance().notifyListeners(
-				new CProjectDescriptionEvent(CProjectDescriptionEvent.COPY_CREATED, null, newDes, oldDes, null));
-	}
+    public static final void fireAboutToApplyEvent(ICProjectDescription newDes, ICProjectDescription oldDes) {
+        CProjectDescriptionManager.getInstance().notifyListeners(new CProjectDescriptionEvent(CProjectDescriptionEvent.ABOUT_TO_APPLY, null, newDes, oldDes, null));
+    }
 
-	public static final void fireAboutToApplyEvent(ICProjectDescription newDes, ICProjectDescription oldDes) {
-		CProjectDescriptionManager.getInstance().notifyListeners(
-				new CProjectDescriptionEvent(CProjectDescriptionEvent.ABOUT_TO_APPLY, null, newDes, oldDes, null));
-	}
+    public static final CProjectDescriptionEvent createAppliedEvent(ICProjectDescription newDes, ICProjectDescription oldDes, ICProjectDescription appliedDes, ICDescriptionDelta delta) {
+        return new CProjectDescriptionEvent(CProjectDescriptionEvent.APPLIED, delta, newDes, oldDes, appliedDes);
+    }
 
-	public static final CProjectDescriptionEvent createAppliedEvent(ICProjectDescription newDes,
-			ICProjectDescription oldDes, ICProjectDescription appliedDes, ICDescriptionDelta delta) {
-		return new CProjectDescriptionEvent(CProjectDescriptionEvent.APPLIED, delta, newDes, oldDes, appliedDes);
-	}
+    public static final void fireAppliedEvent(ICProjectDescription newDes, ICProjectDescription oldDes, ICProjectDescription appliedDes, ICDescriptionDelta delta) {
+        CProjectDescriptionManager.getInstance().notifyListeners(createAppliedEvent(newDes, oldDes, appliedDes, delta));
+    }
 
-	public static final void fireAppliedEvent(ICProjectDescription newDes, ICProjectDescription oldDes,
-			ICProjectDescription appliedDes, ICDescriptionDelta delta) {
-		CProjectDescriptionManager.getInstance().notifyListeners(createAppliedEvent(newDes, oldDes, appliedDes, delta));
-	}
+    /**
+     * @param newDes - a *writeable* description
+     * @param oldDes
+     * @param appliedDes - the description being applied
+     * @param delta
+     */
+    public static final void fireDataAppliedEvent(ICProjectDescription newDes, ICProjectDescription oldDes, ICProjectDescription appliedDes, ICDescriptionDelta delta) {
+        CProjectDescriptionManager.getInstance().notifyListeners(new CProjectDescriptionEvent(CProjectDescriptionEvent.DATA_APPLIED, delta, newDes, oldDes, appliedDes));
+    }
 
-	/**
-	 * @param newDes - a *writeable* description
-	 * @param oldDes
-	 * @param appliedDes - the description being applied
-	 * @param delta
-	 */
-	public static final void fireDataAppliedEvent(ICProjectDescription newDes, ICProjectDescription oldDes,
-			ICProjectDescription appliedDes, ICDescriptionDelta delta) {
-		CProjectDescriptionManager.getInstance().notifyListeners(
-				new CProjectDescriptionEvent(CProjectDescriptionEvent.DATA_APPLIED, delta, newDes, oldDes, appliedDes));
-	}
+    /**
+     * Helper method to check whether the specified flags are set
+     * @param flags
+     * @param check
+     * @return boolean indicating whether flags are set
+     */
+    protected static final boolean checkFlags(int flags, int check) {
+        return (flags & check) == check;
+    }
 
-	/**
-	 * Helper method to check whether the specified flags are set
-	 * @param flags
-	 * @param check
-	 * @return boolean indicating whether flags are set
-	 */
-	protected static final boolean checkFlags(int flags, int check) {
-		return (flags & check) == check;
-	}
-
-	/**
-	 * Set the threadLocal project description
-	 *
-	 * Only intended to be used by implementors and package.
-	 *
-	 * This should be used in the following pattern:
-	 * try {
-	 * 		setThreadLocaProjectDesc(prjDesc);
-	 * 		fireEvent();
-	 * } finally {
-	 * 		setThreadLocalProjectDesc(null);
-	 * }
-	 *
-	 * @param currentDesc
-	 * @return the previously set thread local project desc (or null)
-	 */
-	public ICProjectDescription setThreadLocalProjectDesc(ICProjectDescription currentDesc) {
-		ICProjectDescription current = currentThreadProjectDescription.get();
-		currentThreadProjectDescription.set(currentDesc);
-		return current;
-	}
+    /**
+     * Set the threadLocal project description
+     *
+     * Only intended to be used by implementors and package.
+     *
+     * This should be used in the following pattern:
+     * try {
+     * 		setThreadLocaProjectDesc(prjDesc);
+     * 		fireEvent();
+     * } finally {
+     * 		setThreadLocalProjectDesc(null);
+     * }
+     *
+     * @param currentDesc
+     * @return the previously set thread local project desc (or null)
+     */
+    public ICProjectDescription setThreadLocalProjectDesc(ICProjectDescription currentDesc) {
+        ICProjectDescription current = currentThreadProjectDescription.get();
+        currentThreadProjectDescription.set(currentDesc);
+        return current;
+    }
 }

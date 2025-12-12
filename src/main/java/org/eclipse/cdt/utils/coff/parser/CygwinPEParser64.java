@@ -1,21 +1,22 @@
-/*******************************************************************************
- * Copyright (c) 2000, 2019 Space Codesign Systems and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2000, 2019 Space Codesign Systems and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Space Codesign Systems - Initial API and implementation
- *     QNX Software Systems - Initial CygwinPEParser class
- *******************************************************************************/
+ *  Contributors:
+ *      Space Codesign Systems - Initial API and implementation
+ *      QNX Software Systems - Initial CygwinPEParser class
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.utils.coff.parser;
 
 import java.io.IOException;
-
 import org.eclipse.cdt.utils.DefaultCygwinToolFactory;
 import org.eclipse.cdt.utils.ICygwinToolsFactroy;
 import org.eclipse.core.runtime.IPath;
@@ -25,53 +26,54 @@ import org.eclipse.core.runtime.IPath;
  */
 public class CygwinPEParser64 extends PEParser64 {
 
-	private DefaultCygwinToolFactory toolFactory;
+    public DefaultCygwinToolFactory toolFactory;
 
-	/**
-	 * @see org.eclipse.cdt.core.IBinaryParser#getFormat()
-	 */
-	@Override
-	public String getFormat() {
-		return "Cygwin PE"; //$NON-NLS-1$
-	}
+    /**
+     * @see org.eclipse.cdt.core.IBinaryParser#getFormat()
+     */
+    @Override
+    public String getFormat() {
+        //$NON-NLS-1$
+        return "Cygwin PE";
+    }
 
-	@Override
-	protected IBinaryArchive createBinaryArchive(IPath path) throws IOException {
-		return new CygwinPEBinaryArchive64(this, path);
-	}
+    @Override
+    protected IBinaryArchive createBinaryArchive(IPath path) throws IOException {
+        return new CygwinPEBinaryArchive64(this, path);
+    }
 
-	@Override
-	protected IBinaryExecutable createBinaryExecutable(IPath path) {
-		return new CygwinPEBinaryExecutable64(this, path, IBinaryFile.EXECUTABLE);
-	}
+    @Override
+    protected IBinaryExecutable createBinaryExecutable(IPath path) {
+        return new CygwinPEBinaryExecutable64(this, path, IBinaryFile.EXECUTABLE);
+    }
 
-	@Override
-	protected IBinaryObject createBinaryCore(IPath path) {
-		return new CygwinPEBinaryObject64(this, path, IBinaryFile.CORE);
-	}
+    @Override
+    protected IBinaryObject createBinaryCore(IPath path) {
+        return new CygwinPEBinaryObject64(this, path, IBinaryFile.CORE);
+    }
 
-	@Override
-	protected IBinaryObject createBinaryObject(IPath path) {
-		return new CygwinPEBinaryObject64(this, path, IBinaryFile.OBJECT);
-	}
+    @Override
+    protected IBinaryObject createBinaryObject(IPath path) {
+        return new CygwinPEBinaryObject64(this, path, IBinaryFile.OBJECT);
+    }
 
-	@Override
-	protected IBinaryShared createBinaryShared(IPath path) {
-		return new CygwinPEBinaryShared64(this, path);
-	}
+    @Override
+    protected IBinaryShared createBinaryShared(IPath path) {
+        return new CygwinPEBinaryShared64(this, path);
+    }
 
-	protected DefaultCygwinToolFactory createToolFactory() {
-		return new DefaultCygwinToolFactory(this);
-	}
+    protected DefaultCygwinToolFactory createToolFactory() {
+        return new DefaultCygwinToolFactory(this);
+    }
 
-	@Override
-	public <T> T getAdapter(Class<T> adapter) {
-		if (adapter.isAssignableFrom(ICygwinToolsFactroy.class)) {
-			if (toolFactory == null) {
-				toolFactory = createToolFactory();
-			}
-			return adapter.cast(toolFactory);
-		}
-		return super.getAdapter(adapter);
-	}
+    @Override
+    public <T> T getAdapter(Class<T> adapter) {
+        if (adapter.isAssignableFrom(ICygwinToolsFactroy.class)) {
+            if (toolFactory == null) {
+                toolFactory = createToolFactory();
+            }
+            return adapter.cast(toolFactory);
+        }
+        return super.getAdapter(adapter);
+    }
 }

@@ -1,17 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2000, 2013 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     IBM Corporation - initial API and implementation
- *******************************************************************************/
-
+ *  Contributors:
+ *      IBM Corporation - initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.jdt.core.dom;
 
 import java.util.ArrayList;
@@ -30,305 +31,318 @@ import java.util.Map;
  * @since 2.0
  * @noinstantiate This class is not intended to be instantiated by clients.
  */
-@SuppressWarnings({"rawtypes", "unchecked"})
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class PrefixExpression extends Expression {
 
-	/**
- 	 * Prefix operators (typesafe enumeration).
-	 * <pre>
-	 * PrefixOperator:
-	 *    <b><code>++</code></b>  <code>INCREMENT</code>
-	 *    <b><code>--</code></b>  <code>DECREMENT</code>
-	 *    <b><code>+</code></b>  <code>PLUS</code>
-	 *    <b><code>-</code></b>  <code>MINUS</code>
-	 *    <b><code>~</code></b>  <code>COMPLEMENT</code>
-	 *    <b><code>!</code></b>  <code>NOT</code>
-	 * </pre>
-	 */
-	public static class Operator {
+    /**
+     * Prefix operators (typesafe enumeration).
+     * <pre>
+     * PrefixOperator:
+     *    <b><code>++</code></b>  <code>INCREMENT</code>
+     *    <b><code>--</code></b>  <code>DECREMENT</code>
+     *    <b><code>+</code></b>  <code>PLUS</code>
+     *    <b><code>-</code></b>  <code>MINUS</code>
+     *    <b><code>~</code></b>  <code>COMPLEMENT</code>
+     *    <b><code>!</code></b>  <code>NOT</code>
+     * </pre>
+     */
+    public static class Operator {
 
-		/**
-		 * The token for the operator.
-		 */
-		private final String token;
+        /**
+         * The token for the operator.
+         */
+        private final String token;
 
-		/**
-		 * Creates a new prefix operator with the given token.
-		 * <p>
-		 * Note: this constructor is private. The only instances
-		 * ever created are the ones for the standard operators.
-		 * </p>
-		 *
-		 * @param token the character sequence for the operator
-		 */
-		private Operator(String token) {
-			this.token = token;
-		}
+        /**
+         * Creates a new prefix operator with the given token.
+         * <p>
+         * Note: this constructor is private. The only instances
+         * ever created are the ones for the standard operators.
+         * </p>
+         *
+         * @param token the character sequence for the operator
+         */
+        private Operator(String token) {
+            this.token = token;
+        }
 
-		/**
-		 * Returns the character sequence for the operator.
-		 *
-		 * @return the character sequence for the operator
-		 */
-		@Override
-		public String toString() {
-			return this.token;
-		}
+        /**
+         * Returns the character sequence for the operator.
+         *
+         * @return the character sequence for the operator
+         */
+        @Override
+        public String toString() {
+            return this.token;
+        }
 
-		/** Prefix increment "++" operator. */
-		public static final Operator INCREMENT = new Operator("++");//$NON-NLS-1$
-		/** Prefix decrement "--" operator. */
-		public static final Operator DECREMENT = new Operator("--");//$NON-NLS-1$
-		/** Unary plus "+" operator. */
-		public static final Operator PLUS = new Operator("+");//$NON-NLS-1$
-		/** Unary minus "-" operator. */
-		public static final Operator MINUS = new Operator("-");//$NON-NLS-1$
-		/** Bitwise complement "~" operator. */
-		public static final Operator COMPLEMENT = new Operator("~");//$NON-NLS-1$
-		/** Logical complement "!" operator. */
-		public static final Operator NOT = new Operator("!");//$NON-NLS-1$
+        /**
+         * Prefix increment "++" operator.
+         */
+        //$NON-NLS-1$
+        public static final Operator INCREMENT = new Operator("++");
 
-		/**
-		 * Map from token to operator (key type: <code>String</code>;
-		 * value type: <code>Operator</code>).
-		 */
-		private static final Map CODES;
-		static {
-			CODES = new HashMap(20);
-			Operator[] ops = {
-					INCREMENT,
-					DECREMENT,
-					PLUS,
-					MINUS,
-					COMPLEMENT,
-					NOT,
-				};
-			for (Operator op : ops) {
-				CODES.put(op.toString(), op);
-			}
-		}
+        /**
+         * Prefix decrement "--" operator.
+         */
+        //$NON-NLS-1$
+        public static final Operator DECREMENT = new Operator("--");
 
-		/**
-		 * Returns the prefix operator corresponding to the given string,
-		 * or <code>null</code> if none.
-		 * <p>
-		 * <code>toOperator</code> is the converse of <code>toString</code>:
-		 * that is, <code>Operator.toOperator(op.toString()) == op</code> for
-		 * all operators <code>op</code>.
-		 * </p>
-		 *
-		 * @param token the character sequence for the operator
-		 * @return the prefix operator, or <code>null</code> if none
-		 */
-		public static Operator toOperator(String token) {
-			return (Operator) CODES.get(token);
-		}
-	}
+        /**
+         * Unary plus "+" operator.
+         */
+        //$NON-NLS-1$
+        public static final Operator PLUS = new Operator("+");
 
-	/**
-	 * The "operator" structural property of this node type (type: {@link PrefixExpression.Operator}).
-	 * @since 3.0
-	 */
-	public static final SimplePropertyDescriptor OPERATOR_PROPERTY =
-		new SimplePropertyDescriptor(PrefixExpression.class, "operator", PrefixExpression.Operator.class, MANDATORY); //$NON-NLS-1$
+        /**
+         * Unary minus "-" operator.
+         */
+        //$NON-NLS-1$
+        public static final Operator MINUS = new Operator("-");
 
-	/**
-	 * The "operand" structural property of this node type (child type: {@link Expression}).
-	 * @since 3.0
-	 */
-	public static final ChildPropertyDescriptor OPERAND_PROPERTY =
-		new ChildPropertyDescriptor(PrefixExpression.class, "operand", Expression.class, MANDATORY, CYCLE_RISK); //$NON-NLS-1$
+        /**
+         * Bitwise complement "~" operator.
+         */
+        //$NON-NLS-1$
+        public static final Operator COMPLEMENT = new Operator("~");
 
-	/**
-	 * A list of property descriptors (element type:
-	 * {@link StructuralPropertyDescriptor}),
-	 * or null if uninitialized.
-	 */
-	private static final List PROPERTY_DESCRIPTORS;
+        /**
+         * Logical complement "!" operator.
+         */
+        //$NON-NLS-1$
+        public static final Operator NOT = new Operator("!");
 
-	static {
-		List propertyList = new ArrayList(3);
-		createPropertyList(PrefixExpression.class, propertyList);
-		addProperty(OPERATOR_PROPERTY, propertyList);
-		addProperty(OPERAND_PROPERTY, propertyList);
-		PROPERTY_DESCRIPTORS = reapPropertyList(propertyList);
-	}
+        /**
+         * Map from token to operator (key type: <code>String</code>;
+         * value type: <code>Operator</code>).
+         */
+        private static final Map CODES;
 
-	/**
-	 * Returns a list of structural property descriptors for this node type.
-	 * Clients must not modify the result.
-	 *
-	 * @param apiLevel the API level; one of the
-	 * <code>AST.JLS*</code> constants
+        static {
+            CODES = new HashMap(20);
+            Operator[] ops = { INCREMENT, DECREMENT, PLUS, MINUS, COMPLEMENT, NOT };
+            for (Operator op : ops) {
+                CODES.put(op.toString(), op);
+            }
+        }
 
-	 * @return a list of property descriptors (element type:
-	 * {@link StructuralPropertyDescriptor})
-	 * @since 3.0
-	 */
-	public static List propertyDescriptors(int apiLevel) {
-		return PROPERTY_DESCRIPTORS;
-	}
+        /**
+         * Returns the prefix operator corresponding to the given string,
+         * or <code>null</code> if none.
+         * <p>
+         * <code>toOperator</code> is the converse of <code>toString</code>:
+         * that is, <code>Operator.toOperator(op.toString()) == op</code> for
+         * all operators <code>op</code>.
+         * </p>
+         *
+         * @param token the character sequence for the operator
+         * @return the prefix operator, or <code>null</code> if none
+         */
+        public static Operator toOperator(String token) {
+            return (Operator) CODES.get(token);
+        }
+    }
 
-	/**
-	 * The operator; defaults to an unspecified prefix operator.
-	 */
-	private PrefixExpression.Operator operator =
-		PrefixExpression.Operator.PLUS;
+    /**
+     * The "operator" structural property of this node type (type: {@link PrefixExpression.Operator}).
+     * @since 3.0
+     */
+    public static final SimplePropertyDescriptor OPERATOR_PROPERTY = //$NON-NLS-1$
+    new SimplePropertyDescriptor(PrefixExpression.class, "operator", PrefixExpression.Operator.class, MANDATORY);
 
-	/**
-	 * The operand; lazily initialized; defaults to an unspecified,
-	 * but legal, simple name.
-	 */
-	private volatile Expression operand;
+    /**
+     * The "operand" structural property of this node type (child type: {@link Expression}).
+     * @since 3.0
+     */
+    public static final ChildPropertyDescriptor OPERAND_PROPERTY = //$NON-NLS-1$
+    new ChildPropertyDescriptor(PrefixExpression.class, "operand", Expression.class, MANDATORY, CYCLE_RISK);
 
-	/**
-	 * Creates a new AST node for an prefix expression owned by the given
-	 * AST. By default, the node has unspecified (but legal) operator and
-	 * operand.
-	 *
-	 * @param ast the AST that is to own this node
-	 */
-	PrefixExpression(AST ast) {
-		super(ast);
-	}
+    /**
+     * A list of property descriptors (element type:
+     * {@link StructuralPropertyDescriptor}),
+     * or null if uninitialized.
+     */
+    static final public List PROPERTY_DESCRIPTORS;
 
-	@Override
-	final List internalStructuralPropertiesForType(int apiLevel) {
-		return propertyDescriptors(apiLevel);
-	}
+    static {
+        List propertyList = new ArrayList(3);
+        createPropertyList(PrefixExpression.class, propertyList);
+        addProperty(OPERATOR_PROPERTY, propertyList);
+        addProperty(OPERAND_PROPERTY, propertyList);
+        PROPERTY_DESCRIPTORS = reapPropertyList(propertyList);
+    }
 
-	@Override
-	final Object internalGetSetObjectProperty(SimplePropertyDescriptor property, boolean get, Object value) {
-		if (property == OPERATOR_PROPERTY) {
-			if (get) {
-				return getOperator();
-			} else {
-				setOperator((Operator) value);
-				return null;
-			}
-		}
-		// allow default implementation to flag the error
-		return super.internalGetSetObjectProperty(property, get, value);
-	}
+    /**
+     * Returns a list of structural property descriptors for this node type.
+     * Clients must not modify the result.
+     *
+     * @param apiLevel the API level; one of the
+     * <code>AST.JLS*</code> constants
+     *
+     * @return a list of property descriptors (element type:
+     * {@link StructuralPropertyDescriptor})
+     * @since 3.0
+     */
+    public static List propertyDescriptors(int apiLevel) {
+        return PROPERTY_DESCRIPTORS;
+    }
 
-	@Override
-	final ASTNode internalGetSetChildProperty(ChildPropertyDescriptor property, boolean get, ASTNode child) {
-		if (property == OPERAND_PROPERTY) {
-			if (get) {
-				return getOperand();
-			} else {
-				setOperand((Expression) child);
-				return null;
-			}
-		}
-		// allow default implementation to flag the error
-		return super.internalGetSetChildProperty(property, get, child);
-	}
+    /**
+     * The operator; defaults to an unspecified prefix operator.
+     */
+    public PrefixExpression.Operator operator = PrefixExpression.Operator.PLUS;
 
-	@Override
-	final int getNodeType0() {
-		return PREFIX_EXPRESSION;
-	}
+    /**
+     * The operand; lazily initialized; defaults to an unspecified,
+     * but legal, simple name.
+     */
+    volatile public Expression operand;
 
-	@Override
-	ASTNode clone0(AST target) {
-		PrefixExpression result = new PrefixExpression(target);
-		result.setSourceRange(getStartPosition(), getLength());
-		result.setOperator(getOperator());
-		result.setOperand((Expression) getOperand().clone(target));
-		return result;
-	}
+    /**
+     * Creates a new AST node for an prefix expression owned by the given
+     * AST. By default, the node has unspecified (but legal) operator and
+     * operand.
+     *
+     * @param ast the AST that is to own this node
+     */
+    PrefixExpression(AST ast) {
+        super(ast);
+    }
 
-	@Override
-	final boolean subtreeMatch0(ASTMatcher matcher, Object other) {
-		// dispatch to correct overloaded match method
-		return matcher.match(this, other);
-	}
+    @Override
+    final List internalStructuralPropertiesForType(int apiLevel) {
+        return propertyDescriptors(apiLevel);
+    }
 
-	@Override
-	void accept0(ASTVisitor visitor) {
-		boolean visitChildren = visitor.visit(this);
-		if (visitChildren) {
-			// visit children in normal left to right reading order
-			acceptChild(visitor, getOperand());
-		}
-		visitor.endVisit(this);
-	}
+    @Override
+    final Object internalGetSetObjectProperty(SimplePropertyDescriptor property, boolean get, Object value) {
+        if (property == OPERATOR_PROPERTY) {
+            if (get) {
+                return getOperator();
+            } else {
+                setOperator((Operator) value);
+                return null;
+            }
+        }
+        // allow default implementation to flag the error
+        return super.internalGetSetObjectProperty(property, get, value);
+    }
 
-	/**
-	 * Returns the operator of this prefix expression.
-	 *
-	 * @return the operator
-	 */
-	public PrefixExpression.Operator getOperator() {
-		return this.operator;
-	}
+    @Override
+    final ASTNode internalGetSetChildProperty(ChildPropertyDescriptor property, boolean get, ASTNode child) {
+        if (property == OPERAND_PROPERTY) {
+            if (get) {
+                return getOperand();
+            } else {
+                setOperand((Expression) child);
+                return null;
+            }
+        }
+        // allow default implementation to flag the error
+        return super.internalGetSetChildProperty(property, get, child);
+    }
 
-	/**
-	 * Sets the operator of this prefix expression.
-	 *
-	 * @param operator the operator
-	 * @exception IllegalArgumentException if the argument is incorrect
-	 */
-	public void setOperator(PrefixExpression.Operator operator) {
-		if (operator == null) {
-			throw new IllegalArgumentException();
-		}
-		preValueChange(OPERATOR_PROPERTY);
-		this.operator = operator;
-		postValueChange(OPERATOR_PROPERTY);
-	}
+    @Override
+    final int getNodeType0() {
+        return PREFIX_EXPRESSION;
+    }
 
-	/**
-	 * Returns the operand of this prefix expression.
-	 *
-	 * @return the operand expression node
-	 */
-	public Expression getOperand() {
-		if (this.operand  == null) {
-			// lazy init must be thread-safe for readers
-			synchronized (this) {
-				if (this.operand == null) {
-					preLazyInit();
-					this.operand = postLazyInit(new SimpleName(this.ast), OPERAND_PROPERTY);
-				}
-			}
-		}
-		return this.operand;
-	}
+    @Override
+    ASTNode clone0(AST target) {
+        PrefixExpression result = new PrefixExpression(target);
+        result.setSourceRange(getStartPosition(), getLength());
+        result.setOperator(getOperator());
+        result.setOperand((Expression) getOperand().clone(target));
+        return result;
+    }
 
-	/**
-	 * Sets the operand of this prefix expression.
-	 *
-	 * @param expression the operand expression node
-	 * @exception IllegalArgumentException if:
-	 * <ul>
-	 * <li>the node belongs to a different AST</li>
-	 * <li>the node already has a parent</li>
-	 * <li>a cycle in would be created</li>
-	 * </ul>
-	 */
-	public void setOperand(Expression expression) {
-		if (expression == null) {
-			throw new IllegalArgumentException();
-		}
-		ASTNode oldChild = this.operand;
-		preReplaceChild(oldChild, expression, OPERAND_PROPERTY);
-		this.operand = expression;
-		postReplaceChild(oldChild, expression, OPERAND_PROPERTY);
-	}
+    @Override
+    final boolean subtreeMatch0(ASTMatcher matcher, Object other) {
+        // dispatch to correct overloaded match method
+        return matcher.match(this, other);
+    }
 
-	@Override
-	int memSize() {
-		// treat Operator as free
-		return BASE_NODE_SIZE + 2 * 4;
-	}
+    @Override
+    void accept0(ASTVisitor visitor) {
+        boolean visitChildren = visitor.visit(this);
+        if (visitChildren) {
+            // visit children in normal left to right reading order
+            acceptChild(visitor, getOperand());
+        }
+        visitor.endVisit(this);
+    }
 
-	@Override
-	int treeSize() {
-		return
-			memSize()
-			+ (this.operand == null ? 0 : getOperand().treeSize());
-	}
+    /**
+     * Returns the operator of this prefix expression.
+     *
+     * @return the operator
+     */
+    public PrefixExpression.Operator getOperator() {
+        return this.operator;
+    }
+
+    /**
+     * Sets the operator of this prefix expression.
+     *
+     * @param operator the operator
+     * @exception IllegalArgumentException if the argument is incorrect
+     */
+    public void setOperator(PrefixExpression.Operator operator) {
+        if (operator == null) {
+            throw new IllegalArgumentException();
+        }
+        preValueChange(OPERATOR_PROPERTY);
+        this.operator = operator;
+        postValueChange(OPERATOR_PROPERTY);
+    }
+
+    /**
+     * Returns the operand of this prefix expression.
+     *
+     * @return the operand expression node
+     */
+    public Expression getOperand() {
+        if (this.operand == null) {
+            // lazy init must be thread-safe for readers
+            synchronized (this) {
+                if (this.operand == null) {
+                    preLazyInit();
+                    this.operand = postLazyInit(new SimpleName(this.ast), OPERAND_PROPERTY);
+                }
+            }
+        }
+        return this.operand;
+    }
+
+    /**
+     * Sets the operand of this prefix expression.
+     *
+     * @param expression the operand expression node
+     * @exception IllegalArgumentException if:
+     * <ul>
+     * <li>the node belongs to a different AST</li>
+     * <li>the node already has a parent</li>
+     * <li>a cycle in would be created</li>
+     * </ul>
+     */
+    public void setOperand(Expression expression) {
+        if (expression == null) {
+            throw new IllegalArgumentException();
+        }
+        ASTNode oldChild = this.operand;
+        preReplaceChild(oldChild, expression, OPERAND_PROPERTY);
+        this.operand = expression;
+        postReplaceChild(oldChild, expression, OPERAND_PROPERTY);
+    }
+
+    @Override
+    int memSize() {
+        // treat Operator as free
+        return BASE_NODE_SIZE + 2 * 4;
+    }
+
+    @Override
+    int treeSize() {
+        return memSize() + (this.operand == null ? 0 : getOperand().treeSize());
+    }
 }
-

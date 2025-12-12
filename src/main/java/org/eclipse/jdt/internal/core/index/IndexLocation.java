@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2011, 2022 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2011, 2022 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *      IBM Corporation - initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.jdt.internal.core.index;
 
 import java.io.File;
@@ -33,123 +35,128 @@ import org.eclipse.jdt.internal.core.util.Util;
  */
 public abstract class IndexLocation {
 
-	public static IndexLocation createIndexLocation(URL url) {
-		URL localUrl;
-		try {
-			localUrl = FileLocator.resolve(url);
-		} catch (IOException e) {
-			return null;
-		}
-		if (localUrl.getProtocol().equals("file")) { //$NON-NLS-1$
-			File localFile = null;
-			try {
-				URI localFileURI = new URI(localUrl.toExternalForm());
-				localFile = new File(localFileURI);
-			}
-			catch(Exception ex) {
-				localFile = new File(localUrl.getPath());
-			}
-			return new FileIndexLocation(url, localFile);
-		}
-		return new JarIndexLocation(url, localUrl);
-	}
+    public static IndexLocation createIndexLocation(URL url) {
+        URL localUrl;
+        try {
+            localUrl = FileLocator.resolve(url);
+        } catch (IOException e) {
+            return null;
+        }
+        if (localUrl.getProtocol().equals("file")) {
+            //$NON-NLS-1$
+            File localFile = null;
+            try {
+                URI localFileURI = new URI(localUrl.toExternalForm());
+                localFile = new File(localFileURI);
+            } catch (Exception ex) {
+                localFile = new File(localUrl.getPath());
+            }
+            return new FileIndexLocation(url, localFile);
+        }
+        return new JarIndexLocation(url, localUrl);
+    }
 
-	private final URL url; // url of the given index location
-	private final URI uri; // uri of the given index location
+    // url of the given index location
+    final public URL url;
 
-	/**
-	 * Set to true if this index location is of an index file specified
-	 * by a participant through
-	 * {@link org.eclipse.jdt.core.search.SearchParticipant#scheduleDocumentIndexing}
-	 */
-	protected boolean participantIndex;
+    // uri of the given index location
+    final public URI uri;
 
-	protected IndexLocation(File file) {
-		URL tempUrl = null;
-		URI tempUri = null;
-		try {
-			tempUri = file.toURI();
-			tempUrl = tempUri.toURL();
-		} catch (MalformedURLException e) {
-			// should not happen
-			Util.log(e, "Unexpected uri to url conversion failure"); //$NON-NLS-1$
-		}
-		this.url = tempUrl;
-		this.uri = tempUri;
-	}
+    /**
+     * Set to true if this index location is of an index file specified
+     * by a participant through
+     * {@link org.eclipse.jdt.core.search.SearchParticipant#scheduleDocumentIndexing}
+     */
+    public boolean participantIndex;
 
-	public IndexLocation(URL url) {
-		this.url = url;
-		URI tempUri = null;
-		try {
-			tempUri = url.toURI();
-		} catch (URISyntaxException e) {
-			if (this instanceof JarIndexLocation) {
-				// ignore this: we have jar:file: URL's that can't be converted to URI's
-			} else {
-				Util.log(e, "Unexpected uri to url conversion failure"); //$NON-NLS-1$
-			}
-		}
-		this.uri = tempUri;
-	}
+    protected IndexLocation(File file) {
+        URL tempUrl = null;
+        URI tempUri = null;
+        try {
+            tempUri = file.toURI();
+            tempUrl = tempUri.toURL();
+        } catch (MalformedURLException e) {
+            // should not happen
+            //$NON-NLS-1$
+            Util.log(e, "Unexpected uri to url conversion failure");
+        }
+        this.url = tempUrl;
+        this.uri = tempUri;
+    }
 
-	/**
-	 * Closes any open streams.
-	 */
-	public void close() {
-		// default nothing to do
-	}
+    public IndexLocation(URL url) {
+        this.url = url;
+        URI tempUri = null;
+        try {
+            tempUri = url.toURI();
+        } catch (URISyntaxException e) {
+            if (this instanceof JarIndexLocation) {
+                // ignore this: we have jar:file: URL's that can't be converted to URI's
+            } else {
+                //$NON-NLS-1$
+                Util.log(e, "Unexpected uri to url conversion failure");
+            }
+        }
+        this.uri = tempUri;
+    }
 
-	/**
-	 * Creates a new file for the given index location
-	 * @return true if the file is created
-	 */
-	public abstract boolean createNewFile() throws IOException;
+    /**
+     * Closes any open streams.
+     */
+    public void close() {
+        // default nothing to do
+    }
 
-	public abstract boolean delete();
+    /**
+     * Creates a new file for the given index location
+     * @return true if the file is created
+     */
+    public abstract boolean createNewFile() throws IOException;
 
-	public abstract boolean exists();
+    public abstract boolean delete();
 
-	public abstract String fileName();
+    public abstract boolean exists();
 
-	/**
-	 * @return the path if the location is a file or null otherwise
-	 */
-	public abstract Path getIndexPath();
+    public abstract String fileName();
 
-	public abstract File getIndexFile();
+    /**
+     * @return the path if the location is a file or null otherwise
+     */
+    public abstract Path getIndexPath();
 
-	abstract InputStream getInputStream() throws IOException;
+    public abstract File getIndexFile();
 
-	public URL getUrl() {
-		return this.url;
-	}
+    abstract InputStream getInputStream() throws IOException;
 
-	@Override
-	public int hashCode() {
-		return this.uri != null ? this.uri.hashCode() : this.url.hashCode();
-	}
+    public URL getUrl() {
+        return this.url;
+    }
 
-	public boolean isParticipantIndex() {
-		return this.participantIndex;
-	}
+    @Override
+    public int hashCode() {
+        return this.uri != null ? this.uri.hashCode() : this.url.hashCode();
+    }
 
-	/**
-	 * @return the last modified time if the location is a file or -1 otherwise
-	 */
-	public abstract long lastModified();
+    public boolean isParticipantIndex() {
+        return this.participantIndex;
+    }
 
-	/**
-	 * @return the length of the file if the location is a file or -1 otherwise
-	 */
-	public abstract long length();
+    /**
+     * @return the last modified time if the location is a file or -1 otherwise
+     */
+    public abstract long lastModified();
 
-	public abstract boolean startsWith(IPath path);
+    /**
+     * @return the length of the file if the location is a file or -1 otherwise
+     */
+    public abstract long length();
 
-	@Override
-	public String toString() {
-		// Note: this is used in IndexManager.writeIndexMapFile() to persist index location and
-		// in readIndexMap() to read it back to URL
-		return this.url.toString();
-	}
+    public abstract boolean startsWith(IPath path);
+
+    @Override
+    public String toString() {
+        // Note: this is used in IndexManager.writeIndexMapFile() to persist index location and
+        // in readIndexMap() to read it back to URL
+        return this.url.toString();
+    }
 }

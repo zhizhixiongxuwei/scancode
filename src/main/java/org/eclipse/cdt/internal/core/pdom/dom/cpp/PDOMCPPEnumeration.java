@@ -47,15 +47,15 @@ import org.eclipse.core.runtime.CoreException;
  */
 public class PDOMCPPEnumeration extends PDOMCPPBinding implements IPDOMCPPEnumType, IPDOMMemberOwner {
 
-    private static final int OFFSET_ENUMERATOR_LIST = PDOMBinding.RECORD_SIZE;
+    static final public int OFFSET_ENUMERATOR_LIST = PDOMBinding.RECORD_SIZE;
 
-    private static final int OFFSET_MIN_VALUE = OFFSET_ENUMERATOR_LIST + Database.PTR_SIZE;
+    static final public int OFFSET_MIN_VALUE = OFFSET_ENUMERATOR_LIST + Database.PTR_SIZE;
 
-    private static final int OFFSET_MAX_VALUE = OFFSET_MIN_VALUE + 8;
+    static final public int OFFSET_MAX_VALUE = OFFSET_MIN_VALUE + 8;
 
-    private static final int OFFSET_FIXED_TYPE = OFFSET_MAX_VALUE + 8;
+    static final public int OFFSET_FIXED_TYPE = OFFSET_MAX_VALUE + 8;
 
-    private static final int OFFSET_FLAGS = OFFSET_FIXED_TYPE + Database.TYPE_SIZE;
+    static final public int OFFSET_FLAGS = OFFSET_FIXED_TYPE + Database.TYPE_SIZE;
 
     private static final byte FLAG_SCOPED = 0x1;
 

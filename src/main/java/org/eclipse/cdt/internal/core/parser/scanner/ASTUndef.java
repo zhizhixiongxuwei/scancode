@@ -7,7 +7,7 @@ import org.eclipse.cdt.core.dom.ast.IBinding;
 
 public class ASTUndef extends ASTPreprocessorNode implements IASTPreprocessorUndefStatement {
 
-    private final ASTPreprocessorName fName;
+    final public ASTPreprocessorName fName;
 
     public ASTUndef(IASTTranslationUnit parent, char[] name, int startNumber, int nameNumber, int nameEndNumber, IBinding binding, boolean isActive) {
         super(parent, IASTTranslationUnit.PREPROCESSOR_STATEMENT, startNumber, nameEndNumber);

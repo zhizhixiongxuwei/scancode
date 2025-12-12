@@ -2,14 +2,13 @@ package org.eclipse.cdt.internal.core.parser.scanner;
 
 import org.eclipse.cdt.core.dom.ast.IASTPreprocessorIncludeStatement;
 import org.eclipse.cdt.core.dom.ast.IASTTranslationUnit;
-
 import java.util.ArrayList;
 
 public class ASTInclusionNode implements IASTTranslationUnit.IDependencyTree.IASTInclusionNode {
 
-    protected LocationCtx fLocationCtx;
+    public LocationCtx fLocationCtx;
 
-    private IASTTranslationUnit.IDependencyTree.IASTInclusionNode[] fInclusions;
+    public IASTTranslationUnit.IDependencyTree.IASTInclusionNode[] fInclusions;
 
     public ASTInclusionNode(LocationCtx ctx) {
         fLocationCtx = ctx;

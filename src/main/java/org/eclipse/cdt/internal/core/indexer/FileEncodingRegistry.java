@@ -1,17 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2010, 2011 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2010, 2011 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- * IBM Corporation - Initial API and implementation
- *******************************************************************************/
-
+ *  Contributors:
+ *  IBM Corporation - Initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.indexer;
 
 import java.io.IOException;
@@ -25,68 +26,62 @@ import java.util.TreeMap;
  * is used by standalone indexer
  *
  * @author johnliu
- *
  */
 public class FileEncodingRegistry implements Serializable {
 
-	private Map<String, String> fFilePathToEncodingMap = null;
-	private String defaultEncoding;
+    public Map<String, String> fFilePathToEncodingMap = null;
 
-	public FileEncodingRegistry(String defaultEncoding) {
-		this.defaultEncoding = defaultEncoding;
-		fFilePathToEncodingMap = new TreeMap<>();
-	}
+    public String defaultEncoding;
 
-	public void setDefaultEncoding(String newDefaultEncoding) {
-		defaultEncoding = newDefaultEncoding;
+    public FileEncodingRegistry(String defaultEncoding) {
+        this.defaultEncoding = defaultEncoding;
+        fFilePathToEncodingMap = new TreeMap<>();
+    }
 
-	}
+    public void setDefaultEncoding(String newDefaultEncoding) {
+        defaultEncoding = newDefaultEncoding;
+    }
 
-	public void registerFileEncoding(String filename, String encoding) {
-		if (defaultEncoding.equals(encoding)) {
-			return;
-		}
-		if (fFilePathToEncodingMap != null) {
-			fFilePathToEncodingMap.put(filename, encoding);
-		}
+    public void registerFileEncoding(String filename, String encoding) {
+        if (defaultEncoding.equals(encoding)) {
+            return;
+        }
+        if (fFilePathToEncodingMap != null) {
+            fFilePathToEncodingMap.put(filename, encoding);
+        }
+    }
 
-	}
+    public void unregisterFile(String filename) {
+        if (fFilePathToEncodingMap != null) {
+            fFilePathToEncodingMap.remove(filename);
+        }
+    }
 
-	public void unregisterFile(String filename) {
-		if (fFilePathToEncodingMap != null) {
-			fFilePathToEncodingMap.remove(filename);
-		}
+    public String getFileEncoding(String filename) {
+        String fileEncoding = null;
+        if (fFilePathToEncodingMap != null) {
+            fileEncoding = fFilePathToEncodingMap.get(filename);
+        }
+        if (fileEncoding != null) {
+            return fileEncoding;
+        } else {
+            return defaultEncoding;
+        }
+    }
 
-	}
+    public void clear() {
+        if (fFilePathToEncodingMap != null) {
+            fFilePathToEncodingMap.clear();
+        }
+        fFilePathToEncodingMap = null;
+        defaultEncoding = null;
+    }
 
-	public String getFileEncoding(String filename) {
-		String fileEncoding = null;
-		if (fFilePathToEncodingMap != null) {
-			fileEncoding = fFilePathToEncodingMap.get(filename);
-		}
-		if (fileEncoding != null) {
-			return fileEncoding;
-
-		} else {
-			return defaultEncoding;
-		}
-	}
-
-	public void clear() {
-		if (fFilePathToEncodingMap != null) {
-			fFilePathToEncodingMap.clear();
-		}
-		fFilePathToEncodingMap = null;
-		defaultEncoding = null;
-
-	}
-
-	// send as little over the wire as possible
-	private void writeObject(ObjectOutputStream out) throws IOException {
-		if (fFilePathToEncodingMap != null && fFilePathToEncodingMap.isEmpty()) {
-			fFilePathToEncodingMap = null;
-		}
-		out.defaultWriteObject();
-	}
-
+    // send as little over the wire as possible
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        if (fFilePathToEncodingMap != null && fFilePathToEncodingMap.isEmpty()) {
+            fFilePathToEncodingMap = null;
+        }
+        out.defaultWriteObject();
+    }
 }

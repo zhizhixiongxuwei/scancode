@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2005, 2011 Intel Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2005, 2011 Intel Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- * Intel Corporation - Initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *  Intel Corporation - Initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.core.cdtvariables;
 
 import org.eclipse.cdt.core.CCorePlugin;
@@ -23,97 +25,101 @@ import org.eclipse.core.runtime.Status;
  * @since 3.0
  */
 public class CdtVariableStatus extends Status implements ICdtVariableStatus {
-	//	private static final String PREFIX = "BuildMacroStatus";	//$NON-NLS-1$
-	//	private static final String STATUS = PREFIX + ".status";	//$NON-NLS-1$
-	//	private static final String STATUS_MACRO_UNDEFINED = STATUS + ".macro.undefined";	//$NON-NLS-1$
-	//	private static final String STATUS_MACROS_REFERENCE_EACHOTHER = STATUS + ".reference.eachother";	//$NON-NLS-1$
-	//	private static final String STATUS_MACRO_REFERENCE_INCORRECT = STATUS + ".reference.incorrect";	//$NON-NLS-1$
-	//	private static final String STATUS_MACRO_NOT_STRING = STATUS + ".macro.not.string";	//$NON-NLS-1$
-	//	private static final String STATUS_MACRO_NOT_STRINGLIST = STATUS + ".macro.not.stringlist";	//$NON-NLS-1$
-	//	private static final String STATUS_ERROR = STATUS + ".error";	//$NON-NLS-1$
-	//	private static final String VALUE_UNDEFINED = PREFIX + ".value.undefined";	//$NON-NLS-1$
 
-	private String fMacroName;
-	private String fExpression;
-	private String fReferencedName;
-	//	private int fContextType;
-	//	private Object fContextData;
-	//	private Object fContext;
+    //	private static final String PREFIX = "BuildMacroStatus";	//$NON-NLS-1$
+    //	private static final String STATUS = PREFIX + ".status";	//$NON-NLS-1$
+    //	private static final String STATUS_MACRO_UNDEFINED = STATUS + ".macro.undefined";	//$NON-NLS-1$
+    //	private static final String STATUS_MACROS_REFERENCE_EACHOTHER = STATUS + ".reference.eachother";	//$NON-NLS-1$
+    //	private static final String STATUS_MACRO_REFERENCE_INCORRECT = STATUS + ".reference.incorrect";	//$NON-NLS-1$
+    //	private static final String STATUS_MACRO_NOT_STRING = STATUS + ".macro.not.string";	//$NON-NLS-1$
+    //	private static final String STATUS_MACRO_NOT_STRINGLIST = STATUS + ".macro.not.stringlist";	//$NON-NLS-1$
+    //	private static final String STATUS_ERROR = STATUS + ".error";	//$NON-NLS-1$
+    //	private static final String VALUE_UNDEFINED = PREFIX + ".value.undefined";	//$NON-NLS-1$
+    public String fMacroName;
 
-	/**
-	 *
-	 * @param severity as documented in {@link IStatus}
-	 * @param code as provided by {@link ICdtVariableStatus}.
-	 * @param message message, can be null. In this case the default message will
-	 *  be generated base upon the other status info
-	 * @param exception a low-level exception, or <code>null</code> if not
-	 *    applicable
-	 * @param macroName the name of the build macro whose resolution caused this status creation or null if none
-	 * @param expression the string whose resolution caused this status creation or null if none
-	 * @param referencedName the macro name referenced in the resolution string that caused this this status creation or null if none
-	 */
-	public CdtVariableStatus(int severity, int code, String message, Throwable exception, String macroName,
-			String expression, String referencedName//,
-	//			int contextType,
-	//			Object contextData
-	//			Object context
-	) {
-		super(severity, CCorePlugin.PLUGIN_ID, code, message != null ? message : "", exception); //$NON-NLS-1$
-		fExpression = expression;
-		fReferencedName = referencedName;
-		//		fContextType = contextType;
-		//		fContextData = contextData;
-		//		fContext = context;
-		fMacroName = macroName;
-		if (message == null)
-			setMessage(generateMessage());
-	}
+    public String fExpression;
 
-	/**
-	 * Creates status with the IStatus.ERROR severity
-	 *
-	 * @param code one of the IBuildMacroStatus.TYPE_xxx statusses
-	 * @param message message, can be null. In this case the default message will
-	 *  be generated base upon the other status info
-	 * @param exception a low-level exception, or <code>null</code> if not
-	 *    applicable
-	 * @param macroName the name of the build macro whose resolution caused this status creation or null if none
-	 * @param expression the string whose resolutinon caused caused this status creation or null if none
-	 * @param referencedName the macro name referenced in the resolution string that caused this this status creation or null if none
-	 */
-	public CdtVariableStatus(int code, String message, Throwable exception, String macroName, String expression,
-			String referencedName//,
-	//			int contextType,
-	//			Object contextData
-	//			Object context
-	) {
-		this(IStatus.ERROR, code, message, exception, macroName, expression,
-				referencedName/*,contextType,contextData*/);
-	}
+    public String fReferencedName;
 
-	/**
-	 * Creates status with the IStatus.ERROR severity and with the default message
-	 *
-	 * @param code one of the IBuildMacroStatus.TYPE_xxx statusses
-	 * @param macroName the name of the build macro whose resolution caused this status creation or null if none
-	 * @param expression the string whose resolutinon caused caused this status creation or null if none
-	 * @param referencedName the macro name referenced in the resolution string that caused this this status creation or null if none
-	 */
-	public CdtVariableStatus(int code, String macroName, String expression, String referencedName//,
-	//			int contextType,
-	//			Object contextData
-	) {
-		this(IStatus.ERROR, code, null, null, macroName, expression, referencedName/*,contextType,contextData*/);
-	}
+    //	private int fContextType;
+    //	private Object fContextData;
+    //	private Object fContext;
+    /**
+     * @param severity as documented in {@link IStatus}
+     * @param code as provided by {@link ICdtVariableStatus}.
+     * @param message message, can be null. In this case the default message will
+     *  be generated base upon the other status info
+     * @param exception a low-level exception, or <code>null</code> if not
+     *    applicable
+     * @param macroName the name of the build macro whose resolution caused this status creation or null if none
+     * @param expression the string whose resolution caused this status creation or null if none
+     * @param referencedName the macro name referenced in the resolution string that caused this this status creation or null if none
+     */
+    public CdtVariableStatus(int severity, int code, String message, Throwable exception, String macroName, //,
+    String expression, //,
+    String referencedName) //			int contextType,
+    //			Object contextData
+    //			Object context
+    {
+        //$NON-NLS-1$
+        super(severity, CCorePlugin.PLUGIN_ID, code, message != null ? message : "", exception);
+        fExpression = expression;
+        fReferencedName = referencedName;
+        //		fContextType = contextType;
+        //		fContextData = contextData;
+        //		fContext = context;
+        fMacroName = macroName;
+        if (message == null)
+            setMessage(generateMessage());
+    }
 
-	/**
-	 * generates and returns the default status message based upon then status data
-	 *
-	 * @return String
-	 */
-	protected String generateMessage() {
-		String message = null;
-		/*		switch(getCode()){
+    /**
+     * Creates status with the IStatus.ERROR severity
+     *
+     * @param code one of the IBuildMacroStatus.TYPE_xxx statusses
+     * @param message message, can be null. In this case the default message will
+     *  be generated base upon the other status info
+     * @param exception a low-level exception, or <code>null</code> if not
+     *    applicable
+     * @param macroName the name of the build macro whose resolution caused this status creation or null if none
+     * @param expression the string whose resolutinon caused caused this status creation or null if none
+     * @param referencedName the macro name referenced in the resolution string that caused this this status creation or null if none
+     */
+    public CdtVariableStatus(int code, String message, Throwable exception, String macroName, String expression, //,
+    String referencedName) //			int contextType,
+    //			Object contextData
+    //			Object context
+    {
+        this(IStatus.ERROR, code, message, exception, macroName, expression, referencedName);
+    }
+
+    /**
+     * Creates status with the IStatus.ERROR severity and with the default message
+     *
+     * @param code one of the IBuildMacroStatus.TYPE_xxx statusses
+     * @param macroName the name of the build macro whose resolution caused this status creation or null if none
+     * @param expression the string whose resolutinon caused caused this status creation or null if none
+     * @param referencedName the macro name referenced in the resolution string that caused this this status creation or null if none
+     */
+    public //,
+    CdtVariableStatus(//,
+    int code, //,
+    String macroName, //,
+    String expression, //,
+    String referencedName) //			int contextType,
+    //			Object contextData
+    {
+        this(IStatus.ERROR, code, null, null, macroName, expression, referencedName);
+    }
+
+    /**
+     * generates and returns the default status message based upon then status data
+     *
+     * @return String
+     */
+    protected String generateMessage() {
+        String message = null;
+        /*		switch(getCode()){
 				case TYPE_MACRO_UNDEFINED:{
 					String refName = fReferencedName;
 					if(refName == null)
@@ -156,30 +162,27 @@ public class CdtVariableStatus extends Status implements ICdtVariableStatus {
 				default:
 					message = ManagedMakeMessages.getResourceString(STATUS_ERROR);
 				}*/
-		return message;
-	}
+        return message;
+    }
 
-	@Override
-	public String getVariableName() {
-		return fMacroName;
-	}
+    @Override
+    public String getVariableName() {
+        return fMacroName;
+    }
 
-	@Override
-	public String getExpression() {
-		return fExpression;
-	}
+    @Override
+    public String getExpression() {
+        return fExpression;
+    }
 
-	@Override
-	public String getReferencedMacroName() {
-		return fReferencedName;
-	}
-
-	//	public int getContextType() {
-	//		return fContextType;
-	//	}
-
-	//	public Object getContextData() {
-	//		return fContextData;
-	//	}
-
+    @Override
+    public String getReferencedMacroName() {
+        return fReferencedName;
+    }
+    //	public int getContextType() {
+    //		return fContextType;
+    //	}
+    //	public Object getContextData() {
+    //		return fContextData;
+    //	}
 }
