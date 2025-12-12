@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2010, 2012 Wind River Systems, Inc. and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2010, 2012 Wind River Systems, Inc. and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Markus Schorn - initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *      Markus Schorn - initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.dom.parser.cpp.semantics;
 
 import org.eclipse.cdt.core.dom.ast.IType;
@@ -18,24 +20,25 @@ import org.eclipse.cdt.core.dom.ast.IType;
 /**
  * Used for computing the partial ordering of function templates.
  */
-class UniqueType implements IType {
-	private boolean fForParameterPack;
+public class UniqueType implements IType {
 
-	public UniqueType(boolean forParameterPack) {
-		fForParameterPack = forParameterPack;
-	}
+    private boolean fForParameterPack;
 
-	@Override
-	public boolean isSameType(IType type) {
-		return type == this;
-	}
+    public UniqueType(boolean forParameterPack) {
+        fForParameterPack = forParameterPack;
+    }
 
-	public boolean isForParameterPack() {
-		return fForParameterPack;
-	}
+    @Override
+    public boolean isSameType(IType type) {
+        return type == this;
+    }
 
-	@Override
-	public Object clone() {
-		throw new UnsupportedOperationException();
-	}
+    public boolean isForParameterPack() {
+        return fForParameterPack;
+    }
+
+    @Override
+    public Object clone() {
+        throw new UnsupportedOperationException();
+    }
 }

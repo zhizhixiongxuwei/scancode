@@ -1,27 +1,28 @@
-/*******************************************************************************
- * Copyright (c) 2005, 2015 QNX Software Systems and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2005, 2015 QNX Software Systems and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     QNX - Initial API and implementation
- *     Markus Schorn (Wind River Systems)
- *     Andrew Ferguson (Symbian)
- *     Bryan Wilkinson (QNX)
- *     Sergey Prigogin (Google)
- *     Thomas Corbat (IFS)
- *******************************************************************************/
+ *  Contributors:
+ *      QNX - Initial API and implementation
+ *      Markus Schorn (Wind River Systems)
+ *      Andrew Ferguson (Symbian)
+ *      Bryan Wilkinson (QNX)
+ *      Sergey Prigogin (Google)
+ *      Thomas Corbat (IFS)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.pdom.dom.cpp;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import org.eclipse.cdt.core.CCorePlugin;
 import org.eclipse.cdt.core.dom.IPDOMVisitor;
 import org.eclipse.cdt.core.dom.ast.ASTTypeUtil;
@@ -52,442 +53,454 @@ import org.eclipse.core.runtime.CoreException;
 /**
  * @author Doug Schaefer
  */
-class PDOMCPPClassType extends PDOMCPPBinding implements IPDOMCPPClassType, IPDOMMemberOwner {
-	private static final int FIRSTBASE = PDOMCPPBinding.RECORD_SIZE;
-	private static final int MEMBERLIST = FIRSTBASE + 4;
-	private static final int FIRSTFRIEND = MEMBERLIST + PDOMCPPMemberBlock.RECORD_SIZE;
-	private static final int KEY = FIRSTFRIEND + 4; // byte
-	private static final int ANONYMOUS = KEY + 1; // byte
-	private static final int FINAL = ANONYMOUS + 1; // byte
-	private static final int VISIBLE_TO_ADL_ONLY = FINAL + 1; // byte
-	private static final int NO_DISCARD = VISIBLE_TO_ADL_ONLY + 1; // byte
-	@SuppressWarnings("hiding")
-	protected static final int RECORD_SIZE = NO_DISCARD + 1;
+public class PDOMCPPClassType extends PDOMCPPBinding implements IPDOMCPPClassType, IPDOMMemberOwner {
 
-	private PDOMCPPClassScope fScope; // No need for volatile, all fields of PDOMCPPClassScope are final.
+    private static final int FIRSTBASE = PDOMCPPBinding.RECORD_SIZE;
 
-	public PDOMCPPClassType(PDOMLinkage linkage, PDOMNode parent, ICPPClassType classType, boolean visibleToAdlOnly)
-			throws CoreException {
-		super(linkage, parent, classType.getNameCharArray());
+    private static final int MEMBERLIST = FIRSTBASE + 4;
 
-		setKind(classType);
-		setAnonymous(classType);
-		setFinal(classType);
-		setVisibleToAdlOnly(visibleToAdlOnly);
-		setNoDiscard(classType);
-		// Linked list is initialized by storage being zero'd by malloc.
-	}
+    private static final int FIRSTFRIEND = MEMBERLIST + PDOMCPPMemberBlock.RECORD_SIZE;
 
-	public PDOMCPPClassType(PDOMLinkage linkage, long bindingRecord) {
-		super(linkage, bindingRecord);
-	}
+    // byte
+    private static final int KEY = FIRSTFRIEND + 4;
 
-	@Override
-	protected int getRecordSize() {
-		return RECORD_SIZE;
-	}
+    // byte
+    private static final int ANONYMOUS = KEY + 1;
 
-	@Override
-	public int getNodeType() {
-		return IIndexCPPBindingConstants.CPPCLASSTYPE;
-	}
+    // byte
+    private static final int FINAL = ANONYMOUS + 1;
 
-	@Override
-	public void update(PDOMLinkage linkage, IBinding newBinding) throws CoreException {
-		if (newBinding instanceof ICPPClassType) {
-			ICPPClassType ct = (ICPPClassType) newBinding;
-			setKind(ct);
-			setAnonymous(ct);
-			setFinal(ct);
-			setNoDiscard(ct);
-			super.update(linkage, newBinding);
-		}
-	}
+    // byte
+    private static final int VISIBLE_TO_ADL_ONLY = FINAL + 1;
 
-	private void setKind(ICPPClassType ct) throws CoreException {
-		getDB().putByte(record + KEY, (byte) ct.getKey());
-	}
+    // byte
+    private static final int NO_DISCARD = VISIBLE_TO_ADL_ONLY + 1;
 
-	private void setAnonymous(ICPPClassType ct) throws CoreException {
-		getDB().putByte(record + ANONYMOUS, (byte) (ct.isAnonymous() ? 1 : 0));
-	}
+    @SuppressWarnings("hiding")
+    protected static final int RECORD_SIZE = NO_DISCARD + 1;
 
-	private void setFinal(ICPPClassType ct) throws CoreException {
-		getDB().putByte(record + FINAL, (byte) (ct.isFinal() ? 1 : 0));
-	}
+    // No need for volatile, all fields of PDOMCPPClassScope are final.
+    private PDOMCPPClassScope fScope;
 
-	private void setNoDiscard(ICPPClassType ct) throws CoreException {
-		getDB().putByte(record + NO_DISCARD, (byte) (ct.isNoDiscard() ? 1 : 0));
-	}
+    public PDOMCPPClassType(PDOMLinkage linkage, PDOMNode parent, ICPPClassType classType, boolean visibleToAdlOnly) throws CoreException {
+        super(linkage, parent, classType.getNameCharArray());
+        setKind(classType);
+        setAnonymous(classType);
+        setFinal(classType);
+        setVisibleToAdlOnly(visibleToAdlOnly);
+        setNoDiscard(classType);
+        // Linked list is initialized by storage being zero'd by malloc.
+    }
 
-	@Override
-	public void setVisibleToAdlOnly(boolean visibleToAdlOnly) throws CoreException {
-		getDB().putByte(record + VISIBLE_TO_ADL_ONLY, (byte) (visibleToAdlOnly ? 1 : 0));
-	}
+    public PDOMCPPClassType(PDOMLinkage linkage, long bindingRecord) {
+        super(linkage, bindingRecord);
+    }
 
-	@Override
-	public boolean mayHaveChildren() {
-		return true;
-	}
+    @Override
+    protected int getRecordSize() {
+        return RECORD_SIZE;
+    }
 
-	@Override
-	public final void addChild(PDOMNode member) throws CoreException {
-		throw new UnsupportedOperationException("addMember should be called instead to add " + //$NON-NLS-1$
-				(member instanceof IBinding ? ((IBinding) member).getName() : member.toString()) + " to " + getName()); //$NON-NLS-1$
-	}
+    @Override
+    public int getNodeType() {
+        return IIndexCPPBindingConstants.CPPCLASSTYPE;
+    }
 
-	@Override
-	public void accept(IPDOMVisitor visitor) throws CoreException {
-		PDOMCPPClassScope.acceptViaCache(this, visitor, false);
-	}
+    @Override
+    public void update(PDOMLinkage linkage, IBinding newBinding) throws CoreException {
+        if (newBinding instanceof ICPPClassType) {
+            ICPPClassType ct = (ICPPClassType) newBinding;
+            setKind(ct);
+            setAnonymous(ct);
+            setFinal(ct);
+            setNoDiscard(ct);
+            super.update(linkage, newBinding);
+        }
+    }
 
-	/**
-	 * Called to populate the cache for the bindings in the class scope.
-	 */
-	@Override
-	public void acceptUncached(IPDOMVisitor visitor) throws CoreException {
-		super.accept(visitor);
-		PDOMCPPMemberBlock list = new PDOMCPPMemberBlock(getLinkage(), record + MEMBERLIST);
-		list.accept(visitor);
-	}
+    private void setKind(ICPPClassType ct) throws CoreException {
+        getDB().putByte(record + KEY, (byte) ct.getKey());
+    }
 
-	private PDOMCPPBase getFirstBase() throws CoreException {
-		long rec = getDB().getRecPtr(record + FIRSTBASE);
-		return rec != 0 ? new PDOMCPPBase(getLinkage(), rec) : null;
-	}
+    private void setAnonymous(ICPPClassType ct) throws CoreException {
+        getDB().putByte(record + ANONYMOUS, (byte) (ct.isAnonymous() ? 1 : 0));
+    }
 
-	private void setFirstBase(PDOMCPPBase base) throws CoreException {
-		long rec = base != null ? base.getRecord() : 0;
-		getDB().putRecPtr(record + FIRSTBASE, rec);
-	}
+    private void setFinal(ICPPClassType ct) throws CoreException {
+        getDB().putByte(record + FINAL, (byte) (ct.isFinal() ? 1 : 0));
+    }
 
-	public void addBases(PDOMName classDefName, ICPPBase[] bases) throws CoreException {
-		getPDOM().removeCachedResult(record + PDOMCPPLinkage.CACHE_BASES);
-		final PDOMLinkage linkage = getLinkage();
-		PDOMCPPBase firstBase = getFirstBase();
-		for (ICPPBase base : bases) {
-			PDOMCPPBase nextBase = new PDOMCPPBase(linkage, base, classDefName);
-			nextBase.setNextBase(firstBase);
-			firstBase = nextBase;
-		}
-		setFirstBase(firstBase);
-	}
+    private void setNoDiscard(ICPPClassType ct) throws CoreException {
+        getDB().putByte(record + NO_DISCARD, (byte) (ct.isNoDiscard() ? 1 : 0));
+    }
 
-	public void removeBases(PDOMName classDefName) throws CoreException {
-		final PDOM pdom = getPDOM();
-		final Database db = getDB();
-		pdom.removeCachedResult(record + PDOMCPPLinkage.CACHE_BASES);
+    @Override
+    public void setVisibleToAdlOnly(boolean visibleToAdlOnly) throws CoreException {
+        getDB().putByte(record + VISIBLE_TO_ADL_ONLY, (byte) (visibleToAdlOnly ? 1 : 0));
+    }
 
-		PDOMCPPBase base = getFirstBase();
-		PDOMCPPBase prevBase = null;
-		long nameRec = classDefName.getRecord();
-		boolean deleted = false;
-		while (base != null) {
-			PDOMCPPBase nextBase = base.getNextBase();
-			long classDefRec = db.getRecPtr(base.getRecord() + PDOMCPPBase.CLASS_DEFINITION);
-			if (classDefRec == nameRec) {
-				deleted = true;
-				base.delete();
-			} else {
-				if (deleted) {
-					deleted = false;
-					if (prevBase == null) {
-						setFirstBase(base);
-					} else {
-						prevBase.setNextBase(base);
-					}
-				}
-				prevBase = base;
-			}
-			base = nextBase;
-		}
-		if (deleted) {
-			if (prevBase == null) {
-				setFirstBase(null);
-			} else {
-				prevBase.setNextBase(null);
-			}
-		}
-	}
+    @Override
+    public boolean mayHaveChildren() {
+        return true;
+    }
 
-	public void addFriend(PDOMCPPFriend friend) throws CoreException {
-		PDOMCPPFriend firstFriend = getFirstFriend();
-		friend.setNextFriend(firstFriend);
-		setFirstFriend(friend);
-	}
+    @Override
+    public final void addChild(PDOMNode member) throws CoreException {
+        throw new UnsupportedOperationException(//$NON-NLS-1$
+        "addMember should be called instead to add " + (member instanceof IBinding ? ((IBinding) member).getName() : member.toString()) + " to " + //$NON-NLS-1$
+        getName());
+    }
 
-	private PDOMCPPFriend getFirstFriend() throws CoreException {
-		long rec = getDB().getRecPtr(record + FIRSTFRIEND);
-		return rec != 0 ? new PDOMCPPFriend(getLinkage(), rec) : null;
-	}
+    @Override
+    public void accept(IPDOMVisitor visitor) throws CoreException {
+        PDOMCPPClassScope.acceptViaCache(this, visitor, false);
+    }
 
-	private void setFirstFriend(PDOMCPPFriend friend) throws CoreException {
-		long rec = friend != null ? friend.getRecord() : 0;
-		getDB().putRecPtr(record + FIRSTFRIEND, rec);
-	}
+    /**
+     * Called to populate the cache for the bindings in the class scope.
+     */
+    @Override
+    public void acceptUncached(IPDOMVisitor visitor) throws CoreException {
+        super.accept(visitor);
+        PDOMCPPMemberBlock list = new PDOMCPPMemberBlock(getLinkage(), record + MEMBERLIST);
+        list.accept(visitor);
+    }
 
-	public void removeFriend(PDOMName pdomName) throws CoreException {
-		PDOMCPPFriend friend = getFirstFriend();
-		PDOMCPPFriend predecessor = null;
-		long nameRec = pdomName.getRecord();
-		while (friend != null) {
-			PDOMName name = friend.getSpecifierName();
-			if (name != null && name.getRecord() == nameRec) {
-				break;
-			}
-			predecessor = friend;
-			friend = friend.getNextFriend();
-		}
-		if (friend != null) {
-			if (predecessor != null) {
-				predecessor.setNextFriend(friend.getNextFriend());
-			} else {
-				setFirstFriend(friend.getNextFriend());
-			}
-			friend.delete();
-		}
-	}
+    private PDOMCPPBase getFirstBase() throws CoreException {
+        long rec = getDB().getRecPtr(record + FIRSTBASE);
+        return rec != 0 ? new PDOMCPPBase(getLinkage(), rec) : null;
+    }
 
-	@Override
-	public ICPPClassScope getCompositeScope() {
-		if (fScope == null) {
-			fScope = new PDOMCPPClassScope(this);
-		}
-		return fScope;
-	}
+    private void setFirstBase(PDOMCPPBase base) throws CoreException {
+        long rec = base != null ? base.getRecord() : 0;
+        getDB().putRecPtr(record + FIRSTBASE, rec);
+    }
 
-	@Override
-	public int getKey() {
-		try {
-			return getDB().getByte(record + KEY);
-		} catch (CoreException e) {
-			CCorePlugin.log(e);
-			return ICPPClassType.k_class; // or something
-		}
-	}
+    public void addBases(PDOMName classDefName, ICPPBase[] bases) throws CoreException {
+        getPDOM().removeCachedResult(record + PDOMCPPLinkage.CACHE_BASES);
+        final PDOMLinkage linkage = getLinkage();
+        PDOMCPPBase firstBase = getFirstBase();
+        for (ICPPBase base : bases) {
+            PDOMCPPBase nextBase = new PDOMCPPBase(linkage, base, classDefName);
+            nextBase.setNextBase(firstBase);
+            firstBase = nextBase;
+        }
+        setFirstBase(firstBase);
+    }
 
-	@Override
-	public boolean isAnonymous() {
-		try {
-			return getDB().getByte(record + ANONYMOUS) != 0;
-		} catch (CoreException e) {
-			CCorePlugin.log(e);
-			return false;
-		}
-	}
+    public void removeBases(PDOMName classDefName) throws CoreException {
+        final PDOM pdom = getPDOM();
+        final Database db = getDB();
+        pdom.removeCachedResult(record + PDOMCPPLinkage.CACHE_BASES);
+        PDOMCPPBase base = getFirstBase();
+        PDOMCPPBase prevBase = null;
+        long nameRec = classDefName.getRecord();
+        boolean deleted = false;
+        while (base != null) {
+            PDOMCPPBase nextBase = base.getNextBase();
+            long classDefRec = db.getRecPtr(base.getRecord() + PDOMCPPBase.CLASS_DEFINITION);
+            if (classDefRec == nameRec) {
+                deleted = true;
+                base.delete();
+            } else {
+                if (deleted) {
+                    deleted = false;
+                    if (prevBase == null) {
+                        setFirstBase(base);
+                    } else {
+                        prevBase.setNextBase(base);
+                    }
+                }
+                prevBase = base;
+            }
+            base = nextBase;
+        }
+        if (deleted) {
+            if (prevBase == null) {
+                setFirstBase(null);
+            } else {
+                prevBase.setNextBase(null);
+            }
+        }
+    }
 
-	@Override
-	public boolean isFinal() {
-		try {
-			return getDB().getByte(record + FINAL) != 0;
-		} catch (CoreException e) {
-			CCorePlugin.log(e);
-			return false;
-		}
-	}
+    public void addFriend(PDOMCPPFriend friend) throws CoreException {
+        PDOMCPPFriend firstFriend = getFirstFriend();
+        friend.setNextFriend(firstFriend);
+        setFirstFriend(friend);
+    }
 
-	@Override
-	public boolean isNoDiscard() {
-		try {
-			return getDB().getByte(record + NO_DISCARD) != 0;
-		} catch (CoreException e) {
-			CCorePlugin.log(e);
-			return false;
-		}
-	}
+    private PDOMCPPFriend getFirstFriend() throws CoreException {
+        long rec = getDB().getRecPtr(record + FIRSTFRIEND);
+        return rec != 0 ? new PDOMCPPFriend(getLinkage(), rec) : null;
+    }
 
-	@Override
-	public boolean isVisibleToAdlOnly() {
-		try {
-			return getDB().getByte(record + VISIBLE_TO_ADL_ONLY) != 0;
-		} catch (CoreException e) {
-			CCorePlugin.log(e);
-			return false;
-		}
-	}
+    private void setFirstFriend(PDOMCPPFriend friend) throws CoreException {
+        long rec = friend != null ? friend.getRecord() : 0;
+        getDB().putRecPtr(record + FIRSTFRIEND, rec);
+    }
 
-	@Override
-	public boolean isSameType(IType type) {
-		if (type instanceof ITypedef) {
-			return type.isSameType(this);
-		}
+    public void removeFriend(PDOMName pdomName) throws CoreException {
+        PDOMCPPFriend friend = getFirstFriend();
+        PDOMCPPFriend predecessor = null;
+        long nameRec = pdomName.getRecord();
+        while (friend != null) {
+            PDOMName name = friend.getSpecifierName();
+            if (name != null && name.getRecord() == nameRec) {
+                break;
+            }
+            predecessor = friend;
+            friend = friend.getNextFriend();
+        }
+        if (friend != null) {
+            if (predecessor != null) {
+                predecessor.setNextFriend(friend.getNextFriend());
+            } else {
+                setFirstFriend(friend.getNextFriend());
+            }
+            friend.delete();
+        }
+    }
 
-		if (type instanceof PDOMNode) {
-			PDOMNode node = (PDOMNode) type;
-			if (node.getPDOM() == getPDOM()) {
-				return node.getRecord() == getRecord();
-			}
-		}
+    @Override
+    public ICPPClassScope getCompositeScope() {
+        if (fScope == null) {
+            fScope = new PDOMCPPClassScope(this);
+        }
+        return fScope;
+    }
 
-		if (type instanceof ICPPClassType && !(type instanceof ProblemBinding)) {
-			ICPPClassType ctype = (ICPPClassType) type;
-			if (getEquivalentKind(ctype) != getEquivalentKind(this))
-				return false;
-			char[] nchars = ctype.getNameCharArray();
-			if (nchars.length == 0) {
-				nchars = ASTTypeUtil.createNameForAnonymous(ctype);
-			}
-			if (nchars == null || !CharArrayUtils.equals(nchars, getNameCharArray()))
-				return false;
+    @Override
+    public int getKey() {
+        try {
+            return getDB().getByte(record + KEY);
+        } catch (CoreException e) {
+            CCorePlugin.log(e);
+            // or something
+            return ICPPClassType.k_class;
+        }
+    }
 
-			return SemanticUtil.haveSameOwner(this, ctype);
-		}
-		return false;
-	}
+    @Override
+    public boolean isAnonymous() {
+        try {
+            return getDB().getByte(record + ANONYMOUS) != 0;
+        } catch (CoreException e) {
+            CCorePlugin.log(e);
+            return false;
+        }
+    }
 
-	private static int getEquivalentKind(ICPPClassType classType) {
-		int key = classType.getKey();
-		return key == k_class ? k_struct : key;
-	}
+    @Override
+    public boolean isFinal() {
+        try {
+            return getDB().getByte(record + FINAL) != 0;
+        } catch (CoreException e) {
+            CCorePlugin.log(e);
+            return false;
+        }
+    }
 
-	@Override
-	public ICPPBase[] getBases() {
-		Long key = record + PDOMCPPLinkage.CACHE_BASES;
-		ICPPBase[] bases = (ICPPBase[]) getPDOM().getCachedResult(key);
-		if (bases != null)
-			return bases;
+    @Override
+    public boolean isNoDiscard() {
+        try {
+            return getDB().getByte(record + NO_DISCARD) != 0;
+        } catch (CoreException e) {
+            CCorePlugin.log(e);
+            return false;
+        }
+    }
 
-		try {
-			List<PDOMCPPBase> list = new ArrayList<>();
-			for (PDOMCPPBase base = getFirstBase(); base != null; base = base.getNextBase()) {
-				list.add(base);
-			}
-			Collections.reverse(list);
-			bases = list.toArray(new ICPPBase[list.size()]);
-			getPDOM().putCachedResult(key, bases);
-			return bases;
-		} catch (CoreException e) {
-			CCorePlugin.log(e);
-			return ICPPBase.EMPTY_BASE_ARRAY;
-		}
-	}
+    @Override
+    public boolean isVisibleToAdlOnly() {
+        try {
+            return getDB().getByte(record + VISIBLE_TO_ADL_ONLY) != 0;
+        } catch (CoreException e) {
+            CCorePlugin.log(e);
+            return false;
+        }
+    }
 
-	@Override
-	public ICPPConstructor[] getConstructors() {
-		PDOMClassUtil.ConstructorCollector visitor = new PDOMClassUtil.ConstructorCollector();
-		try {
-			PDOMCPPClassScope.acceptViaCache(this, visitor, false);
-			ICPPConstructor[] constructors = visitor.getConstructors();
-			return ClassTypeHelper.getAllConstructors(this, constructors);
-		} catch (CoreException e) {
-			CCorePlugin.log(e);
-			return ICPPConstructor.EMPTY_CONSTRUCTOR_ARRAY;
-		}
-	}
+    @Override
+    public boolean isSameType(IType type) {
+        if (type instanceof ITypedef) {
+            return type.isSameType(this);
+        }
+        if (type instanceof PDOMNode) {
+            PDOMNode node = (PDOMNode) type;
+            if (node.getPDOM() == getPDOM()) {
+                return node.getRecord() == getRecord();
+            }
+        }
+        if (type instanceof ICPPClassType && !(type instanceof ProblemBinding)) {
+            ICPPClassType ctype = (ICPPClassType) type;
+            if (getEquivalentKind(ctype) != getEquivalentKind(this))
+                return false;
+            char[] nchars = ctype.getNameCharArray();
+            if (nchars.length == 0) {
+                nchars = ASTTypeUtil.createNameForAnonymous(ctype);
+            }
+            if (nchars == null || !CharArrayUtils.equals(nchars, getNameCharArray()))
+                return false;
+            return SemanticUtil.haveSameOwner(this, ctype);
+        }
+        return false;
+    }
 
-	@Override
-	public ICPPMethod[] getDeclaredMethods() {
-		try {
-			PDOMClassUtil.MethodCollector methods = new PDOMClassUtil.MethodCollector(false);
-			PDOMCPPClassScope.acceptViaCache(this, methods, false);
-			return methods.getMethods();
-		} catch (CoreException e) {
-			CCorePlugin.log(e);
-			return ICPPMethod.EMPTY_CPPMETHOD_ARRAY;
-		}
-	}
+    private static int getEquivalentKind(ICPPClassType classType) {
+        int key = classType.getKey();
+        return key == k_class ? k_struct : key;
+    }
 
-	@Override
-	public ICPPField[] getDeclaredFields() {
-		try {
-			PDOMClassUtil.FieldCollector visitor = new PDOMClassUtil.FieldCollector();
-			PDOMCPPClassScope.acceptViaCache(this, visitor, false);
-			return visitor.getFields();
-		} catch (CoreException e) {
-			CCorePlugin.log(e);
-			return ICPPField.EMPTY_CPPFIELD_ARRAY;
-		}
-	}
+    @Override
+    public ICPPBase[] getBases() {
+        Long key = record + PDOMCPPLinkage.CACHE_BASES;
+        ICPPBase[] bases = (ICPPBase[]) getPDOM().getCachedResult(key);
+        if (bases != null)
+            return bases;
+        try {
+            List<PDOMCPPBase> list = new ArrayList<>();
+            for (PDOMCPPBase base = getFirstBase(); base != null; base = base.getNextBase()) {
+                list.add(base);
+            }
+            Collections.reverse(list);
+            bases = list.toArray(new ICPPBase[list.size()]);
+            getPDOM().putCachedResult(key, bases);
+            return bases;
+        } catch (CoreException e) {
+            CCorePlugin.log(e);
+            return ICPPBase.EMPTY_BASE_ARRAY;
+        }
+    }
 
-	@Override
-	public ICPPClassType[] getNestedClasses() {
-		try {
-			PDOMClassUtil.NestedClassCollector visitor = new PDOMClassUtil.NestedClassCollector();
-			PDOMCPPClassScope.acceptViaCache(this, visitor, false);
-			return visitor.getNestedClasses();
-		} catch (CoreException e) {
-			CCorePlugin.log(e);
-			return ICPPClassType.EMPTY_CLASS_ARRAY;
-		}
-	}
+    @Override
+    public ICPPConstructor[] getConstructors() {
+        PDOMClassUtil.ConstructorCollector visitor = new PDOMClassUtil.ConstructorCollector();
+        try {
+            PDOMCPPClassScope.acceptViaCache(this, visitor, false);
+            ICPPConstructor[] constructors = visitor.getConstructors();
+            return ClassTypeHelper.getAllConstructors(this, constructors);
+        } catch (CoreException e) {
+            CCorePlugin.log(e);
+            return ICPPConstructor.EMPTY_CONSTRUCTOR_ARRAY;
+        }
+    }
 
-	@Override
-	public ICPPUsingDeclaration[] getUsingDeclarations() {
-		try {
-			PDOMClassUtil.UsingDeclarationCollector visitor = new PDOMClassUtil.UsingDeclarationCollector();
-			PDOMCPPClassScope.acceptViaCache(this, visitor, false);
-			return visitor.getUsingDeclarations();
-		} catch (CoreException e) {
-			CCorePlugin.log(e);
-			return ICPPUsingDeclaration.EMPTY_USING_DECL_ARRAY;
-		}
-	}
+    @Override
+    public ICPPMethod[] getDeclaredMethods() {
+        try {
+            PDOMClassUtil.MethodCollector methods = new PDOMClassUtil.MethodCollector(false);
+            PDOMCPPClassScope.acceptViaCache(this, methods, false);
+            return methods.getMethods();
+        } catch (CoreException e) {
+            CCorePlugin.log(e);
+            return ICPPMethod.EMPTY_CPPMETHOD_ARRAY;
+        }
+    }
 
-	@Override
-	public IBinding[] getFriends() {
-		try {
-			final List<IBinding> list = new ArrayList<>();
-			for (PDOMCPPFriend friend = getFirstFriend(); friend != null; friend = friend.getNextFriend()) {
-				list.add(0, friend.getFriendSpecifier());
-			}
-			return list.toArray(new IBinding[list.size()]);
-		} catch (CoreException e) {
-			CCorePlugin.log(e);
-			return IBinding.EMPTY_BINDING_ARRAY;
-		}
-	}
+    @Override
+    public ICPPField[] getDeclaredFields() {
+        try {
+            PDOMClassUtil.FieldCollector visitor = new PDOMClassUtil.FieldCollector();
+            PDOMCPPClassScope.acceptViaCache(this, visitor, false);
+            return visitor.getFields();
+        } catch (CoreException e) {
+            CCorePlugin.log(e);
+            return ICPPField.EMPTY_CPPFIELD_ARRAY;
+        }
+    }
 
-	@Override
-	public ICPPMethod[] getMethods() {
-		return ClassTypeHelper.getMethods(this);
-	}
+    @Override
+    public ICPPClassType[] getNestedClasses() {
+        try {
+            PDOMClassUtil.NestedClassCollector visitor = new PDOMClassUtil.NestedClassCollector();
+            PDOMCPPClassScope.acceptViaCache(this, visitor, false);
+            return visitor.getNestedClasses();
+        } catch (CoreException e) {
+            CCorePlugin.log(e);
+            return ICPPClassType.EMPTY_CLASS_ARRAY;
+        }
+    }
 
-	@Override
-	public ICPPMethod[] getAllDeclaredMethods() {
-		return ClassTypeHelper.getAllDeclaredMethods(this);
-	}
+    @Override
+    public ICPPUsingDeclaration[] getUsingDeclarations() {
+        try {
+            PDOMClassUtil.UsingDeclarationCollector visitor = new PDOMClassUtil.UsingDeclarationCollector();
+            PDOMCPPClassScope.acceptViaCache(this, visitor, false);
+            return visitor.getUsingDeclarations();
+        } catch (CoreException e) {
+            CCorePlugin.log(e);
+            return ICPPUsingDeclaration.EMPTY_USING_DECL_ARRAY;
+        }
+    }
 
-	@Override
-	public IField[] getFields() {
-		return ClassTypeHelper.getFields(this);
-	}
+    @Override
+    public IBinding[] getFriends() {
+        try {
+            final List<IBinding> list = new ArrayList<>();
+            for (PDOMCPPFriend friend = getFirstFriend(); friend != null; friend = friend.getNextFriend()) {
+                list.add(0, friend.getFriendSpecifier());
+            }
+            return list.toArray(new IBinding[list.size()]);
+        } catch (CoreException e) {
+            CCorePlugin.log(e);
+            return IBinding.EMPTY_BINDING_ARRAY;
+        }
+    }
 
-	@Override
-	public IField findField(String name) {
-		return ClassTypeHelper.findField(this, name);
-	}
+    @Override
+    public ICPPMethod[] getMethods() {
+        return ClassTypeHelper.getMethods(this);
+    }
 
-	@Override
-	public Object clone() {
-		try {
-			return super.clone();
-		} catch (CloneNotSupportedException e) {
-		}
-		return null;
-	}
+    @Override
+    public ICPPMethod[] getAllDeclaredMethods() {
+        return ClassTypeHelper.getAllDeclaredMethods(this);
+    }
 
-	@Override
-	public void addMember(PDOMNode member, int visibility) {
-		try {
-			PDOMCPPMemberBlock members = new PDOMCPPMemberBlock(getLinkage(), record + MEMBERLIST);
-			members.addMember(member, visibility);
-			PDOMCPPClassScope.updateCache(this, member);
-		} catch (CoreException e) {
-			CCorePlugin.log(e);
-		}
-	}
+    @Override
+    public IField[] getFields() {
+        return ClassTypeHelper.getFields(this);
+    }
 
-	@Override
-	public int getVisibility(IBinding member) {
-		try {
-			PDOMCPPMemberBlock members = new PDOMCPPMemberBlock(getLinkage(), record + MEMBERLIST);
-			int visibility = members.getVisibility(member);
-			if (visibility < 0)
-				throw new IllegalArgumentException(member.getName() + " is not a member of " + getName()); //$NON-NLS-1$
-			return visibility;
-		} catch (CoreException e) {
-			CCorePlugin.log(e);
-			return v_private; // Fallback visibility
-		}
-	}
+    @Override
+    public IField findField(String name) {
+        return ClassTypeHelper.findField(this, name);
+    }
+
+    @Override
+    public Object clone() {
+        try {
+            return super.clone();
+        } catch (CloneNotSupportedException e) {
+        }
+        return null;
+    }
+
+    @Override
+    public void addMember(PDOMNode member, int visibility) {
+        try {
+            PDOMCPPMemberBlock members = new PDOMCPPMemberBlock(getLinkage(), record + MEMBERLIST);
+            members.addMember(member, visibility);
+            PDOMCPPClassScope.updateCache(this, member);
+        } catch (CoreException e) {
+            CCorePlugin.log(e);
+        }
+    }
+
+    @Override
+    public int getVisibility(IBinding member) {
+        try {
+            PDOMCPPMemberBlock members = new PDOMCPPMemberBlock(getLinkage(), record + MEMBERLIST);
+            int visibility = members.getVisibility(member);
+            if (visibility < 0)
+                //$NON-NLS-1$
+                throw new IllegalArgumentException(member.getName() + " is not a member of " + getName());
+            return visibility;
+        } catch (CoreException e) {
+            CCorePlugin.log(e);
+            // Fallback visibility
+            return v_private;
+        }
+    }
 }

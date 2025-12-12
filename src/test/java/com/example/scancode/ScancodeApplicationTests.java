@@ -4,10 +4,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class ScancodeApplicationTests {
+public class ScancodeApplicationTests {
 
     @Test
     void contextLoads() {
     }
-
 }

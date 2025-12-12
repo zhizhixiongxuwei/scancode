@@ -1,18 +1,20 @@
-/*******************************************************************************
- * Copyright (c) 2007, 2013 QNX Software Systems and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2007, 2013 QNX Software Systems and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     QNX - Initial API and implementation
- *     Markus Schorn (Wind River Systems)
- *     Thomas Corbat (IFS)
- *******************************************************************************/
+ *  Contributors:
+ *      QNX - Initial API and implementation
+ *      Markus Schorn (Wind River Systems)
+ *      Thomas Corbat (IFS)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.pdom.dom.cpp;
 
 import org.eclipse.cdt.core.dom.ast.cpp.ICPPClassType;
@@ -26,79 +28,79 @@ import org.eclipse.core.runtime.CoreException;
 /**
  * @author Bryan Wilkinson
  */
-class PDOMCPPMethodInstance extends PDOMCPPFunctionInstance implements ICPPMethod {
-	/**
-	 * The size in bytes of a PDOMCPPMethodInstance record in the database.
-	 */
-	@SuppressWarnings("hiding")
-	protected static final int RECORD_SIZE = PDOMCPPFunctionInstance.RECORD_SIZE + 0;
+public class PDOMCPPMethodInstance extends PDOMCPPFunctionInstance implements ICPPMethod {
 
-	public PDOMCPPMethodInstance(PDOMCPPLinkage linkage, PDOMNode parent, ICPPMethod method, PDOMBinding instantiated)
-			throws CoreException {
-		super(linkage, parent, method, instantiated);
-	}
+    /**
+     * The size in bytes of a PDOMCPPMethodInstance record in the database.
+     */
+    @SuppressWarnings("hiding")
+    protected static final int RECORD_SIZE = PDOMCPPFunctionInstance.RECORD_SIZE + 0;
 
-	public PDOMCPPMethodInstance(PDOMLinkage linkage, long bindingRecord) {
-		super(linkage, bindingRecord);
-	}
+    public PDOMCPPMethodInstance(PDOMCPPLinkage linkage, PDOMNode parent, ICPPMethod method, PDOMBinding instantiated) throws CoreException {
+        super(linkage, parent, method, instantiated);
+    }
 
-	@Override
-	protected int getRecordSize() {
-		return RECORD_SIZE;
-	}
+    public PDOMCPPMethodInstance(PDOMLinkage linkage, long bindingRecord) {
+        super(linkage, bindingRecord);
+    }
 
-	@Override
-	public int getNodeType() {
-		return IIndexCPPBindingConstants.CPP_METHOD_INSTANCE;
-	}
+    @Override
+    protected int getRecordSize() {
+        return RECORD_SIZE;
+    }
 
-	@Override
-	public boolean isDestructor() {
-		return ((ICPPMethod) getTemplateDefinition()).isDestructor();
-	}
+    @Override
+    public int getNodeType() {
+        return IIndexCPPBindingConstants.CPP_METHOD_INSTANCE;
+    }
 
-	@Override
-	public boolean isExternC() {
-		return false;
-	}
+    @Override
+    public boolean isDestructor() {
+        return ((ICPPMethod) getTemplateDefinition()).isDestructor();
+    }
 
-	@Override
-	public boolean isImplicit() {
-		return ((ICPPMethod) getTemplateDefinition()).isImplicit();
-	}
+    @Override
+    public boolean isExternC() {
+        return false;
+    }
 
-	@Override
-	public boolean isVirtual() {
-		return ((ICPPMethod) getTemplateDefinition()).isVirtual();
-	}
+    @Override
+    public boolean isImplicit() {
+        return ((ICPPMethod) getTemplateDefinition()).isImplicit();
+    }
 
-	@Override
-	public boolean isPureVirtual() {
-		return ((ICPPMethod) getTemplateDefinition()).isPureVirtual();
-	}
+    @Override
+    public boolean isVirtual() {
+        return ((ICPPMethod) getTemplateDefinition()).isVirtual();
+    }
 
-	@Override
-	public boolean isExplicit() {
-		return ((ICPPMethod) getTemplateDefinition()).isExplicit();
-	}
+    @Override
+    public boolean isPureVirtual() {
+        return ((ICPPMethod) getTemplateDefinition()).isPureVirtual();
+    }
 
-	@Override
-	public ICPPClassType getClassOwner() {
-		return (ICPPClassType) getOwner();
-	}
+    @Override
+    public boolean isExplicit() {
+        return ((ICPPMethod) getTemplateDefinition()).isExplicit();
+    }
 
-	@Override
-	public int getVisibility() {
-		return ((ICPPMethod) getTemplateDefinition()).getVisibility();
-	}
+    @Override
+    public ICPPClassType getClassOwner() {
+        return (ICPPClassType) getOwner();
+    }
 
-	@Override
-	public boolean isOverride() {
-		return ((ICPPMethod) getTemplateDefinition()).isOverride();
-	}
+    @Override
+    public int getVisibility() {
+        return ((ICPPMethod) getTemplateDefinition()).getVisibility();
+    }
 
-	@Override
-	public boolean isFinal() {
-		return ((ICPPMethod) getTemplateDefinition()).isFinal();
-	}
+    @Override
+    public boolean isOverride() {
+        return ((ICPPMethod) getTemplateDefinition()).isOverride();
+    }
+
+    @Override
+    public boolean isFinal() {
+        return ((ICPPMethod) getTemplateDefinition()).isFinal();
+    }
 }

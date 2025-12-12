@@ -1,18 +1,20 @@
-/*******************************************************************************
- * Copyright (c) 2007, 2014 QNX Software Systems and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2007, 2014 QNX Software Systems and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Bryan Wilkinson (QNX) - Initial API and implementation
- *     Markus Schorn (Wind River Systems)
- *     Sergey Prigogin (Google)
- *******************************************************************************/
+ *  Contributors:
+ *      Bryan Wilkinson (QNX) - Initial API and implementation
+ *      Markus Schorn (Wind River Systems)
+ *      Sergey Prigogin (Google)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.pdom.dom.cpp;
 
 import org.eclipse.cdt.core.CCorePlugin;
@@ -35,110 +37,111 @@ import org.eclipse.core.runtime.CoreException;
 /**
  * Binding for a specialization of a field, used in the index.
  */
-class PDOMCPPFieldSpecialization extends PDOMCPPSpecialization implements ICPPField {
-	private static final int TYPE_OFFSET = PDOMCPPSpecialization.RECORD_SIZE;
-	private static final int VALUE_OFFSET = TYPE_OFFSET + Database.TYPE_SIZE;
-	@SuppressWarnings("hiding")
-	protected static final int RECORD_SIZE = VALUE_OFFSET + Database.VALUE_SIZE;
+public class PDOMCPPFieldSpecialization extends PDOMCPPSpecialization implements ICPPField {
 
-	public PDOMCPPFieldSpecialization(PDOMCPPLinkage linkage, PDOMNode parent, ICPPField field, PDOMBinding specialized)
-			throws CoreException {
-		super(linkage, parent, (ICPPSpecialization) field, specialized);
+    private static final int TYPE_OFFSET = PDOMCPPSpecialization.RECORD_SIZE;
 
-		linkage.storeType(record + TYPE_OFFSET, field.getType());
-		linkage.storeValue(record + VALUE_OFFSET, field.getInitialValue());
-	}
+    private static final int VALUE_OFFSET = TYPE_OFFSET + Database.TYPE_SIZE;
 
-	public PDOMCPPFieldSpecialization(PDOMLinkage linkage, long bindingRecord) {
-		super(linkage, bindingRecord);
-	}
+    @SuppressWarnings("hiding")
+    protected static final int RECORD_SIZE = VALUE_OFFSET + Database.VALUE_SIZE;
 
-	@Override
-	protected int getRecordSize() {
-		return RECORD_SIZE;
-	}
+    public PDOMCPPFieldSpecialization(PDOMCPPLinkage linkage, PDOMNode parent, ICPPField field, PDOMBinding specialized) throws CoreException {
+        super(linkage, parent, (ICPPSpecialization) field, specialized);
+        linkage.storeType(record + TYPE_OFFSET, field.getType());
+        linkage.storeValue(record + VALUE_OFFSET, field.getInitialValue());
+    }
 
-	@Override
-	public int getNodeType() {
-		return IIndexCPPBindingConstants.CPP_FIELD_SPECIALIZATION;
-	}
+    public PDOMCPPFieldSpecialization(PDOMLinkage linkage, long bindingRecord) {
+        super(linkage, bindingRecord);
+    }
 
-	private ICPPField getField() {
-		return (ICPPField) getSpecializedBinding();
-	}
+    @Override
+    protected int getRecordSize() {
+        return RECORD_SIZE;
+    }
 
-	@Override
-	public ICompositeType getCompositeTypeOwner() {
-		return getClassOwner();
-	}
+    @Override
+    public int getNodeType() {
+        return IIndexCPPBindingConstants.CPP_FIELD_SPECIALIZATION;
+    }
 
-	@Override
-	public IType getType() {
-		try {
-			return getLinkage().loadType(record + TYPE_OFFSET);
-		} catch (CoreException e) {
-			CCorePlugin.log(e);
-			return new ProblemType(ISemanticProblem.TYPE_NOT_PERSISTED);
-		}
-	}
+    private ICPPField getField() {
+        return (ICPPField) getSpecializedBinding();
+    }
 
-	@Override
-	public IValue getInitialValue() {
-		try {
-			return getLinkage().loadValue(record + VALUE_OFFSET);
-		} catch (CoreException e) {
-			CCorePlugin.log(e);
-			return IntegralValue.UNKNOWN;
-		}
-	}
+    @Override
+    public ICompositeType getCompositeTypeOwner() {
+        return getClassOwner();
+    }
 
-	@Override
-	public boolean isAuto() {
-		return getField().isAuto();
-	}
+    @Override
+    public IType getType() {
+        try {
+            return getLinkage().loadType(record + TYPE_OFFSET);
+        } catch (CoreException e) {
+            CCorePlugin.log(e);
+            return new ProblemType(ISemanticProblem.TYPE_NOT_PERSISTED);
+        }
+    }
 
-	@Override
-	public boolean isExtern() {
-		return getField().isExtern();
-	}
+    @Override
+    public IValue getInitialValue() {
+        try {
+            return getLinkage().loadValue(record + VALUE_OFFSET);
+        } catch (CoreException e) {
+            CCorePlugin.log(e);
+            return IntegralValue.UNKNOWN;
+        }
+    }
 
-	@Override
-	public boolean isExternC() {
-		return false;
-	}
+    @Override
+    public boolean isAuto() {
+        return getField().isAuto();
+    }
 
-	@Override
-	public boolean isRegister() {
-		return getField().isRegister();
-	}
+    @Override
+    public boolean isExtern() {
+        return getField().isExtern();
+    }
 
-	@Override
-	public boolean isStatic() {
-		return getField().isStatic();
-	}
+    @Override
+    public boolean isExternC() {
+        return false;
+    }
 
-	@Override
-	public ICPPClassType getClassOwner() {
-		return (ICPPClassType) getOwner();
-	}
+    @Override
+    public boolean isRegister() {
+        return getField().isRegister();
+    }
 
-	@Override
-	public int getVisibility() {
-		return getField().getVisibility();
-	}
+    @Override
+    public boolean isStatic() {
+        return getField().isStatic();
+    }
 
-	@Override
-	public boolean isMutable() {
-		return getField().isMutable();
-	}
+    @Override
+    public ICPPClassType getClassOwner() {
+        return (ICPPClassType) getOwner();
+    }
 
-	@Override
-	public boolean isConstexpr() {
-		return getField().isConstexpr();
-	}
+    @Override
+    public int getVisibility() {
+        return getField().getVisibility();
+    }
 
-	@Override
-	public int getFieldPosition() {
-		return getField().getFieldPosition();
-	}
+    @Override
+    public boolean isMutable() {
+        return getField().isMutable();
+    }
+
+    @Override
+    public boolean isConstexpr() {
+        return getField().isConstexpr();
+    }
+
+    @Override
+    public int getFieldPosition() {
+        return getField().getFieldPosition();
+    }
 }

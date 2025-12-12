@@ -1,18 +1,19 @@
-/*******************************************************************************
- * Copyright (c) 2006, 2012 QNX Software Systems and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2006, 2012 QNX Software Systems and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- * QNX - Initial API and implementation
- * IBM Corporation
- *******************************************************************************/
-
+ *  Contributors:
+ *  QNX - Initial API and implementation
+ *  IBM Corporation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.pdom.dom.c;
 
 import org.eclipse.cdt.core.CCorePlugin;
@@ -26,59 +27,58 @@ import org.eclipse.core.runtime.CoreException;
 
 /**
  * @author Doug Schaefer
- *
  */
-class PDOMCField extends PDOMCVariable implements IField {
+public class PDOMCField extends PDOMCVariable implements IField {
 
-	public PDOMCField(PDOMLinkage linkage, IPDOMMemberOwner parent, IField field) throws CoreException {
-		super(linkage, (PDOMNode) parent, field);
-	}
+    public PDOMCField(PDOMLinkage linkage, IPDOMMemberOwner parent, IField field) throws CoreException {
+        super(linkage, (PDOMNode) parent, field);
+    }
 
-	public PDOMCField(PDOMLinkage linkage, long record) {
-		super(linkage, record);
-	}
+    public PDOMCField(PDOMLinkage linkage, long record) {
+        super(linkage, record);
+    }
 
-	@Override
-	protected int getRecordSize() {
-		return RECORD_SIZE;
-	}
+    @Override
+    protected int getRecordSize() {
+        return RECORD_SIZE;
+    }
 
-	@Override
-	public int getNodeType() {
-		return IIndexCBindingConstants.CFIELD;
-	}
+    @Override
+    public int getNodeType() {
+        return IIndexCBindingConstants.CFIELD;
+    }
 
-	@Override
-	public boolean isStatic() {
-		// ISO/IEC 9899:TC1 6.7.2.1
-		return false;
-	}
+    @Override
+    public boolean isStatic() {
+        // ISO/IEC 9899:TC1 6.7.2.1
+        return false;
+    }
 
-	@Override
-	public boolean isExtern() {
-		// ISO/IEC 9899:TC1 6.7.2.1
-		return false;
-	}
+    @Override
+    public boolean isExtern() {
+        // ISO/IEC 9899:TC1 6.7.2.1
+        return false;
+    }
 
-	@Override
-	public boolean isAuto() {
-		// ISO/IEC 9899:TC1 6.7.2.1
-		return false;
-	}
+    @Override
+    public boolean isAuto() {
+        // ISO/IEC 9899:TC1 6.7.2.1
+        return false;
+    }
 
-	@Override
-	public boolean isRegister() {
-		// ISO/IEC 9899:TC1 6.7.2.1
-		return false;
-	}
+    @Override
+    public boolean isRegister() {
+        // ISO/IEC 9899:TC1 6.7.2.1
+        return false;
+    }
 
-	@Override
-	public ICompositeType getCompositeTypeOwner() {
-		try {
-			return (ICompositeType) getParentNode();
-		} catch (CoreException e) {
-			CCorePlugin.log(e);
-			return null;
-		}
-	}
+    @Override
+    public ICompositeType getCompositeTypeOwner() {
+        try {
+            return (ICompositeType) getParentNode();
+        } catch (CoreException e) {
+            CCorePlugin.log(e);
+            return null;
+        }
+    }
 }

@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2015 Google Inc and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2015 Google Inc and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     John Glassmyer <jogl@google.com> - import group sorting is broken - https://bugs.eclipse.org/430303
- *******************************************************************************/
+ *  Contributors:
+ *      John Glassmyer <jogl@google.com> - import group sorting is broken - https://bugs.eclipse.org/430303
+ * *****************************************************************************
+ */
 package org.eclipse.jdt.internal.core.dom.rewrite.imports;
 
 import java.util.Collection;
@@ -28,82 +30,69 @@ import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
 import org.eclipse.jdt.core.search.TypeNameRequestor;
 
-final class TypeConflictingSimpleNameFinder implements ConflictingSimpleNameFinder {
-	private static class ConflictAccumulatingTypeRequestor extends TypeNameRequestor {
-		private static String buildContainerName(char[] packageName, char[][] enclosingTypeNames) {
-			StringBuilder buf= new StringBuilder();
-			buf.append(packageName);
-			for (char[] enclosingTypeName : enclosingTypeNames) {
-				if (buf.length() > 0)
-					buf.append('.');
-				buf.append(enclosingTypeName);
-			}
-			return buf.toString();
-		}
+final public class TypeConflictingSimpleNameFinder implements ConflictingSimpleNameFinder {
 
-		private final Set<String> namesFoundInMultipleContainers;
-		private final Map<String, String> lastContainerFoundForType;
+    private static class ConflictAccumulatingTypeRequestor extends TypeNameRequestor {
 
-		ConflictAccumulatingTypeRequestor() {
-			this.namesFoundInMultipleContainers = new HashSet<>();
-			this.lastContainerFoundForType = new HashMap<>();
-		}
+        private static String buildContainerName(char[] packageName, char[][] enclosingTypeNames) {
+            StringBuilder buf = new StringBuilder();
+            buf.append(packageName);
+            for (char[] enclosingTypeName : enclosingTypeNames) {
+                if (buf.length() > 0)
+                    buf.append('.');
+                buf.append(enclosingTypeName);
+            }
+            return buf.toString();
+        }
 
-		@Override
-		public void acceptType(
-				int modifiers,
-				char[] packageName,
-				char[] simpleTypeName,
-				char[][] enclosingTypeNames,
-				String path) {
-			String simpleName = new String(simpleTypeName);
-			String newContainerName = buildContainerName(packageName, enclosingTypeNames);
-			String oldContainerName = this.lastContainerFoundForType.put(simpleName, newContainerName);
-			if (oldContainerName != null && !oldContainerName.equals(newContainerName)) {
-				this.namesFoundInMultipleContainers.add(simpleName);
-			}
-		}
+        private final Set<String> namesFoundInMultipleContainers;
 
-		Set<String> getNamesFoundInMultipleContainers() {
-			return Collections.unmodifiableSet(this.namesFoundInMultipleContainers);
-		}
-	}
+        private final Map<String, String> lastContainerFoundForType;
 
-	private static char[][] stringsToCharArrays(Collection<String> strings) {
-		char[][] arrayOfArrays = new char[strings.size()][];
-		int i = 0;
-		for (String string : strings) {
-			arrayOfArrays[i] = string.toCharArray();
-			i++;
-		}
-		return arrayOfArrays;
-	}
+        ConflictAccumulatingTypeRequestor() {
+            this.namesFoundInMultipleContainers = new HashSet<>();
+            this.lastContainerFoundForType = new HashMap<>();
+        }
 
-	private final IJavaProject javaProject;
-	private final SearchEngine searchEngine;
+        @Override
+        public void acceptType(int modifiers, char[] packageName, char[] simpleTypeName, char[][] enclosingTypeNames, String path) {
+            String simpleName = new String(simpleTypeName);
+            String newContainerName = buildContainerName(packageName, enclosingTypeNames);
+            String oldContainerName = this.lastContainerFoundForType.put(simpleName, newContainerName);
+            if (oldContainerName != null && !oldContainerName.equals(newContainerName)) {
+                this.namesFoundInMultipleContainers.add(simpleName);
+            }
+        }
 
-	TypeConflictingSimpleNameFinder(IJavaProject javaProject, SearchEngine searchEngine) {
-		this.javaProject = javaProject;
-		this.searchEngine = searchEngine;
-	}
+        Set<String> getNamesFoundInMultipleContainers() {
+            return Collections.unmodifiableSet(this.namesFoundInMultipleContainers);
+        }
+    }
 
-	@Override
-	public Set<String> findConflictingSimpleNames(
-			Set<String> simpleNames,
-			Set<String> onDemandAndImplicitContainerNames,
-			IProgressMonitor monitor) throws JavaModelException {
-		IJavaSearchScope scope = SearchEngine.createJavaSearchScope(new IJavaElement[] { this.javaProject });
+    private static char[][] stringsToCharArrays(Collection<String> strings) {
+        char[][] arrayOfArrays = new char[strings.size()][];
+        int i = 0;
+        for (String string : strings) {
+            arrayOfArrays[i] = string.toCharArray();
+            i++;
+        }
+        return arrayOfArrays;
+    }
 
-		ConflictAccumulatingTypeRequestor requestor = new ConflictAccumulatingTypeRequestor();
+    private final IJavaProject javaProject;
 
-		this.searchEngine.searchAllTypeNames(
-				stringsToCharArrays(onDemandAndImplicitContainerNames),
-				stringsToCharArrays(simpleNames),
-				scope,
-				requestor,
-				IJavaSearchConstants.WAIT_UNTIL_READY_TO_SEARCH,
-				monitor);
+    private final SearchEngine searchEngine;
 
-		return requestor.getNamesFoundInMultipleContainers();
-	}
+    TypeConflictingSimpleNameFinder(IJavaProject javaProject, SearchEngine searchEngine) {
+        this.javaProject = javaProject;
+        this.searchEngine = searchEngine;
+    }
+
+    @Override
+    public Set<String> findConflictingSimpleNames(Set<String> simpleNames, Set<String> onDemandAndImplicitContainerNames, IProgressMonitor monitor) throws JavaModelException {
+        IJavaSearchScope scope = SearchEngine.createJavaSearchScope(new IJavaElement[] { this.javaProject });
+        ConflictAccumulatingTypeRequestor requestor = new ConflictAccumulatingTypeRequestor();
+        this.searchEngine.searchAllTypeNames(stringsToCharArrays(onDemandAndImplicitContainerNames), stringsToCharArrays(simpleNames), scope, requestor, IJavaSearchConstants.WAIT_UNTIL_READY_TO_SEARCH, monitor);
+        return requestor.getNamesFoundInMultipleContainers();
+    }
 }

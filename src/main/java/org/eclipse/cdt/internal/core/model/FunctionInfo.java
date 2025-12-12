@@ -1,82 +1,82 @@
-/*******************************************************************************
- * Copyright (c) 2002, 2008 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2002, 2008 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- * Rational Software - Initial API and implementation
- *******************************************************************************/
-
+ *  Contributors:
+ *  Rational Software - Initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.model;
 
-class FunctionInfo extends SourceManipulationInfo {
+public class FunctionInfo extends SourceManipulationInfo {
 
-	protected boolean isStatic;
-	protected boolean isVolatile;
-	protected boolean isConst;
+    protected boolean isStatic;
 
-	protected FunctionInfo(CElement element) {
-		super(element);
-	}
+    protected boolean isVolatile;
 
-	/**
-	 * Returns the isStatic.
-	 * @return boolean
-	 */
-	public boolean isStatic() {
-		return isStatic;
-	}
+    protected boolean isConst;
 
-	/**
-	 * Returns the isVolatile.
-	 * @return boolean
-	 */
-	public boolean isVolatile() {
-		return isVolatile;
-	}
+    protected FunctionInfo(CElement element) {
+        super(element);
+    }
 
-	/**
-	 * Sets the isStatic.
-	 * @param isStatic The isStatic to set
-	 */
-	public void setStatic(boolean isStatic) {
-		this.isStatic = isStatic;
-	}
+    /**
+     * Returns the isStatic.
+     * @return boolean
+     */
+    public boolean isStatic() {
+        return isStatic;
+    }
 
-	/**
-	 * Sets the isVolatile.
-	 * @param isVolatile The isVolatile to set
-	 */
-	public void setVolatile(boolean isVolatile) {
-		this.isVolatile = isVolatile;
-	}
+    /**
+     * Returns the isVolatile.
+     * @return boolean
+     */
+    public boolean isVolatile() {
+        return isVolatile;
+    }
 
-	@Override
-	public boolean hasSameContentsAs(SourceManipulationInfo otherInfo) {
-		return (super.hasSameContentsAs(otherInfo) && (this.isStatic() == ((FunctionInfo) otherInfo).isStatic())
-				&& (this.isVolatile() == ((FunctionInfo) otherInfo).isVolatile())
-				&& (this.isConst() == ((FunctionInfo) otherInfo).isConst()));
-	}
+    /**
+     * Sets the isStatic.
+     * @param isStatic The isStatic to set
+     */
+    public void setStatic(boolean isStatic) {
+        this.isStatic = isStatic;
+    }
 
-	/**
-	 * Returns the isConst.
-	 * @return boolean
-	 */
-	public boolean isConst() {
-		return isConst;
-	}
+    /**
+     * Sets the isVolatile.
+     * @param isVolatile The isVolatile to set
+     */
+    public void setVolatile(boolean isVolatile) {
+        this.isVolatile = isVolatile;
+    }
 
-	/**
-	 * Sets the isConst.
-	 * @param isConst The isConst to set
-	 */
-	public void setConst(boolean isConst) {
-		this.isConst = isConst;
-	}
+    @Override
+    public boolean hasSameContentsAs(SourceManipulationInfo otherInfo) {
+        return (super.hasSameContentsAs(otherInfo) && (this.isStatic() == ((FunctionInfo) otherInfo).isStatic()) && (this.isVolatile() == ((FunctionInfo) otherInfo).isVolatile()) && (this.isConst() == ((FunctionInfo) otherInfo).isConst()));
+    }
 
+    /**
+     * Returns the isConst.
+     * @return boolean
+     */
+    public boolean isConst() {
+        return isConst;
+    }
+
+    /**
+     * Sets the isConst.
+     * @param isConst The isConst to set
+     */
+    public void setConst(boolean isConst) {
+        this.isConst = isConst;
+    }
 }

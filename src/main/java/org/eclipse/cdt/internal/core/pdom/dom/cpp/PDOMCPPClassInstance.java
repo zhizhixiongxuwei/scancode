@@ -1,18 +1,20 @@
-/*******************************************************************************
- * Copyright (c) 2007, 2015 QNX Software Systems and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2007, 2015 QNX Software Systems and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Bryan Wilkinson (QNX) - Initial API and implementation
- *     Andrew Ferguson (Symbian)
- *     Markus Schorn (Wind River Systems)
- *******************************************************************************/
+ *  Contributors:
+ *      Bryan Wilkinson (QNX) - Initial API and implementation
+ *      Andrew Ferguson (Symbian)
+ *      Markus Schorn (Wind River Systems)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.pdom.dom.cpp;
 
 import org.eclipse.cdt.core.CCorePlugin;
@@ -34,95 +36,92 @@ import org.eclipse.core.runtime.CoreException;
  * The result of instantiating a class template or an explicit specialization of a class template.
  * The {@link #isExplicitSpecialization()} method is used to distinguish between the two cases.
  */
-class PDOMCPPClassInstance extends PDOMCPPClassSpecialization implements ICPPTemplateInstance {
-	private static final int ARGUMENTS = PDOMCPPClassSpecialization.RECORD_SIZE + 0;
+public class PDOMCPPClassInstance extends PDOMCPPClassSpecialization implements ICPPTemplateInstance {
 
-	/**
-	 * The size in bytes of a PDOMCPPClassInstance record in the database.
-	 */
-	@SuppressWarnings("hiding")
-	protected static final int RECORD_SIZE = PDOMCPPClassSpecialization.RECORD_SIZE + 4;
+    private static final int ARGUMENTS = PDOMCPPClassSpecialization.RECORD_SIZE + 0;
 
-	private volatile ICPPTemplateArgument[] fTemplateArguments;
+    /**
+     * The size in bytes of a PDOMCPPClassInstance record in the database.
+     */
+    @SuppressWarnings("hiding")
+    protected static final int RECORD_SIZE = PDOMCPPClassSpecialization.RECORD_SIZE + 4;
 
-	public PDOMCPPClassInstance(PDOMCPPLinkage linkage, PDOMNode parent, ICPPClassType classType, PDOMBinding orig)
-			throws CoreException {
-		super(linkage, parent, classType, orig);
-		final ICPPTemplateInstance asInstance = (ICPPTemplateInstance) classType;
-		// Defer storing of template arguments to the post-process
-		// to avoid infinite recursion when the evaluation of a non-type
-		// template argument tries to store its template definition.
-		// Until the post-process runs, temporarily store the input (possibly
-		// non-PDOM) arguments.
-		fTemplateArguments = asInstance.getTemplateArguments();
-		linkage.new ConfigureClassInstance(this);
-	}
+    private volatile ICPPTemplateArgument[] fTemplateArguments;
 
-	public PDOMCPPClassInstance(PDOMLinkage linkage, long bindingRecord) {
-		super(linkage, bindingRecord);
-	}
+    public PDOMCPPClassInstance(PDOMCPPLinkage linkage, PDOMNode parent, ICPPClassType classType, PDOMBinding orig) throws CoreException {
+        super(linkage, parent, classType, orig);
+        final ICPPTemplateInstance asInstance = (ICPPTemplateInstance) classType;
+        // Defer storing of template arguments to the post-process
+        // to avoid infinite recursion when the evaluation of a non-type
+        // template argument tries to store its template definition.
+        // Until the post-process runs, temporarily store the input (possibly
+        // non-PDOM) arguments.
+        fTemplateArguments = asInstance.getTemplateArguments();
+        linkage.new ConfigureClassInstance(this);
+    }
 
-	@Override
-	protected int getRecordSize() {
-		return RECORD_SIZE;
-	}
+    public PDOMCPPClassInstance(PDOMLinkage linkage, long bindingRecord) {
+        super(linkage, bindingRecord);
+    }
 
-	@Override
-	public int getNodeType() {
-		return IIndexCPPBindingConstants.CPP_CLASS_INSTANCE;
-	}
+    @Override
+    protected int getRecordSize() {
+        return RECORD_SIZE;
+    }
 
-	@Override
-	public ICPPTemplateDefinition getTemplateDefinition() {
-		return (ICPPTemplateDefinition) getSpecializedBinding();
-	}
+    @Override
+    public int getNodeType() {
+        return IIndexCPPBindingConstants.CPP_CLASS_INSTANCE;
+    }
 
-	@Override
-	public ICPPTemplateArgument[] getTemplateArguments() {
-		if (fTemplateArguments == null) {
-			try {
-				final long rec = getPDOM().getDB().getRecPtr(record + ARGUMENTS);
-				fTemplateArguments = PDOMCPPArgumentList.getArguments(this, rec);
-			} catch (CoreException e) {
-				CCorePlugin.log(e);
-				fTemplateArguments = ICPPTemplateArgument.EMPTY_ARGUMENTS;
-			}
-		}
-		return fTemplateArguments;
-	}
+    @Override
+    public ICPPTemplateDefinition getTemplateDefinition() {
+        return (ICPPTemplateDefinition) getSpecializedBinding();
+    }
 
-	public void storeTemplateArguments() {
-		try {
-			// fTemplateArguments here are the temporarily stored, possibly non-PDOM arguments stored
-			// by the constructor. Construct the PDOM arguments and store them.
-			final long argListRec = PDOMCPPArgumentList.putArguments(this, fTemplateArguments);
-			getDB().putRecPtr(record + ARGUMENTS, argListRec);
+    @Override
+    public ICPPTemplateArgument[] getTemplateArguments() {
+        if (fTemplateArguments == null) {
+            try {
+                final long rec = getPDOM().getDB().getRecPtr(record + ARGUMENTS);
+                fTemplateArguments = PDOMCPPArgumentList.getArguments(this, rec);
+            } catch (CoreException e) {
+                CCorePlugin.log(e);
+                fTemplateArguments = ICPPTemplateArgument.EMPTY_ARGUMENTS;
+            }
+        }
+        return fTemplateArguments;
+    }
 
-			// Read the stored arguments next time getTemplateArguments() is called.
-			fTemplateArguments = null;
-		} catch (CoreException e) {
-			CCorePlugin.log(e);
-		}
-	}
+    public void storeTemplateArguments() {
+        try {
+            // fTemplateArguments here are the temporarily stored, possibly non-PDOM arguments stored
+            // by the constructor. Construct the PDOM arguments and store them.
+            final long argListRec = PDOMCPPArgumentList.putArguments(this, fTemplateArguments);
+            getDB().putRecPtr(record + ARGUMENTS, argListRec);
+            // Read the stored arguments next time getTemplateArguments() is called.
+            fTemplateArguments = null;
+        } catch (CoreException e) {
+            CCorePlugin.log(e);
+        }
+    }
 
-	@Override
-	public boolean isExplicitSpecialization() {
-		return !(getCompositeScope() instanceof ICPPClassSpecializationScope);
-	}
+    @Override
+    public boolean isExplicitSpecialization() {
+        return !(getCompositeScope() instanceof ICPPClassSpecializationScope);
+    }
 
-	@Override
-	public boolean isSameType(IType type) {
-		if (type instanceof ITypedef) {
-			return type.isSameType(this);
-		}
-
-		if (type instanceof PDOMNode) {
-			PDOMNode node = (PDOMNode) type;
-			if (node.getPDOM() == getPDOM()) {
-				return node.getRecord() == getRecord();
-			}
-		}
-
-		return CPPClassInstance.isSameClassInstance(this, type);
-	}
+    @Override
+    public boolean isSameType(IType type) {
+        if (type instanceof ITypedef) {
+            return type.isSameType(this);
+        }
+        if (type instanceof PDOMNode) {
+            PDOMNode node = (PDOMNode) type;
+            if (node.getPDOM() == getPDOM()) {
+                return node.getRecord() == getRecord();
+            }
+        }
+        return CPPClassInstance.isSameClassInstance(this, type);
+    }
 }

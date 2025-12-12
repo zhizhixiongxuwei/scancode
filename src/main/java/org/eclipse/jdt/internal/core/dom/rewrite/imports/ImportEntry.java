@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2015 Google Inc and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2015 Google Inc and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     John Glassmyer <jogl@google.com> - import group sorting is broken - https://bugs.eclipse.org/430303
- *******************************************************************************/
+ *  Contributors:
+ *      John Glassmyer <jogl@google.com> - import group sorting is broken - https://bugs.eclipse.org/430303
+ * *****************************************************************************
+ */
 package org.eclipse.jdt.internal.core.dom.rewrite.imports;
 
 /**
@@ -21,21 +23,22 @@ package org.eclipse.jdt.internal.core.dom.rewrite.imports;
  * As the Java Language Specification allows duplicate import declarations, a compilation unit
  * may contain multiple {@code ImportEntry}s with equal {@code ImportName}s.
  */
-abstract class ImportEntry {
-	final ImportName importName;
+abstract public class ImportEntry {
 
-	protected ImportEntry(ImportName importName) {
-		this.importName = importName;
-	}
+    final ImportName importName;
 
-	/**
-	 * Returns true if this import declaration occurred originally (before the rewrite).
-	 */
-	abstract boolean isOriginal();
+    protected ImportEntry(ImportName importName) {
+        this.importName = importName;
+    }
 
-	/**
-	 * If this import declaration occurred originally, returns it as an OriginalImportEntry;
-	 * otherwise throws an exception.
-	 */
-	abstract OriginalImportEntry asOriginalImportEntry();
+    /**
+     * Returns true if this import declaration occurred originally (before the rewrite).
+     */
+    abstract boolean isOriginal();
+
+    /**
+     * If this import declaration occurred originally, returns it as an OriginalImportEntry;
+     * otherwise throws an exception.
+     */
+    abstract OriginalImportEntry asOriginalImportEntry();
 }

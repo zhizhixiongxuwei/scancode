@@ -1,17 +1,19 @@
-/*******************************************************************************
- * Copyright (c) 2006, 2011 QNX Software Systems and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2006, 2011 QNX Software Systems and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Doug Schaefer (QNX) - Initial API and implementation
- *     Markus Schorn (Wind River Systems)
- *******************************************************************************/
+ *  Contributors:
+ *      Doug Schaefer (QNX) - Initial API and implementation
+ *      Markus Schorn (Wind River Systems)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.pdom.dom.cpp;
 
 import org.eclipse.cdt.core.CCorePlugin;
@@ -34,118 +36,118 @@ import org.eclipse.core.runtime.CoreException;
 /**
  * Typedefs for c++
  */
-class PDOMCPPTypedef extends PDOMCPPBinding implements ITypedef, ITypeContainer, IIndexType {
-	private static final int TYPE_OFFSET = PDOMBinding.RECORD_SIZE;
+public class PDOMCPPTypedef extends PDOMCPPBinding implements ITypedef, ITypeContainer, IIndexType {
 
-	@SuppressWarnings("hiding")
-	protected static final int RECORD_SIZE = TYPE_OFFSET + Database.TYPE_SIZE;
+    private static final int TYPE_OFFSET = PDOMBinding.RECORD_SIZE;
 
-	public PDOMCPPTypedef(PDOMLinkage linkage, PDOMNode parent, ITypedef typedef) throws CoreException {
-		super(linkage, parent, typedef.getNameCharArray());
-		setType(parent.getLinkage(), typedef.getType());
-	}
+    @SuppressWarnings("hiding")
+    protected static final int RECORD_SIZE = TYPE_OFFSET + Database.TYPE_SIZE;
 
-	public PDOMCPPTypedef(PDOMLinkage linkage, long record) {
-		super(linkage, record);
-	}
+    public PDOMCPPTypedef(PDOMLinkage linkage, PDOMNode parent, ITypedef typedef) throws CoreException {
+        super(linkage, parent, typedef.getNameCharArray());
+        setType(parent.getLinkage(), typedef.getType());
+    }
 
-	@Override
-	public void update(final PDOMLinkage linkage, IBinding newBinding) throws CoreException {
-		if (newBinding instanceof ITypedef) {
-			ITypedef td = (ITypedef) newBinding;
-			setType(linkage, td.getType());
-		}
-	}
+    public PDOMCPPTypedef(PDOMLinkage linkage, long record) {
+        super(linkage, record);
+    }
 
-	private void setType(final PDOMLinkage linkage, IType newType) throws CoreException {
-		linkage.storeType(record + TYPE_OFFSET, newType);
-		if (introducesRecursion(getType(), getParentNodeRec(), getNameCharArray())) {
-			linkage.storeType(record + TYPE_OFFSET, null);
-		}
-	}
+    @Override
+    public void update(final PDOMLinkage linkage, IBinding newBinding) throws CoreException {
+        if (newBinding instanceof ITypedef) {
+            ITypedef td = (ITypedef) newBinding;
+            setType(linkage, td.getType());
+        }
+    }
 
-	static boolean introducesRecursion(IType type, long parentRec, char[] tdname) {
-		int maxDepth = 50;
-		while (--maxDepth > 0) {
-			if (type instanceof ITypedef) {
-				try {
-					if ((!(type instanceof PDOMNode) || // this should not be the case anyhow
-							((PDOMNode) type).getParentNodeRec() == parentRec)
-							&& CharArrayUtils.equals(((ITypedef) type).getNameCharArray(), tdname)) {
-						return true;
-					}
-				} catch (CoreException e) {
-					return true;
-				}
-			}
-			if (type instanceof ITypeContainer) {
-				type = ((ITypeContainer) type).getType();
-			} else if (type instanceof IFunctionType) {
-				IFunctionType ft = (IFunctionType) type;
-				if (introducesRecursion(ft.getReturnType(), parentRec, tdname)) {
-					return true;
-				}
-				IType[] params = ft.getParameterTypes();
-				for (IType param : params) {
-					if (introducesRecursion(param, parentRec, tdname)) {
-						return true;
-					}
-				}
-				return false;
-			} else {
-				return false;
-			}
-		}
-		return true;
-	}
+    private void setType(final PDOMLinkage linkage, IType newType) throws CoreException {
+        linkage.storeType(record + TYPE_OFFSET, newType);
+        if (introducesRecursion(getType(), getParentNodeRec(), getNameCharArray())) {
+            linkage.storeType(record + TYPE_OFFSET, null);
+        }
+    }
 
-	@Override
-	protected int getRecordSize() {
-		return RECORD_SIZE;
-	}
+    static boolean introducesRecursion(IType type, long parentRec, char[] tdname) {
+        int maxDepth = 50;
+        while (--maxDepth > 0) {
+            if (type instanceof ITypedef) {
+                try {
+                    if ((// this should not be the case anyhow
+                    !(type instanceof PDOMNode) || ((PDOMNode) type).getParentNodeRec() == parentRec) && CharArrayUtils.equals(((ITypedef) type).getNameCharArray(), tdname)) {
+                        return true;
+                    }
+                } catch (CoreException e) {
+                    return true;
+                }
+            }
+            if (type instanceof ITypeContainer) {
+                type = ((ITypeContainer) type).getType();
+            } else if (type instanceof IFunctionType) {
+                IFunctionType ft = (IFunctionType) type;
+                if (introducesRecursion(ft.getReturnType(), parentRec, tdname)) {
+                    return true;
+                }
+                IType[] params = ft.getParameterTypes();
+                for (IType param : params) {
+                    if (introducesRecursion(param, parentRec, tdname)) {
+                        return true;
+                    }
+                }
+                return false;
+            } else {
+                return false;
+            }
+        }
+        return true;
+    }
 
-	@Override
-	public int getNodeType() {
-		return IIndexCPPBindingConstants.CPPTYPEDEF;
-	}
+    @Override
+    protected int getRecordSize() {
+        return RECORD_SIZE;
+    }
 
-	@Override
-	public IType getType() {
-		try {
-			return getLinkage().loadType(record + TYPE_OFFSET);
-		} catch (CoreException e) {
-			CCorePlugin.log(e);
-			return null;
-		}
-	}
+    @Override
+    public int getNodeType() {
+        return IIndexCPPBindingConstants.CPPTYPEDEF;
+    }
 
-	@Override
-	public boolean isSameType(IType type) {
-		IType myrtype = getType();
-		if (myrtype == null)
-			return false;
+    @Override
+    public IType getType() {
+        try {
+            return getLinkage().loadType(record + TYPE_OFFSET);
+        } catch (CoreException e) {
+            CCorePlugin.log(e);
+            return null;
+        }
+    }
 
-		if (type instanceof ITypedef) {
-			type = ((ITypedef) type).getType();
-			if (type == null) {
-				return false;
-			}
-		}
-		return myrtype.isSameType(type);
-	}
+    @Override
+    public boolean isSameType(IType type) {
+        IType myrtype = getType();
+        if (myrtype == null)
+            return false;
+        if (type instanceof ITypedef) {
+            type = ((ITypedef) type).getType();
+            if (type == null) {
+                return false;
+            }
+        }
+        return myrtype.isSameType(type);
+    }
 
-	@Override
-	public void setType(IType type) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public void setType(IType type) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public Object clone() {
-		return new CPPTypedefClone(this);
-	}
+    @Override
+    public Object clone() {
+        return new CPPTypedefClone(this);
+    }
 
-	@Override
-	protected String toStringBase() {
-		return ASTTypeUtil.getQualifiedName(this) + " -> " + super.toStringBase(); //$NON-NLS-1$
-	}
+    @Override
+    protected String toStringBase() {
+        //$NON-NLS-1$
+        return ASTTypeUtil.getQualifiedName(this) + " -> " + super.toStringBase();
+    }
 }

@@ -1,17 +1,19 @@
-/*******************************************************************************
- * Copyright (c) 2005, 2012 IBM Corporation and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2005, 2012 IBM Corporation and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     IBM Corporation - initial API and implementation
- *     Anton Leherbauer (Wind River Systems)
- *******************************************************************************/
+ *  Contributors:
+ *      IBM Corporation - initial API and implementation
+ *      Anton Leherbauer (Wind River Systems)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.parser;
 
 import org.eclipse.cdt.core.parser.CodeReader;
@@ -26,23 +28,27 @@ import org.eclipse.cdt.internal.core.util.ILRUCacheable;
  * @deprecated
  */
 @Deprecated
-class CodeReaderCacheEntry implements ILRUCacheable {
+public class CodeReaderCacheEntry implements ILRUCacheable {
 
-	private static final double CHAR_TO_KB_FACTOR = 1024;
-	CodeReader reader = null;
-	int size = 0; // used to specify the size of the CodeReader in terms of KB
+    private static final double CHAR_TO_KB_FACTOR = 1024;
 
-	public CodeReaderCacheEntry(CodeReader value) {
-		this.reader = value;
-		size = (int) Math.ceil(reader.buffer.length / CHAR_TO_KB_FACTOR); // get the size of the file in terms of KB
-	}
+    CodeReader reader = null;
 
-	@Override
-	public int getCacheFootprint() {
-		return size;
-	}
+    // used to specify the size of the CodeReader in terms of KB
+    int size = 0;
 
-	public CodeReader getCodeReader() {
-		return reader;
-	}
+    public CodeReaderCacheEntry(CodeReader value) {
+        this.reader = value;
+        // get the size of the file in terms of KB
+        size = (int) Math.ceil(reader.buffer.length / CHAR_TO_KB_FACTOR);
+    }
+
+    @Override
+    public int getCacheFootprint() {
+        return size;
+    }
+
+    public CodeReader getCodeReader() {
+        return reader;
+    }
 }

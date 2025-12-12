@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2007, 2013 QNX Software Systems and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2007, 2013 QNX Software Systems and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     QNX - Initial API and implementation
- *******************************************************************************/
+ *  Contributors:
+ *      QNX - Initial API and implementation
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.pdom.dom.cpp;
 
 import org.eclipse.cdt.core.CCorePlugin;
@@ -29,66 +31,68 @@ import org.eclipse.core.runtime.CoreException;
 /**
  * @author Bryan Wilkinson
  */
-class PDOMCPPConstructorSpecialization extends PDOMCPPMethodSpecialization implements ICPPConstructorSpecialization {
-	/** Offset of the constructor chain execution for constexpr constructors. */
-	private static final int CONSTRUCTOR_CHAIN = PDOMCPPMethodSpecialization.RECORD_SIZE + 0; // Database.EXECUTION_SIZE
+public class PDOMCPPConstructorSpecialization extends PDOMCPPMethodSpecialization implements ICPPConstructorSpecialization {
 
-	/**
-	 * The size in bytes of a PDOMCPPConstructorSpecialization record in the database.
-	 */
-	@SuppressWarnings("hiding")
-	protected static final int RECORD_SIZE = CONSTRUCTOR_CHAIN + Database.EXECUTION_SIZE;
+    /**
+     * Offset of the constructor chain execution for constexpr constructors.
+     */
+    // Database.EXECUTION_SIZE
+    private static final int CONSTRUCTOR_CHAIN = PDOMCPPMethodSpecialization.RECORD_SIZE + 0;
 
-	public PDOMCPPConstructorSpecialization(PDOMCPPLinkage linkage, PDOMNode parent, ICPPConstructor constructor,
-			PDOMBinding specialized) throws CoreException {
-		super(linkage, parent, constructor, specialized);
-		linkage.new ConfigureConstructorSpecialization(constructor, this);
-	}
+    /**
+     * The size in bytes of a PDOMCPPConstructorSpecialization record in the database.
+     */
+    @SuppressWarnings("hiding")
+    protected static final int RECORD_SIZE = CONSTRUCTOR_CHAIN + Database.EXECUTION_SIZE;
 
-	public PDOMCPPConstructorSpecialization(PDOMLinkage linkage, long bindingRecord) {
-		super(linkage, bindingRecord);
-	}
+    public PDOMCPPConstructorSpecialization(PDOMCPPLinkage linkage, PDOMNode parent, ICPPConstructor constructor, PDOMBinding specialized) throws CoreException {
+        super(linkage, parent, constructor, specialized);
+        linkage.new ConfigureConstructorSpecialization(constructor, this);
+    }
 
-	public void initConstructorData(ICPPExecution constructorChain) {
-		if (constructorChain == null)
-			return;
-		try {
-			getLinkage().storeExecution(record + CONSTRUCTOR_CHAIN, constructorChain);
-		} catch (CoreException e) {
-			CCorePlugin.log(e);
-		}
-	}
+    public PDOMCPPConstructorSpecialization(PDOMLinkage linkage, long bindingRecord) {
+        super(linkage, bindingRecord);
+    }
 
-	@Override
-	protected int getRecordSize() {
-		return RECORD_SIZE;
-	}
+    public void initConstructorData(ICPPExecution constructorChain) {
+        if (constructorChain == null)
+            return;
+        try {
+            getLinkage().storeExecution(record + CONSTRUCTOR_CHAIN, constructorChain);
+        } catch (CoreException e) {
+            CCorePlugin.log(e);
+        }
+    }
 
-	@Override
-	public int getNodeType() {
-		return IIndexCPPBindingConstants.CPP_CONSTRUCTOR_SPECIALIZATION;
-	}
+    @Override
+    protected int getRecordSize() {
+        return RECORD_SIZE;
+    }
 
-	@Override
-	@Deprecated
-	public ICPPExecution getConstructorChainExecution(IASTNode point) {
-		return getConstructorChainExecution();
-	}
+    @Override
+    public int getNodeType() {
+        return IIndexCPPBindingConstants.CPP_CONSTRUCTOR_SPECIALIZATION;
+    }
 
-	@Override
-	public ICPPExecution getConstructorChainExecution() {
-		if (!isConstexpr())
-			return null;
+    @Override
+    @Deprecated
+    public ICPPExecution getConstructorChainExecution(IASTNode point) {
+        return getConstructorChainExecution();
+    }
 
-		try {
-			ICPPExecution exec = getLinkage().loadExecution(record + CONSTRUCTOR_CHAIN);
-			if (exec == null) {
-				exec = CPPTemplates.instantiateConstructorChain(this);
-			}
-			return exec;
-		} catch (CoreException e) {
-			CCorePlugin.log(e);
-			return null;
-		}
-	}
+    @Override
+    public ICPPExecution getConstructorChainExecution() {
+        if (!isConstexpr())
+            return null;
+        try {
+            ICPPExecution exec = getLinkage().loadExecution(record + CONSTRUCTOR_CHAIN);
+            if (exec == null) {
+                exec = CPPTemplates.instantiateConstructorChain(this);
+            }
+            return exec;
+        } catch (CoreException e) {
+            CCorePlugin.log(e);
+            return null;
+        }
+    }
 }

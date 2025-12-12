@@ -1,22 +1,23 @@
-/*******************************************************************************
- * Copyright (c) 2006, 2015 QNX Software Systems and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2006, 2015 QNX Software Systems and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Doug Schaefer (QNX) - Initial API and implementation
- *     Markus Schorn (Wind River Systems)
- *     Sergey Prigogin (Google)
- *******************************************************************************/
+ *  Contributors:
+ *      Doug Schaefer (QNX) - Initial API and implementation
+ *      Markus Schorn (Wind River Systems)
+ *      Sergey Prigogin (Google)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.pdom.dom.cpp;
 
 import java.util.List;
-
 import org.eclipse.cdt.core.CCorePlugin;
 import org.eclipse.cdt.core.dom.IPDOMNode;
 import org.eclipse.cdt.core.dom.IPDOMVisitor;
@@ -44,222 +45,230 @@ import org.eclipse.core.runtime.CoreException;
 /**
  * Enumerations in the index.
  */
-class PDOMCPPEnumeration extends PDOMCPPBinding implements IPDOMCPPEnumType, IPDOMMemberOwner {
-	private static final int OFFSET_ENUMERATOR_LIST = PDOMBinding.RECORD_SIZE;
-	private static final int OFFSET_MIN_VALUE = OFFSET_ENUMERATOR_LIST + Database.PTR_SIZE;
-	private static final int OFFSET_MAX_VALUE = OFFSET_MIN_VALUE + 8;
-	private static final int OFFSET_FIXED_TYPE = OFFSET_MAX_VALUE + 8;
-	private static final int OFFSET_FLAGS = OFFSET_FIXED_TYPE + Database.TYPE_SIZE;
+public class PDOMCPPEnumeration extends PDOMCPPBinding implements IPDOMCPPEnumType, IPDOMMemberOwner {
 
-	private static final byte FLAG_SCOPED = 0x1;
-	private static final byte FLAG_NODISCARD = 0x2;
+    private static final int OFFSET_ENUMERATOR_LIST = PDOMBinding.RECORD_SIZE;
 
-	@SuppressWarnings("hiding")
-	protected static final int RECORD_SIZE = OFFSET_FLAGS + 1;
+    private static final int OFFSET_MIN_VALUE = OFFSET_ENUMERATOR_LIST + Database.PTR_SIZE;
 
-	private Long fMinValue; // No need for volatile, all fields of Long are final.
-	private Long fMaxValue; // No need for volatile, all fields of Long are final.
-	private volatile IType fFixedType = ProblemBinding.NOT_INITIALIZED;
-	private PDOMCPPEnumScope fScope; // No need for volatile, all fields of PDOMCPPEnumScope are final.
+    private static final int OFFSET_MAX_VALUE = OFFSET_MIN_VALUE + 8;
 
-	public PDOMCPPEnumeration(PDOMLinkage linkage, PDOMNode parent, ICPPEnumeration enumeration) throws CoreException {
-		super(linkage, parent, enumeration.getNameCharArray());
-		storeProperties(enumeration);
-	}
+    private static final int OFFSET_FIXED_TYPE = OFFSET_MAX_VALUE + 8;
 
-	public PDOMCPPEnumeration(PDOMLinkage linkage, long record) {
-		super(linkage, record);
-	}
+    private static final int OFFSET_FLAGS = OFFSET_FIXED_TYPE + Database.TYPE_SIZE;
 
-	@Override
-	public void update(PDOMLinkage linkage, IBinding newBinding) throws CoreException {
-		storeProperties((ICPPEnumeration) newBinding);
-	}
+    private static final byte FLAG_SCOPED = 0x1;
 
-	private void storeProperties(ICPPEnumeration enumeration) throws CoreException {
-		final Database db = getDB();
-		byte flags = 0;
-		if (enumeration.isScoped()) {
-			flags |= FLAG_SCOPED;
-		}
-		if (enumeration.isNoDiscard()) {
-			flags |= FLAG_NODISCARD;
-		}
+    private static final byte FLAG_NODISCARD = 0x2;
 
-		db.putByte(record + OFFSET_FLAGS, flags);
+    @SuppressWarnings("hiding")
+    protected static final int RECORD_SIZE = OFFSET_FLAGS + 1;
 
-		getLinkage().storeType(record + OFFSET_FIXED_TYPE, enumeration.getFixedType());
+    // No need for volatile, all fields of Long are final.
+    private Long fMinValue;
 
-		if (enumeration instanceof ICPPInternalBinding) {
-			if (((ICPPInternalBinding) enumeration).getDefinition() != null) {
-				final long minValue = enumeration.getMinValue();
-				final long maxValue = enumeration.getMaxValue();
-				db.putLong(record + OFFSET_MIN_VALUE, minValue);
-				db.putLong(record + OFFSET_MAX_VALUE, maxValue);
-				fMinValue = minValue;
-				fMaxValue = maxValue;
-			}
-		}
-	}
+    // No need for volatile, all fields of Long are final.
+    private Long fMaxValue;
 
-	@Override
-	protected int getRecordSize() {
-		return RECORD_SIZE;
-	}
+    private volatile IType fFixedType = ProblemBinding.NOT_INITIALIZED;
 
-	@Override
-	public int getNodeType() {
-		return IIndexCPPBindingConstants.CPPENUMERATION;
-	}
+    // No need for volatile, all fields of PDOMCPPEnumScope are final.
+    private PDOMCPPEnumScope fScope;
 
-	@Override
-	public IEnumerator[] getEnumerators() {
-		return PDOMCPPEnumScope.getEnumerators(this);
-	}
+    public PDOMCPPEnumeration(PDOMLinkage linkage, PDOMNode parent, ICPPEnumeration enumeration) throws CoreException {
+        super(linkage, parent, enumeration.getNameCharArray());
+        storeProperties(enumeration);
+    }
 
-	@Override
-	public void accept(IPDOMVisitor visitor) throws CoreException {
-		PDOMCPPEnumScope.acceptViaCache(this, visitor);
-	}
+    public PDOMCPPEnumeration(PDOMLinkage linkage, long record) {
+        super(linkage, record);
+    }
 
-	@Override
-	public void addChild(PDOMNode node) throws CoreException {
-		if (node instanceof PDOMCPPEnumerator) {
-			PDOMNodeLinkedList list = new PDOMNodeLinkedList(getLinkage(), record + OFFSET_ENUMERATOR_LIST);
-			list.addMember(node);
-			PDOMCPPEnumScope.updateCache(this, (IPDOMCPPEnumerator) node);
-		}
-	}
+    @Override
+    public void update(PDOMLinkage linkage, IBinding newBinding) throws CoreException {
+        storeProperties((ICPPEnumeration) newBinding);
+    }
 
-	@Override
-	public boolean mayHaveChildren() {
-		return true;
-	}
+    private void storeProperties(ICPPEnumeration enumeration) throws CoreException {
+        final Database db = getDB();
+        byte flags = 0;
+        if (enumeration.isScoped()) {
+            flags |= FLAG_SCOPED;
+        }
+        if (enumeration.isNoDiscard()) {
+            flags |= FLAG_NODISCARD;
+        }
+        db.putByte(record + OFFSET_FLAGS, flags);
+        getLinkage().storeType(record + OFFSET_FIXED_TYPE, enumeration.getFixedType());
+        if (enumeration instanceof ICPPInternalBinding) {
+            if (((ICPPInternalBinding) enumeration).getDefinition() != null) {
+                final long minValue = enumeration.getMinValue();
+                final long maxValue = enumeration.getMaxValue();
+                db.putLong(record + OFFSET_MIN_VALUE, minValue);
+                db.putLong(record + OFFSET_MAX_VALUE, maxValue);
+                fMinValue = minValue;
+                fMaxValue = maxValue;
+            }
+        }
+    }
 
-	@Override
-	public boolean isSameType(IType type) {
-		if (type instanceof ITypedef) {
-			return type.isSameType(this);
-		}
+    @Override
+    protected int getRecordSize() {
+        return RECORD_SIZE;
+    }
 
-		if (type instanceof PDOMNode) {
-			PDOMNode node = (PDOMNode) type;
-			if (node.getPDOM() == getPDOM()) {
-				return node.getRecord() == getRecord();
-			}
-		}
+    @Override
+    public int getNodeType() {
+        return IIndexCPPBindingConstants.CPPENUMERATION;
+    }
 
-		if (type instanceof IEnumeration) {
-			IEnumeration etype = (IEnumeration) type;
-			char[] nchars = etype.getNameCharArray();
-			if (nchars.length == 0) {
-				nchars = ASTTypeUtil.createNameForAnonymous(etype);
-			}
-			if (nchars == null || !CharArrayUtils.equals(nchars, getNameCharArray()))
-				return false;
+    @Override
+    public IEnumerator[] getEnumerators() {
+        return PDOMCPPEnumScope.getEnumerators(this);
+    }
 
-			return SemanticUtil.haveSameOwner(this, etype);
-		}
-		return false;
-	}
+    @Override
+    public void accept(IPDOMVisitor visitor) throws CoreException {
+        PDOMCPPEnumScope.acceptViaCache(this, visitor);
+    }
 
-	@Override
-	public long getMinValue() {
-		if (fMinValue != null) {
-			return fMinValue.longValue();
-		}
-		long minValue = 0;
-		try {
-			minValue = getDB().getLong(record + OFFSET_MIN_VALUE);
-		} catch (CoreException e) {
-		}
-		fMinValue = minValue;
-		return minValue;
-	}
+    @Override
+    public void addChild(PDOMNode node) throws CoreException {
+        if (node instanceof PDOMCPPEnumerator) {
+            PDOMNodeLinkedList list = new PDOMNodeLinkedList(getLinkage(), record + OFFSET_ENUMERATOR_LIST);
+            list.addMember(node);
+            PDOMCPPEnumScope.updateCache(this, (IPDOMCPPEnumerator) node);
+        }
+    }
 
-	@Override
-	public long getMaxValue() {
-		if (fMaxValue != null) {
-			return fMaxValue.longValue();
-		}
-		long maxValue = 0;
-		try {
-			maxValue = getDB().getLong(record + OFFSET_MAX_VALUE);
-		} catch (CoreException e) {
-		}
-		fMaxValue = maxValue;
-		return maxValue;
-	}
+    @Override
+    public boolean mayHaveChildren() {
+        return true;
+    }
 
-	@Override
-	public Object clone() {
-		throw new IllegalArgumentException("Enums must not be cloned"); //$NON-NLS-1$
-	}
+    @Override
+    public boolean isSameType(IType type) {
+        if (type instanceof ITypedef) {
+            return type.isSameType(this);
+        }
+        if (type instanceof PDOMNode) {
+            PDOMNode node = (PDOMNode) type;
+            if (node.getPDOM() == getPDOM()) {
+                return node.getRecord() == getRecord();
+            }
+        }
+        if (type instanceof IEnumeration) {
+            IEnumeration etype = (IEnumeration) type;
+            char[] nchars = etype.getNameCharArray();
+            if (nchars.length == 0) {
+                nchars = ASTTypeUtil.createNameForAnonymous(etype);
+            }
+            if (nchars == null || !CharArrayUtils.equals(nchars, getNameCharArray()))
+                return false;
+            return SemanticUtil.haveSameOwner(this, etype);
+        }
+        return false;
+    }
 
-	@Override
-	public boolean isScoped() {
-		try {
-			byte flags = getDB().getByte(record + OFFSET_FLAGS);
-			return (flags & FLAG_SCOPED) != 0;
-		} catch (CoreException e) {
-			return false;
-		}
-	}
+    @Override
+    public long getMinValue() {
+        if (fMinValue != null) {
+            return fMinValue.longValue();
+        }
+        long minValue = 0;
+        try {
+            minValue = getDB().getLong(record + OFFSET_MIN_VALUE);
+        } catch (CoreException e) {
+        }
+        fMinValue = minValue;
+        return minValue;
+    }
 
-	@Override
-	public boolean isNoDiscard() {
-		try {
-			byte flags = getDB().getByte(record + OFFSET_FLAGS);
-			return (flags & FLAG_NODISCARD) != 0;
-		} catch (CoreException e) {
-			return false;
-		}
-	}
+    @Override
+    public long getMaxValue() {
+        if (fMaxValue != null) {
+            return fMaxValue.longValue();
+        }
+        long maxValue = 0;
+        try {
+            maxValue = getDB().getLong(record + OFFSET_MAX_VALUE);
+        } catch (CoreException e) {
+        }
+        fMaxValue = maxValue;
+        return maxValue;
+    }
 
-	@Override
-	public IType getFixedType() {
-		if (fFixedType == ProblemBinding.NOT_INITIALIZED) {
-			fFixedType = loadFixedType();
-		}
-		return fFixedType;
-	}
+    @Override
+    public Object clone() {
+        //$NON-NLS-1$
+        throw new IllegalArgumentException("Enums must not be cloned");
+    }
 
-	private IType loadFixedType() {
-		try {
-			return getLinkage().loadType(record + OFFSET_FIXED_TYPE);
-		} catch (CoreException e) {
-			CCorePlugin.log(e);
-			return null;
-		}
-	}
+    @Override
+    public boolean isScoped() {
+        try {
+            byte flags = getDB().getByte(record + OFFSET_FLAGS);
+            return (flags & FLAG_SCOPED) != 0;
+        } catch (CoreException e) {
+            return false;
+        }
+    }
 
-	@Override
-	public ICPPScope asScope() {
-		if (fScope == null) {
-			fScope = new PDOMCPPEnumScope(this);
-		}
-		return fScope;
-	}
+    @Override
+    public boolean isNoDiscard() {
+        try {
+            byte flags = getDB().getByte(record + OFFSET_FLAGS);
+            return (flags & FLAG_NODISCARD) != 0;
+        } catch (CoreException e) {
+            return false;
+        }
+    }
 
-	@Override
-	public void loadEnumerators(final List<IPDOMCPPEnumerator> enumerators) {
-		try {
-			PDOMNodeLinkedList list = new PDOMNodeLinkedList(getLinkage(), record + OFFSET_ENUMERATOR_LIST);
-			list.accept(new IPDOMVisitor() {
-				@Override
-				public boolean visit(IPDOMNode node) throws CoreException {
-					if (node instanceof IPDOMCPPEnumerator) {
-						enumerators.add((IPDOMCPPEnumerator) node);
-					}
-					return true;
-				}
+    @Override
+    public IType getFixedType() {
+        if (fFixedType == ProblemBinding.NOT_INITIALIZED) {
+            fFixedType = loadFixedType();
+        }
+        return fFixedType;
+    }
 
-				@Override
-				public void leave(IPDOMNode node) {
-				}
-			});
-		} catch (CoreException e) {
-			CCorePlugin.log(e);
-		}
-	}
+    private IType loadFixedType() {
+        try {
+            return getLinkage().loadType(record + OFFSET_FIXED_TYPE);
+        } catch (CoreException e) {
+            CCorePlugin.log(e);
+            return null;
+        }
+    }
+
+    @Override
+    public ICPPScope asScope() {
+        if (fScope == null) {
+            fScope = new PDOMCPPEnumScope(this);
+        }
+        return fScope;
+    }
+
+    @Override
+    public void loadEnumerators(final List<IPDOMCPPEnumerator> enumerators) {
+        try {
+            PDOMNodeLinkedList list = new PDOMNodeLinkedList(getLinkage(), record + OFFSET_ENUMERATOR_LIST);
+            list.accept(new IPDOMVisitor() {
+
+                @Override
+                public boolean visit(IPDOMNode node) throws CoreException {
+                    if (node instanceof IPDOMCPPEnumerator) {
+                        enumerators.add((IPDOMCPPEnumerator) node);
+                    }
+                    return true;
+                }
+
+                @Override
+                public void leave(IPDOMNode node) {
+                }
+            });
+        } catch (CoreException e) {
+            CCorePlugin.log(e);
+        }
+    }
 }

@@ -1,17 +1,19 @@
-/*******************************************************************************
- * Copyright (c) 2007, 2013 QNX Software Systems and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2007, 2013 QNX Software Systems and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     QNX - Initial API and implementation
- *     Markus Schorn (Wind River Systems)
- *******************************************************************************/
+ *  Contributors:
+ *      QNX - Initial API and implementation
+ *      Markus Schorn (Wind River Systems)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.pdom.dom.cpp;
 
 import org.eclipse.cdt.core.dom.ast.cpp.ICPPFunctionTemplate;
@@ -31,41 +33,39 @@ import org.eclipse.core.runtime.CoreException;
  *
  * @author Bryan Wilkinson
  */
-class PDOMCPPFunctionTemplateSpecialization extends PDOMCPPFunctionSpecialization
-		implements ICPPFunctionTemplate, ICPPInstanceCache, IPDOMMemberOwner {
+public class PDOMCPPFunctionTemplateSpecialization extends PDOMCPPFunctionSpecialization implements ICPPFunctionTemplate, ICPPInstanceCache, IPDOMMemberOwner {
 
-	public PDOMCPPFunctionTemplateSpecialization(PDOMCPPLinkage linkage, PDOMNode parent, ICPPFunctionTemplate template,
-			PDOMBinding specialized) throws CoreException {
-		super(linkage, parent, template, specialized);
-	}
+    public PDOMCPPFunctionTemplateSpecialization(PDOMCPPLinkage linkage, PDOMNode parent, ICPPFunctionTemplate template, PDOMBinding specialized) throws CoreException {
+        super(linkage, parent, template, specialized);
+    }
 
-	public PDOMCPPFunctionTemplateSpecialization(PDOMLinkage linkage, long bindingRecord) {
-		super(linkage, bindingRecord);
-	}
+    public PDOMCPPFunctionTemplateSpecialization(PDOMLinkage linkage, long bindingRecord) {
+        super(linkage, bindingRecord);
+    }
 
-	@Override
-	public int getNodeType() {
-		return IIndexCPPBindingConstants.CPP_FUNCTION_TEMPLATE_SPECIALIZATION;
-	}
+    @Override
+    public int getNodeType() {
+        return IIndexCPPBindingConstants.CPP_FUNCTION_TEMPLATE_SPECIALIZATION;
+    }
 
-	@Override
-	public ICPPTemplateParameter[] getTemplateParameters() {
-		ICPPFunctionTemplate template = (ICPPFunctionTemplate) getSpecializedBinding();
-		return template.getTemplateParameters();
-	}
+    @Override
+    public ICPPTemplateParameter[] getTemplateParameters() {
+        ICPPFunctionTemplate template = (ICPPFunctionTemplate) getSpecializedBinding();
+        return template.getTemplateParameters();
+    }
 
-	@Override
-	public ICPPTemplateInstance getInstance(ICPPTemplateArgument[] arguments) {
-		return PDOMInstanceCache.getCache(this).getInstance(arguments);
-	}
+    @Override
+    public ICPPTemplateInstance getInstance(ICPPTemplateArgument[] arguments) {
+        return PDOMInstanceCache.getCache(this).getInstance(arguments);
+    }
 
-	@Override
-	public void addInstance(ICPPTemplateArgument[] arguments, ICPPTemplateInstance instance) {
-		PDOMInstanceCache.getCache(this).addInstance(arguments, instance);
-	}
+    @Override
+    public void addInstance(ICPPTemplateArgument[] arguments, ICPPTemplateInstance instance) {
+        PDOMInstanceCache.getCache(this).addInstance(arguments, instance);
+    }
 
-	@Override
-	public ICPPTemplateInstance[] getAllInstances() {
-		return PDOMInstanceCache.getCache(this).getAllInstances();
-	}
+    @Override
+    public ICPPTemplateInstance[] getAllInstances() {
+        return PDOMInstanceCache.getCache(this).getAllInstances();
+    }
 }

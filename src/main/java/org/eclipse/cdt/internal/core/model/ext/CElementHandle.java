@@ -1,23 +1,24 @@
-/*******************************************************************************
- * Copyright (c) 2006, 2015 Wind River Systems, Inc. and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2006, 2015 Wind River Systems, Inc. and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     Markus Schorn - initial API and implementation
- *     Anton Leherbauer (Wind River Systems)
- *******************************************************************************/
+ *  Contributors:
+ *      Markus Schorn - initial API and implementation
+ *      Anton Leherbauer (Wind River Systems)
+ * *****************************************************************************
+ */
 package org.eclipse.cdt.internal.core.model.ext;
 
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
-
 import org.eclipse.cdt.core.CCorePlugin;
 import org.eclipse.cdt.core.IPositionConverter;
 import org.eclipse.cdt.core.dom.ast.ASTTypeUtil;
@@ -42,301 +43,308 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 
-abstract class CElementHandle implements ICElementHandle, ISourceReference {
-	protected static final String[] EMPTY_STRING_ARRAY = {};
-	private static final ICElement[] NO_CHILDREN = {};
+abstract public class CElementHandle implements ICElementHandle, ISourceReference {
 
-	private ICElement fParent;
-	private String fName;
-	private int fType;
+    protected static final String[] EMPTY_STRING_ARRAY = {};
 
-	private IRegion fRegion;
-	private long fTimestamp;
-	private int fIndex;
+    private static final ICElement[] NO_CHILDREN = {};
 
-	public CElementHandle(ICElement parent, int type, String name) {
-		fParent = parent;
-		fType = type;
-		// Anonymous types are assigned a name in the index, we undo this here.
-		if (name.length() > 0 && name.charAt(0) == '{') {
-			fName = ""; //$NON-NLS-1$
-			fIndex = name.hashCode();
-		} else {
-			fName = name;
-		}
-		fRegion = new Region(0, 0);
-	}
+    private ICElement fParent;
 
-	@Override
-	public boolean equals(Object obj) {
-		if (obj instanceof ICElement) {
-			return CElement.equals(this, (ICElement) obj);
-		}
-		return false;
-	}
+    private String fName;
 
-	@Override
-	public int hashCode() {
-		return CElement.hashCode(this);
-	}
+    private int fType;
 
-	@Override
-	public <T> T getAdapter(Class<T> adapter) {
-		return null;
-	}
+    private IRegion fRegion;
 
-	public void setRangeOfID(IRegion region, long timestamp) {
-		fRegion = region;
-		fTimestamp = timestamp;
-	}
+    private long fTimestamp;
 
-	@Override
-	public ISourceRange getSourceRange() throws CModelException {
-		IRegion region = fRegion;
-		ITranslationUnit tu = getTranslationUnit();
-		if (tu != null) {
-			IPositionConverter converter = CCorePlugin.getPositionTrackerManager().findPositionConverter(tu,
-					fTimestamp);
-			if (converter != null) {
-				region = converter.historicToActual(region);
-			}
-		}
-		int startpos = region.getOffset();
-		int length = region.getLength();
-		return new SourceRange(startpos, length);
-	}
+    private int fIndex;
 
-	@Override
-	public String getSource() throws CModelException {
-		return null;
-	}
+    public CElementHandle(ICElement parent, int type, String name) {
+        fParent = parent;
+        fType = type;
+        // Anonymous types are assigned a name in the index, we undo this here.
+        if (name.length() > 0 && name.charAt(0) == '{') {
+            //$NON-NLS-1$
+            fName = "";
+            fIndex = name.hashCode();
+        } else {
+            fName = name;
+        }
+        fRegion = new Region(0, 0);
+    }
 
-	@Override
-	public ITranslationUnit getTranslationUnit() {
-		ICElement parent = fParent;
-		do {
-			if (parent instanceof ITranslationUnit) {
-				return (ITranslationUnit) parent;
-			}
-			parent = parent.getParent();
-		} while (parent != null);
-		return null;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof ICElement) {
+            return CElement.equals(this, (ICElement) obj);
+        }
+        return false;
+    }
 
-	@Override
-	public void accept(ICElementVisitor visitor) throws CoreException {
-	}
+    @Override
+    public int hashCode() {
+        return CElement.hashCode(this);
+    }
 
-	@Override
-	public boolean exists() {
-		return true;
-	}
+    @Override
+    public <T> T getAdapter(Class<T> adapter) {
+        return null;
+    }
 
-	@Override
-	public ICElement getAncestor(int ancestorType) {
-		return null;
-	}
+    public void setRangeOfID(IRegion region, long timestamp) {
+        fRegion = region;
+        fTimestamp = timestamp;
+    }
 
-	@Override
-	public ICModel getCModel() {
-		return fParent.getCModel();
-	}
+    @Override
+    public ISourceRange getSourceRange() throws CModelException {
+        IRegion region = fRegion;
+        ITranslationUnit tu = getTranslationUnit();
+        if (tu != null) {
+            IPositionConverter converter = CCorePlugin.getPositionTrackerManager().findPositionConverter(tu, fTimestamp);
+            if (converter != null) {
+                region = converter.historicToActual(region);
+            }
+        }
+        int startpos = region.getOffset();
+        int length = region.getLength();
+        return new SourceRange(startpos, length);
+    }
 
-	@Override
-	public ICProject getCProject() {
-		return fParent.getCProject();
-	}
+    @Override
+    public String getSource() throws CModelException {
+        return null;
+    }
 
-	@Override
-	public String getElementName() {
-		return fName;
-	}
+    @Override
+    public ITranslationUnit getTranslationUnit() {
+        ICElement parent = fParent;
+        do {
+            if (parent instanceof ITranslationUnit) {
+                return (ITranslationUnit) parent;
+            }
+            parent = parent.getParent();
+        } while (parent != null);
+        return null;
+    }
 
-	@Override
-	public int getElementType() {
-		return fType;
-	}
+    @Override
+    public void accept(ICElementVisitor visitor) throws CoreException {
+    }
 
-	@Override
-	public ICElement getParent() {
-		return fParent;
-	}
+    @Override
+    public boolean exists() {
+        return true;
+    }
 
-	@Override
-	public IPath getPath() {
-		return getTranslationUnit().getPath();
-	}
+    @Override
+    public ICElement getAncestor(int ancestorType) {
+        return null;
+    }
 
-	@Override
-	public URI getLocationURI() {
-		return getTranslationUnit().getLocationURI();
-	}
+    @Override
+    public ICModel getCModel() {
+        return fParent.getCModel();
+    }
 
-	@Override
-	public IResource getResource() {
-		return getTranslationUnit().getResource();
-	}
+    @Override
+    public ICProject getCProject() {
+        return fParent.getCProject();
+    }
 
-	@Override
-	public IResource getUnderlyingResource() {
-		return getResource();
-	}
+    @Override
+    public String getElementName() {
+        return fName;
+    }
 
-	@Override
-	public boolean isReadOnly() {
-		return true;
-	}
+    @Override
+    public int getElementType() {
+        return fType;
+    }
 
-	@Override
-	public boolean isStructureKnown() throws CModelException {
-		return false;
-	}
+    @Override
+    public ICElement getParent() {
+        return fParent;
+    }
 
-	public void copy(ICElement container, ICElement sibling, String rename, boolean replace, IProgressMonitor monitor)
-			throws CModelException {
-	}
+    @Override
+    public IPath getPath() {
+        return getTranslationUnit().getPath();
+    }
 
-	public void delete(boolean force, IProgressMonitor monitor) throws CModelException {
-	}
+    @Override
+    public URI getLocationURI() {
+        return getTranslationUnit().getLocationURI();
+    }
 
-	public void move(ICElement container, ICElement sibling, String rename, boolean replace, IProgressMonitor monitor)
-			throws CModelException {
-	}
+    @Override
+    public IResource getResource() {
+        return getTranslationUnit().getResource();
+    }
 
-	public void rename(String name, boolean replace, IProgressMonitor monitor) throws CModelException {
-	}
+    @Override
+    public IResource getUnderlyingResource() {
+        return getResource();
+    }
 
-	public void setTypeName(String type) throws CModelException {
-	}
+    @Override
+    public boolean isReadOnly() {
+        return true;
+    }
 
-	public String getTypeName() {
-		return ""; //$NON-NLS-1$
-	}
+    @Override
+    public boolean isStructureKnown() throws CModelException {
+        return false;
+    }
 
-	public ICElement[] getChildren() throws CModelException {
-		return NO_CHILDREN;
-	}
+    public void copy(ICElement container, ICElement sibling, String rename, boolean replace, IProgressMonitor monitor) throws CModelException {
+    }
 
-	public List<ICElement> getChildrenOfType(int type) throws CModelException {
-		return Collections.emptyList();
-	}
+    public void delete(boolean force, IProgressMonitor monitor) throws CModelException {
+    }
 
-	public boolean hasChildren() {
-		return false;
-	}
+    public void move(ICElement container, ICElement sibling, String rename, boolean replace, IProgressMonitor monitor) throws CModelException {
+    }
 
-	public String[] getExceptions() {
-		return EMPTY_STRING_ARRAY;
-	}
+    public void rename(String name, boolean replace, IProgressMonitor monitor) throws CModelException {
+    }
 
-	public String getParameterInitializer(int pos) {
-		return ""; //$NON-NLS-1$
-	}
+    public void setTypeName(String type) throws CModelException {
+    }
 
-	public boolean isConst() {
-		return false;
-	}
+    public String getTypeName() {
+        //$NON-NLS-1$
+        return "";
+    }
 
-	public boolean isVolatile() throws CModelException {
-		return false;
-	}
+    public ICElement[] getChildren() throws CModelException {
+        return NO_CHILDREN;
+    }
 
-	public boolean isFriend() throws CModelException {
-		return false;
-	}
+    public List<ICElement> getChildrenOfType(int type) throws CModelException {
+        return Collections.emptyList();
+    }
 
-	public boolean isInline() throws CModelException {
-		return false;
-	}
+    public boolean hasChildren() {
+        return false;
+    }
 
-	public boolean isOperator() throws CModelException {
-		return false;
-	}
+    public String[] getExceptions() {
+        return EMPTY_STRING_ARRAY;
+    }
 
-	public boolean isPureVirtual() throws CModelException {
-		return false;
-	}
+    public String getParameterInitializer(int pos) {
+        //$NON-NLS-1$
+        return "";
+    }
 
-	public boolean isVirtual() throws CModelException {
-		return false;
-	}
+    public boolean isConst() {
+        return false;
+    }
 
-	public boolean isMutable() throws CModelException {
-		return false;
-	}
+    public boolean isVolatile() throws CModelException {
+        return false;
+    }
 
-	public String getInitializer() {
-		return null;
-	}
+    public boolean isFriend() throws CModelException {
+        return false;
+    }
 
-	public boolean isAbstract() throws CModelException {
-		return false;
-	}
+    public boolean isInline() throws CModelException {
+        return false;
+    }
 
-	public ASTAccessVisibility getSuperClassAccess(String name) {
-		return ASTAccessVisibility.PUBLIC;
-	}
+    public boolean isOperator() throws CModelException {
+        return false;
+    }
 
-	public String[] getSuperClassesNames() {
-		return EMPTY_STRING_ARRAY;
-	}
+    public boolean isPureVirtual() throws CModelException {
+        return false;
+    }
 
-	protected String[] extractParameterTypes(IFunction func) {
-		IParameter[] params = func.getParameters();
-		String[] parameterTypes = new String[params.length];
-		for (int i = 0; i < params.length; i++) {
-			IParameter param = params[i];
-			parameterTypes[i] = ASTTypeUtil.getType(param.getType(), false);
-		}
-		if (parameterTypes.length == 1 && parameterTypes[0].equals("void")) { //$NON-NLS-1$
-			return EMPTY_STRING_ARRAY;
-		}
-		return parameterTypes;
-	}
+    public boolean isVirtual() throws CModelException {
+        return false;
+    }
 
-	protected ASTAccessVisibility getVisibility(IBinding binding) {
-		if (binding instanceof ICPPMember) {
-			ICPPMember member = (ICPPMember) binding;
-			switch (member.getVisibility()) {
-			case ICPPMember.v_private:
-				return ASTAccessVisibility.PRIVATE;
-			case ICPPMember.v_protected:
-				return ASTAccessVisibility.PROTECTED;
-			case ICPPMember.v_public:
-				return ASTAccessVisibility.PUBLIC;
-			}
-		}
-		return ASTAccessVisibility.PUBLIC;
-	}
+    public boolean isMutable() throws CModelException {
+        return false;
+    }
 
-	/**
-	 * @see ICElement
-	 */
-	@Override
-	public String getHandleIdentifier() {
-		ICElement cModelElement = mapToModelElement();
-		if (cModelElement != null) {
-			return cModelElement.getHandleIdentifier();
-		}
-		return null;
-	}
+    public String getInitializer() {
+        return null;
+    }
 
-	private ICElement mapToModelElement() {
-		try {
-			ISourceRange range = getSourceRange();
-			return getTranslationUnit().getElementAtOffset(range.getIdStartPos());
-		} catch (CModelException exc) {
-			return null;
-		}
-	}
+    public boolean isAbstract() throws CModelException {
+        return false;
+    }
 
-	@Override
-	public boolean isActive() {
-		return true;
-	}
+    public ASTAccessVisibility getSuperClassAccess(String name) {
+        return ASTAccessVisibility.PUBLIC;
+    }
 
-	@Override
-	public int getIndex() {
-		return fIndex;
-	}
+    public String[] getSuperClassesNames() {
+        return EMPTY_STRING_ARRAY;
+    }
+
+    protected String[] extractParameterTypes(IFunction func) {
+        IParameter[] params = func.getParameters();
+        String[] parameterTypes = new String[params.length];
+        for (int i = 0; i < params.length; i++) {
+            IParameter param = params[i];
+            parameterTypes[i] = ASTTypeUtil.getType(param.getType(), false);
+        }
+        if (parameterTypes.length == 1 && parameterTypes[0].equals("void")) {
+            //$NON-NLS-1$
+            return EMPTY_STRING_ARRAY;
+        }
+        return parameterTypes;
+    }
+
+    protected ASTAccessVisibility getVisibility(IBinding binding) {
+        if (binding instanceof ICPPMember) {
+            ICPPMember member = (ICPPMember) binding;
+            switch(member.getVisibility()) {
+                case ICPPMember.v_private:
+                    return ASTAccessVisibility.PRIVATE;
+                case ICPPMember.v_protected:
+                    return ASTAccessVisibility.PROTECTED;
+                case ICPPMember.v_public:
+                    return ASTAccessVisibility.PUBLIC;
+            }
+        }
+        return ASTAccessVisibility.PUBLIC;
+    }
+
+    /**
+     * @see ICElement
+     */
+    @Override
+    public String getHandleIdentifier() {
+        ICElement cModelElement = mapToModelElement();
+        if (cModelElement != null) {
+            return cModelElement.getHandleIdentifier();
+        }
+        return null;
+    }
+
+    private ICElement mapToModelElement() {
+        try {
+            ISourceRange range = getSourceRange();
+            return getTranslationUnit().getElementAtOffset(range.getIdStartPos());
+        } catch (CModelException exc) {
+            return null;
+        }
+    }
+
+    @Override
+    public boolean isActive() {
+        return true;
+    }
+
+    @Override
+    public int getIndex() {
+        return fIndex;
+    }
 }

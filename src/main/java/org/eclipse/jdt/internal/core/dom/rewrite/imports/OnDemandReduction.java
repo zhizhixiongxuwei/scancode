@@ -1,16 +1,18 @@
-/*******************************************************************************
- * Copyright (c) 2015 Google Inc and others.
+/**
+ * ****************************************************************************
+ *  Copyright (c) 2015 Google Inc and others.
  *
- * This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License 2.0
- * which accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
+ *  This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License 2.0
+ *  which accompanies this distribution, and is available at
+ *  https://www.eclipse.org/legal/epl-2.0/
  *
- * SPDX-License-Identifier: EPL-2.0
+ *  SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *     John Glassmyer <jogl@google.com> - import group sorting is broken - https://bugs.eclipse.org/430303
- *******************************************************************************/
+ *  Contributors:
+ *      John Glassmyer <jogl@google.com> - import group sorting is broken - https://bugs.eclipse.org/430303
+ * *****************************************************************************
+ */
 package org.eclipse.jdt.internal.core.dom.rewrite.imports;
 
 import java.util.ArrayList;
@@ -26,17 +28,20 @@ import java.util.Collections;
  * from the compilation unit and adding a declaration of {@code containerOnDemand} to the
  * compilation unit if one is not already present.
  */
-class OnDemandReduction {
-	final ImportName containerOnDemand;
-	final Collection<ImportName> reducibleImports;
+public class OnDemandReduction {
 
-	OnDemandReduction(ImportName containerName, Collection<ImportName> reducibleImports) {
-		this.containerOnDemand = containerName;
-		this.reducibleImports = Collections.unmodifiableCollection(new ArrayList<>(reducibleImports));
-	}
+    final ImportName containerOnDemand;
 
-	@Override
-	public String toString() {
-		return String.format("{%s: %s}", this.containerOnDemand.containerName, this.reducibleImports); //$NON-NLS-1$
-	}
+    final Collection<ImportName> reducibleImports;
+
+    OnDemandReduction(ImportName containerName, Collection<ImportName> reducibleImports) {
+        this.containerOnDemand = containerName;
+        this.reducibleImports = Collections.unmodifiableCollection(new ArrayList<>(reducibleImports));
+    }
+
+    @Override
+    public String toString() {
+        //$NON-NLS-1$
+        return String.format("{%s: %s}", this.containerOnDemand.containerName, this.reducibleImports);
+    }
 }
